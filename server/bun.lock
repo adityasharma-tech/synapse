@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "agoracode-server",
+      "name": "synapse-server",
       "dependencies": {
         "@types/morgan": "^1.9.9",
         "bufferutil": "^4.0.9",
