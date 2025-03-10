@@ -1,13 +1,64 @@
-# Folder structure
-- Extension
-- Server
-- Web
+##  ☁️ Server setup
+### Config
+- **BASE_URL = **/api/v1
+- **DATABASE = **postgres
+- **PAYMENT_PAYOUT_GATEWAY =** cashfree
+- **CACHE_DB =** redis
+- **MAIL_TRANSPORTER =** mailgun
+### Routes
+ 🛣️ **Auth Routes**
 
-### Steps:
-0. Create a server where admin can continuously throw files data and terminal data to the mongodb.
+- [ ] /auth/verify `GET`  
+- [ ] /auth/login  `POST`  
+- [ ] /auth/register  `POST`
+- [ ] /auth/resend-email `POST`
 
-1. Create a vscode extension which will throw file [create delete update] information to the server and store it in mongodb through websockets and also read stats information from the server.
+🛣️ **User Routes**
 
-2. Create a web app where user can see all the admin files and update in realtime by polling every 2-3 seconds, also both admin and own output are available there.
+- [ ] /user  `GET` 
+- [ ] /user  `PUT`                         _// updates the user data except password_
+- [ ] /user/reset-password `PUT` 
+- [ ] /user/forgot-password  `POST` 
+- [ ] /user/restrict-account `DELETE` 
+🛣️ **Streamer Routes**
 
-3. Reader (user) can also modify the files but it will save to her directory not to the server.
+- [ ] /streamer/block-user `POST`     // block a user from messaging
+- [ ] /streamer/stream `POST`            // create new stream for streaming
+- [ ] /streamer/stream/:id `DELETE`         // delete the chat streaming server
+🛣️ **Payout Routes (Payment gateway verfied route)**
+
+- [ ] /payout/beneficiary `GET`  // get beneficiary details
+- [ ] /payout/beneficiary `POST`  // create new beneficiary
+- [ ] /payout/update-beneficiary `POST`  // delete old beneficiary and create new with the same id
+- [ ] /payout/beneficiary `DELETE`  // remove the beneficiary
+- [ ] /payout/verify-beneficiary-details  `POST`  // verify beneficiary details by aadhar, pan, bank account, UPI  verify
+- [ ] /payout/beneficiary-history `GET`  // get all beneficiary history
+- [ ] /payout/standard-transfer `POST`  // create standard payment transfer to beneficiary account.
+🌉** Middleware**
+
+- [ ] express authentication middleware
+- [ ] [socket.io](https://socket.io/) authentication middleware
+
+
+## 💻 Web client setup
+### 🛣️ Routes
+- [ ] /auth/login
+- [ ] /auth/verify
+- [ ] /auth/register
+- [ ] /auth/resend-email
+- [ ] /profile
+- [ ] /profile/reset-password
+- [ ] /stream/`:id` 
+- [ ] /dashboard
+- [ ] /dashboard/stream/`:id` 
+
+
+## 📝 Notes
+- Use zod
+- postgres db
+- redis for socketio management
+- admin will be connected through web sockets & can send messages with rest api.
+- users will get data through polling and send payments & messages with rest api.
+- once beneficiary is created we can't update beneficiary details.
+
+
