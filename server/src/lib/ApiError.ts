@@ -11,15 +11,19 @@ class ApiError extends Error {
     errors?: [],
     stack = ""
   ) {
-    super(message);
+    super();
     this.statusCode = statusCode;
     this.data = null;
     this.message = message;
     this.success = false;
     this.errors = errors;
 
-    if (stack) this.stack = stack;
-    else Error.captureStackTrace(this, this.constructor);
+    if (process.env.NODE_ENV == "development") {
+      if (stack) this.stack = stack;
+      else Error.captureStackTrace(this, this.constructor);
+    } else {
+      this.stack = ""
+    }
   }
 }
 

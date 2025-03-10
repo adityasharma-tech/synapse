@@ -13,7 +13,7 @@ const User = t.pgTable('users', {
   phoneNumber: t.varchar({ length: 45 }).notNull(),
   passwordHash: t.varchar().notNull(),
   role: userRolesEnum().default("viewer"),
-  emailVerified: t.boolean(),
+  emailVerified: t.boolean().default(false).notNull(),
   streamingVerificationToken: t.varchar(),
   emailVerificationToken: t.varchar(),
   ...timestamps

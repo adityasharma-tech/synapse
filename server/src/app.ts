@@ -1,4 +1,5 @@
 import http from "http";
+import cors from "cors";
 import morgan from "morgan";
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -34,6 +35,11 @@ const limiter = rateLimit({
 /**
  * middlewares
  */
+app.use(cors({
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  credentials: true,
+  origin: process.env.NODE_ENV == "production" ? process.env.HOST_URL : "*"
+}))
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
@@ -43,10 +49,17 @@ app.use(limiter);
  * Router imports
  */
 import authRouter from "./routes/auth.routes";
+import errorHandler from "./lib/errorHandler";
 
 /**
  * Router handlers
  */
 app.use("/api/v1/auth", authRouter);
+
+
+/**
+ * Error handler
+ */
+app.use(errorHandler);
 
 export default server;

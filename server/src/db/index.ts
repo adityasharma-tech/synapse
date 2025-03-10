@@ -4,13 +4,13 @@ import { Pool } from 'pg';
 export default function establishDbConnection() {
   const pool = new Pool({
     host: process.env.DB_HOST!,
-        port: +process.env.DB_PORT!,
-        database: process.env.DB_NAME!,
-        password: process.env.DB_PASSWORD!,
-        ssl: {
-          ca: process.env.DB_SSL_CA!,
-          rejectUnauthorized: true
-        }
+    port: +process.env.DB_PORT!,
+    database: process.env.DB_NAME!,
+    password: process.env.DB_PASSWORD!,
+    ssl: {
+      ca: process.env.DB_SSL_CA!,
+      rejectUnauthorized: true
+    }
   })
     const db = drizzle({
       client: pool,
