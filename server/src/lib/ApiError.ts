@@ -1,13 +1,13 @@
 class ApiError extends Error {
   statusCode?: number;
   data?: any;
-  message: string = "Success";
+  message: string;
   success?: boolean;
   errors?: any[];
 
   constructor(
     statusCode: number,
-    message: string = "Success",
+    message: string,
     errors?: [],
     stack = ""
   ) {

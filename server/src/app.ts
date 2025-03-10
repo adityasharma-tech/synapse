@@ -42,9 +42,11 @@ app.use(limiter);
 /**
  * Router imports
  */
+import authRouter from "./routes/auth.routes";
 
 /**
  * Router handlers
  */
+app.use("/api/v1/auth", authRouter);
 
 export default server;

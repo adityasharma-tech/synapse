@@ -1,16 +1,20 @@
-import { logger } from "../lib/configs";
 import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 
-export default async function connectToPostgres() {
-  try {
-    const db = drizzle(process.env.DATABASE_URL!, {
+export default function establishDbConnection() {
+  const pool = new Pool({
+    host: process.env.DB_HOST!,
+        port: +process.env.DB_PORT!,
+        database: process.env.DB_NAME!,
+        password: process.env.DB_PASSWORD!,
+        ssl: {
+          ca: process.env.DB_SSL_CA!,
+          rejectUnauthorized: true
+        }
+  })
+    const db = drizzle({
+      client: pool,
       casing: "snake_case"
-    }); 
+    });
     return db
-  } catch (error: any) {
-    logger.error(
-      `Some error during connecting to postgres database: ${error.message}`
-    );
-    process.exit(1);
-  }
 }
