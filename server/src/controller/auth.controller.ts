@@ -185,8 +185,6 @@ const verifyEmailHandler = asyncHandler(async (req, res) => {
 
     const userToken = tokenTables[0];
 
-    userToken
-
     const users = await db
         .select()
         .from(User)
