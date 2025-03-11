@@ -49,17 +49,20 @@ app.use(limiter);
  * Router imports
  */
 import authRouter from "./routes/auth.routes";
-import errorHandler from "./lib/errorHandler";
+import userRouter from "./routes/user.routes";
 
 /**
  * Router handlers
- */
+*/
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/user", userRouter);
 
 
 /**
  * Error handler
- */
+*/
+import errorHandler from "./lib/errorHandler";
 app.use(errorHandler);
 
-export default server;
+
+export default server

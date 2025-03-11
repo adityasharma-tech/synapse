@@ -14,8 +14,6 @@ const User = t.pgTable('users', {
   passwordHash: t.varchar().notNull(),
   role: userRolesEnum().default("viewer"),
   emailVerified: t.boolean().default(false).notNull(),
-  streamingVerificationToken: t.varchar(),
-  emailVerificationToken: t.varchar(),
   ...timestamps
 })
 
