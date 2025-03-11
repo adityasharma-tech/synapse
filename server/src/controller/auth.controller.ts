@@ -10,6 +10,7 @@ import jwt from "jsonwebtoken";
 import crpyto from "crypto"
 import establishDbConnection from "../db";
 import { sendConfirmationMail } from "../services/mail.service";
+import { CookieOptions } from "express";
 
 
 const loginHandler = asyncHandler(async (req, res) => {
@@ -66,10 +67,10 @@ const loginHandler = asyncHandler(async (req, res) => {
 
         res.setHeaders(headers);
 
-        const cookieOptions = {
+        const cookieOptions: CookieOptions = {
             httpOnly: true,
             secure: true,
-            maxAge: 60 * 60 * 12
+            maxAge: 60 * 60 * 12,
         }
 
         res.cookie("accessToken", accessToken, cookieOptions);
@@ -100,10 +101,14 @@ const registerHandler = asyncHandler(async (req, res) => {
                 eq(User.username, username.trim()),
                 eq(User.email, email.trim())
             )
-        )
+        ).execute();
+
+    logger.info(`registerHandler.users: ${JSON.stringify(users)}`)
     if (users.length > 0) throw new ApiError(400, "user already exists with same username or email");
 
-    const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(20))
+    const salt = await bcrypt.genSalt(20)
+
+    const hashedPassword = await bcrypt.hash(password, salt)
 
     const emailVerificationToken = crpyto.randomBytes(20).toString("hex");
 
@@ -135,7 +140,33 @@ const registerHandler = asyncHandler(async (req, res) => {
 })
 
 const verifyEmailHandler = asyncHandler(async (req, res)=>{
-    const {  } = req.body;
+    const { verificationToken } = req.query;
+    if(!verificationToken || verificationToken.toString().trim() == "") throw new ApiError(400, "verification token is a required parameter.");
+
+    const db = establishDbConnection();
+
+    const users = await db
+        .select()
+        .from(User)
+        .where(
+            or(
+                eq(User.emailVerificationToken, verificationToken.toString().trim()),
+            )
+        ).execute();
+    if(users.length <= 0) throw new ApiError(400, "Failed to get user.")
+    
+    const user = users[0];
+    const result = await db
+    .update(User)
+    .set({
+        emailVerified: true,
+        emailVerificationToken: null
+    }).where(eq(User.id, user.id)).execute();
+    if(!result) throw new ApiError(400, "Failed to update user.");
+
+    res.status(400).json(new ApiResponse(200, {
+        result
+    },  "Email verified successfully."))
 })
 
 const resendEmailHandler = asyncHandler(async (req, res)=>{

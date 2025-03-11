@@ -15,7 +15,7 @@ const sendConfirmationMail = async function (email: string, verificationToken: s
         }
         const transporter = nodemailer.createTransport(transportOptions)
 
-        const verificationUrl = `${process.env.HOST_URL}/api/v1/auth/verify/?verification=${verificationToken}`
+        const verificationUrl = `${process.env.HOST_URL}/api/v1/auth/verify/?verificationToken=${verificationToken}`
 
         const mailOptions: SendMailOptions = {
             from: "synapse@mail.adityasharma.live",
