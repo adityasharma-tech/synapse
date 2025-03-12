@@ -19,8 +19,17 @@ const server = http.createServer(app);
 /**
  * Socket io server
  */
-const io = new Server(server);
-io.attach(server);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    credentials: true,
+  },
+  
+});
+
+io.on("connection", (socket)=>{
+  
+})
 
 
 /**
