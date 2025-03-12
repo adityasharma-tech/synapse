@@ -52,15 +52,15 @@ const authRouteValidators = {
             .trim()
             .toLowerCase(),
 
-        body('username')
-            .notEmpty()
-            .withMessage('username is required to login.')
-            .isLength({ max: 20 })
-            .withMessage('Username must be less than 20 chars.')
-            .matches(/^[a-zA-Z0-9.-]+$/)
-            .withMessage('Username can only contain letters, numbers and can\'t user special chars other than dot(.) or dash(-) special chars. ')
-            .trim()
-            .toLowerCase()
+        // body('username')
+        //     .notEmpty()
+        //     .withMessage('username is required to login.')
+        //     .isLength({ max: 20 })
+        //     .withMessage('Username must be less than 20 chars.')
+        //     .matches(/^[a-zA-Z0-9.-]+$/)
+        //     .withMessage('Username can only contain letters, numbers and can\'t user special chars other than dot(.) or dash(-) special chars. ')
+        //     .trim()
+        //     .toLowerCase()
     ],
     resendEmailRoute: [
         body('email')

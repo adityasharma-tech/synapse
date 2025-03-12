@@ -17,5 +17,5 @@
 }
 
 button {
-  @apply cursor-pointer disabled:opacity-80 cursor-not-allowed
+  @apply cursor-pointer disabled:cursor-not-allowed
 }
