@@ -1,0 +1,13 @@
+{
+  "lockfileVersion": 1,
+  "workspaces": {
+    "": {
+      "devDependencies": {
+        "daisyui": "^5.0.3",
+      },
+    },
+  },
+  "packages": {
+    "daisyui": ["daisyui@5.0.3", "", {}, "sha512-27dou80uFNgxVcmQNzS8QFBoE1/01u7N0smdGqA2pHbaRPTFoHdJfXNzilpvt/0jAVu8cMEhrVPoYxpdxLwumA=="],
+  }
+}

@@ -13,7 +13,7 @@ export default function Home() {
           A very simple chat streaming platform
           for <span className="bg-clip-text text-transparent bg-gradient-to-b from-emerald-500 to-emerald-800">streamers</span>.
         </h1>
-        
+        <button className="btn">View Dashboard</button>
       </div>
     </main>
   );
