@@ -12,7 +12,7 @@ import { CookieOptions } from "express";
 import establishDbConnection from "../db";
 import { sendConfirmationMail } from "../services/mail.service";
 import { TokenTable } from "../schemas/tokenTable.sql";
-import { emailVerificationTokenExpiry } from "../lib/constants";
+import { emailVerificationTokenExpiry } from "../lib/configs";
 
 
 const loginHandler = asyncHandler(async (req, res) => {
@@ -171,7 +171,7 @@ const registerHandler = asyncHandler(async (req, res) => {
 
 const verifyEmailHandler = asyncHandler(async (req, res) => {
     const { verificationToken } = req.query;
-    if (!verificationToken || verificationToken.toString().trim() == "") throw new ApiError(400, "verification token is a required parameter.");
+    if (!verificationToken) throw new ApiError(400, "verification token is a required parameter.");
 
     const db = establishDbConnection();
 

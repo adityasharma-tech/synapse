@@ -1,1 +1,0 @@
-export const emailVerificationTokenExpiry = 6 * 60 * 60 // 6 hr

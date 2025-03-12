@@ -22,7 +22,6 @@ const logoutHandler = asyncHandler(async (_, res)=>{
 
 const getUserHandler = asyncHandler(async (req, res)=>{
     const user = req.user;
-
     res.status(200).json(new ApiResponse(200, {user}));
 })
 

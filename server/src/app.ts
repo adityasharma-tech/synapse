@@ -2,11 +2,13 @@ import http from "http";
 import cors from "cors";
 import morgan from "morgan";
 import express from "express";
+import helmet from "helmet";
 import cookieParser from "cookie-parser";
 
 import { Server } from "socket.io";
 import { rateLimit } from "express-rate-limit";
 import { ApiResponse } from "./lib/ApiResponse";
+import { validatorMiddeware } from "./middleware/validator.middleware";
 
 /**
  * Http Express Server
@@ -26,7 +28,7 @@ io.attach(server);
  */
 const limiter = rateLimit({
   windowMs: 1000 * 60,
-  limit: 60,
+  limit: 90,
   message: new ApiResponse(429, null, "Too many requests"),
   standardHeaders: true,
   legacyHeaders: false,
@@ -43,7 +45,9 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
+app.use(helmet());
 app.use(limiter);
+app.use(validatorMiddeware);
 
 /**
  * Router imports

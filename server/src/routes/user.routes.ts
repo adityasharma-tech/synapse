@@ -1,9 +1,22 @@
 import { Router } from "express";
-import { logoutHandler } from "../controller/user.controller";
+import { getUserHandler, logoutHandler, updateUserHandler } from "../controller/user.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
+import { userRouteValidators } from "../middleware/validator.middleware";
 
 const router = Router();
 
-router.route("/logout").get(authMiddleware,logoutHandler);
+router.use(authMiddleware)
+
+router.route("/logout")
+    .get(logoutHandler);
+
+router.route("/")
+    .get(
+        getUserHandler
+    )
+    .put(
+        userRouteValidators.updateUserRoute,
+        updateUserHandler
+    )
 
 export default router;
