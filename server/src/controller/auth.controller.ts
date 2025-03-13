@@ -13,6 +13,7 @@ import establishDbConnection from "../db";
 import { sendConfirmationMail } from "../services/mail.service";
 import { TokenTable } from "../schemas/tokenTable.sql";
 import { emailVerificationTokenExpiry } from "../lib/configs";
+import { generateUsername } from "../lib/utils";
 
 
 const loginHandler = asyncHandler(async (req, res) => {
@@ -89,9 +90,9 @@ const loginHandler = asyncHandler(async (req, res) => {
 })
 
 const registerHandler = asyncHandler(async (req, res) => {
-    const { firstName, lastName, username, email, phoneNumber, password } = req.body;
+    const { firstName, lastName, email, phoneNumber, password } = req.body;
 
-    if ([firstName, lastName, username, email, phoneNumber, password].some((value) => value ? value.trim() == "" : true))
+    if ([firstName, lastName, email, phoneNumber, password].some((value) => value ? value.trim() == "" : true))
         throw new ApiError(400, "All fields are required.");
 
 
@@ -101,10 +102,7 @@ const registerHandler = asyncHandler(async (req, res) => {
         .select()
         .from(User)
         .where(
-            or(
-                eq(User.username, username.trim().toLowerCase()),
-                eq(User.email, email.trim().toLowerCase())
-            )
+            eq(User.email, email.trim().toLowerCase())
         ).execute();
 
     if (users.length > 0) throw new ApiError(400, "user already exists with same username or email");
@@ -115,13 +113,15 @@ const registerHandler = asyncHandler(async (req, res) => {
 
     const emailVerificationToken = crpyto.randomBytes(20).toString("hex");
 
+    const username = `${firstName.trim().toLowerCase()}-${generateUsername()}`
+
     const result = await db
         .insert(User)
         .values({
             firstName,
             lastName,
-            username: username.trim().toLowerCase(),
-            email: email.trim().toLowerCase(),
+            username: username,
+            email: email,
             phoneNumber,
             passwordHash: hashedPassword,
             emailVerified: false,

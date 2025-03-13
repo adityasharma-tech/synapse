@@ -8,6 +8,7 @@ import LoginPage from "./app/auth/login";
 import SignupPage from "./app/auth/signup";
 import { ErrorBoundary } from "./app/error";
 import RootLayout from "./app/_layout";
+import VerifyPage from "./app/auth/verify";
 
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
@@ -17,7 +18,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="auth">
           <Route path="login" element={<LoginPage />} />
           <Route path="signup" element={<SignupPage />} />
-          <Route path="verify" element={<SignupPage />} />
+          <Route path="verify" element={<VerifyPage />} />
           <Route path="resend-email" element={<SignupPage />} />
           <Route path="forgot-password" element={<SignupPage />} />
         </Route>

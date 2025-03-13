@@ -1,23 +1,32 @@
 import React, { FormEventHandler, useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import axiosInstance from "../../lib/axios.config";
+import { useFetcher } from "../../hooks/fether.hook";
+import TextInput from "../../components/cui/TextInput";
+import { toast } from "sonner";
 
 export default function SignupPage() {
+    const { loading, handleFetch, serverRes } = useFetcher();
+    const navigate = useNavigate();
+
     const [formData, setFormData] = useState({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phoneNumber: "",
-        password: "",
+        firstName: "FirstText",
+        lastName: "LastText",
+        email: "test@adityasharma.com",
+        phoneNumber: "+91 123123 1231",
+        password: "testpassword",
+        username: "test0",
         termsCheked: false
     })
 
-    const toast = 
 
     const handleSignup: FormEventHandler<HTMLFormElement> = async function (e) {
         e.preventDefault();
-        if(!formData.termsCheked) {}
-
-        
+        if(!formData.termsCheked) return toast("You need to aggree to our terms & conditions first.");
+        await handleFetch(axiosInstance.post("/auth/register", { ...formData, termsCheked: undefined }))
+        if(serverRes?.success){
+            navigate("/auth/verify");
+        }
     }
     return (
         <React.Fragment>
@@ -33,74 +42,54 @@ export default function SignupPage() {
                     <div>
                         <h2 className="text-4xl font-bold text-center">Signup on Synapse</h2>
                     </div>
-                    <div className="flex gap-x-2">
-                        <div className="flex flex-col gap-y-2 mt-10">
-                            <label style={{
-                                fontSize: "14px"
-                            }} className="font-medium dark:text-white">First name <span className="text-red-600">*</span></label>
-                            <input
-                                required
-                                placeholder="Jane"
-                                type="text"
-                                value={formData.firstName}
-                                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                                className="focus:outline-none p-2 w-full text-neutral-100 border border-neutral-700 bg-neutral-800 focus:ring-2 ring-sky-400 rounded-sm" />
-                        </div>
-                        <div className="flex flex-col gap-y-2 mt-10">
-                            <label style={{
-                                fontSize: "14px"
-                            }} className="font-medium dark:text-white">Last name <span className="text-red-600">*</span></label>
-                            <input
-                                required
-                                placeholder="Doe"
-                                type="text"
-                                value={formData.lastName}
-                                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                                className="focus:outline-none p-2 w-full text-neutral-100 border border-neutral-700 bg-neutral-800 focus:ring-2 ring-sky-400 rounded-sm" />
-                        </div>
-                    </div>
-                    <div className="flex flex-col gap-y-2 mt-4">
-                        <label style={{
-                            fontSize: "14px"
-                        }} className="font-medium dark:text-white">Phone number <span className="text-red-600">*</span></label>
-                        <input
+                    <div className="flex gap-x-2 mt-8">
+                        <TextInput
+                            label="First name"
+                            disabled={loading}
                             required
-                            placeholder="+91 12312 12312"
-                            type="tel"
-                            value={formData.phoneNumber}
-                            onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                            className="focus:outline-none p-2 w-full text-neutral-100 border border-neutral-700 bg-neutral-800 focus:ring-2 ring-sky-400 rounded-sm" />
-                    </div>
-                    <div className="flex flex-col gap-y-2 mt-4">
-                        <label style={{
-                            fontSize: "14px"
-                        }} className="font-medium dark:text-white">Email address <span className="text-red-600">*</span></label>
-                        <input
+                            placeholder="Jane"
+                            value={formData.firstName}
+                            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })} />
+                        <TextInput
+                            label="Last name"
+                            disabled={loading}
                             required
-                            placeholder="username@company.com"
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            className="focus:outline-none p-2 w-full text-neutral-100 border border-neutral-700 bg-neutral-800 focus:ring-2 ring-sky-400 rounded-sm" />
+                            placeholder="Doe"
+                            type="text"
+                            value={formData.lastName}
+                            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })} />
                     </div>
-                    <div className="flex flex-col gap-y-2 mt-4">
-                        <label style={{
-                            fontSize: "14px"
-                        }} className="font-medium dark:text-white">Password <span className="text-red-600">*</span></label>
-                        <input
-                            required
-                            placeholder="*******"
-                            type="password"
-                            value={formData.password}
-                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            className="focus:outline-none p-2 w-full text-neutral-100 border border-neutral-700 bg-neutral-800 focus:ring-2 ring-sky-400 rounded-sm" />
-                    </div>
+                    <TextInput
+                        label="Phone number"
+                        disabled={loading}
+                        required
+                        placeholder="+91 12312 12312"
+                        type="tel"
+                        value={formData.phoneNumber}
+                        onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })} />
+                    <TextInput
+                        label="Email"
+                        disabled={loading}
+                        required
+                        placeholder="username@company.com"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                    <TextInput
+                        label="Password"
+                        disabled={loading}
+                        required
+                        placeholder="*******"
+                        type="password"
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
                     <div className="flex gap-x-2 items-center mt-3 justify-start">
-                        <input value={formData.termsCheked.toString()} onChange={(e)=>setFormData({...formData, termsCheked: e.target.value === "true" ? true : false})} id="terms-services" type="checkbox" />
+                        <input disabled={loading} checked={formData.termsCheked} onChange={() => setFormData({ ...formData, termsCheked: !formData.termsCheked })} id="terms-services" type="checkbox" />
                         <label htmlFor="terms-services" className="text-sm">By clicking on signup you are aggring our <a href="/legal/terms-and-conditions" className="text-sky-600 hover:underline">terms & conditions</a></label>
                     </div>
                     <div className="pt-10 text-center">
-                        <button type="submit" className="py-2 min-w-xs bg-sky-600 rounded-md text-white font-medium disabled:bg-neutral-700 disabled:opacity-45">
+                        <button disabled={loading} type="submit" className="py-2 flex gap-x-3 justify-center items-center mx-auto min-w-xs bg-sky-600 rounded-md text-white font-medium disabled:bg-neutral-700 disabled:opacity-45">
+                            <span data-loading={loading.toString()} className="loading data-[loading='true']:opacity-100 opacity-0 loading-spinner loading-xs"></span>
                             Create account
                         </button>
                     </div>

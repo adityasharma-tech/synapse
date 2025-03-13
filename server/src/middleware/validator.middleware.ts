@@ -102,7 +102,9 @@ const userRouteValidators = {
 const validatorMiddeware = asyncHandler((req, res, next)=>{
     const errors = validationResult(req);
 
-    if(errors.isEmpty())next();
+    if(errors.isEmpty()){
+        return next();
+    }
 
     logger.error(`Validation errors: ${JSON.stringify(errors)}`);
 
