@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router";
 import React, { FormEventHandler, useState } from "react";
 import TextInput from "../../components/cui/TextInput";
-import { useFetcher } from "../../hooks/fether.hook";
+import { useFetcher } from "../../hooks/fetcher.hook";
 import axiosInstance from "../../lib/axios.config";
 
 export default function LoginPage() {

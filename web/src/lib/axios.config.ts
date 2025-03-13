@@ -7,6 +7,6 @@ const axiosConfig: CreateAxiosDefaults = {
     withCredentials: true,
 }
 
-const axiosInstance = axios.create(axiosConfig); 
+const axiosInstance = axios.create(axiosConfig);
 
 export default axiosInstance;

@@ -1,7 +1,7 @@
 import React, { FormEventHandler, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import axiosInstance from "../../lib/axios.config";
-import { useFetcher } from "../../hooks/fether.hook";
+import { useFetcher } from "../../hooks/fetcher.hook";
 import TextInput from "../../components/cui/TextInput";
 import { toast } from "sonner";
 

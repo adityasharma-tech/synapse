@@ -14,6 +14,7 @@ const User = t.pgTable('users', {
   passwordHash: t.varchar().notNull(),
   role: userRolesEnum().default("viewer"),
   emailVerified: t.boolean().default(false).notNull(),
+  refreshToken: t.varchar(),
   ...timestamps
 })
 

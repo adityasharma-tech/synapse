@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { useFetcher } from "../../hooks/fether.hook";
+import { useFetcher } from "../../hooks/fetcher.hook";
 import axiosInstance from "../../lib/axios.config";
 
 export default function VerifyPage() {
