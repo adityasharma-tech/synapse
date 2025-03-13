@@ -1,19 +1,19 @@
+import { User } from "../schemas/user.sql";
 import { eq, or } from "drizzle-orm";
 import { logger } from "../lib/configs";
-import { User } from "../schemas/user.sql";
 import { ApiError } from "../lib/ApiError";
+import { TokenTable } from "../schemas/tokenTable.sql";
 import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
+import { CookieOptions } from "express";
+import { generateUsername } from "../lib/utils";
+import { sendConfirmationMail } from "../services/mail.service";
+import { emailVerificationTokenExpiry } from "../lib/constants";
 
 import crpyto from "crypto"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken";
-import { CookieOptions } from "express";
 import establishDbConnection from "../db";
-import { sendConfirmationMail } from "../services/mail.service";
-import { TokenTable } from "../schemas/tokenTable.sql";
-import { emailVerificationTokenExpiry } from "../lib/constants";
-import { generateUsername } from "../lib/utils";
 
 
 const loginHandler = asyncHandler(async (req, res) => {
@@ -71,7 +71,7 @@ const loginHandler = asyncHandler(async (req, res) => {
         httpOnly: true,
         secure: true,
         maxAge: 60 * 60 * 24 * 7
-    }    
+    }
 
     res.cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 60 * 60 * 48 });
     res.cookie("refreshToken", refreshToken, cookieOptions);
@@ -246,9 +246,55 @@ const resendEmailHandler = asyncHandler(async (req, res) => {
     )
 })
 
+const refreshTokenHandler = asyncHandler(async (req, res) => {
+    const cookies = req.cookies;
+
+    const refreshToken = cookies?.refreshToken || req.headers?.refreshToken;
+
+    if (!refreshToken) {
+        throw new ApiError(401, "Unauthorized to refresh token.");
+    }
+
+    try {
+        jwt.verify(refreshToken, process.env.REFRESH_SECRET_KEY!)
+    } catch (error: any) {
+        throw new ApiError(401, "Unauthorized: Refresh token already expired.");
+    }
+
+    const db = establishDbConnection();
+
+    const users = await db
+        .select()
+        .from(User)
+        .where(eq(User.refreshToken, refreshToken.trim()))
+        .execute();
+
+    if (!users || users.length <= 0) throw new ApiError(400, "User not found with provided refreshToken.");
+
+    const user = users[0];
+
+    const newRefreshToken = jwt.sign({ userId: user.id }, process.env.REFRESH_SECRET_KEY!);
+    const newAccessToken = jwt.sign({ userId: user.id }, process.env.ACCESS_SECRET_KEY!);
+
+    const cookieOptions: CookieOptions = {
+        httpOnly: true,
+        secure: true,
+        maxAge: 60 * 60 * 24 * 7
+    }
+
+    res.cookie("refreshToken", newRefreshToken, cookieOptions)
+    res.cookie("accessToken", newAccessToken, { ...cookieOptions, maxAge: 60 * 60 * 48 })
+
+    res.status(200).json(new ApiResponse(200, {
+        user
+    }))
+})
+
+
 export {
     registerHandler,
     loginHandler,
     verifyEmailHandler,
-    resendEmailHandler
+    resendEmailHandler,
+    refreshTokenHandler
 }
