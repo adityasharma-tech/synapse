@@ -3,7 +3,7 @@ import establishDbConnection from "../db";
 import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
 import { User } from "../schemas/user.sql";
-import { ApiError } from "../lib/ApiError";
+import { ApiError, ErrCodes } from "../lib/ApiError";
 
 const logoutHandler = asyncHandler(async (_, res)=>{
 
@@ -38,7 +38,7 @@ const updateUserHandler = asyncHandler(async (req, res)=>{
     .where(eq(User.id, user.userId))
     .execute()
 
-    if(!dbUser) throw new ApiError(400, "User not found.");
+    if(!dbUser) throw new ApiError(400, "User not found.", ErrCodes.DB_ROW_NOT_FOUND);
 
     await db
     .update(User)
@@ -46,7 +46,10 @@ const updateUserHandler = asyncHandler(async (req, res)=>{
         firstName: updateData.firstName ?? dbUser.firstName,
         lastName: updateData.lastName ?? dbUser.lastName,
         username: updateData.username ?? dbUser.username
-    })
+    }).where(eq(
+        User.id,
+        user.userId
+    )).execute();
     res.status(200).json(new ApiResponse(200, null, "User updated success."))
 })
 

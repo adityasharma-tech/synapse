@@ -9,10 +9,8 @@ import SignupPage from "./app/auth/signup";
 import { ErrorBoundary } from "./app/error";
 import RootLayout from "./app/_layout";
 import VerifyPage from "./app/auth/verify";
-import { CookiesProvider } from "react-cookie";
 
 createRoot(document.getElementById("root")!).render(
-  <CookiesProvider>
     <BrowserRouter>
       <Routes>
         <Route element={<RootLayout />} errorElement={<ErrorBoundary />}>
@@ -36,5 +34,4 @@ createRoot(document.getElementById("root")!).render(
         </Route>
       </Routes>
     </BrowserRouter>
-  </CookiesProvider>
 );
