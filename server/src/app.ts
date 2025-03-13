@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import http from "http";
 import cors from "cors";
 import morgan from "morgan";
@@ -6,6 +7,7 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 
 import { Server } from "socket.io";
+import { corsOrigins } from './lib/constants';
 import { rateLimit } from "express-rate-limit";
 import { ApiResponse } from "./lib/ApiResponse";
 import { validatorMiddeware } from "./middleware/validator.middleware";
@@ -24,11 +26,11 @@ const io = new Server(server, {
     origin: "*",
     credentials: true,
   },
-  
+
 });
 
-io.on("connection", (socket)=>{
-  
+io.on("connection", (socket) => {
+
 })
 
 
@@ -49,7 +51,7 @@ const limiter = rateLimit({
 app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,
-  origin: process.env.NODE_ENV == "production" ? process.env.HOST_URL : "*"
+  origin: corsOrigins
 }))
 app.use(express.json());
 app.use(cookieParser());

@@ -24,8 +24,11 @@ export default function SignupPage() {
         e.preventDefault();
         if(!formData.termsCheked) return toast("You need to aggree to our terms & conditions first.");
         await handleFetch(axiosInstance.post("/auth/register", { ...formData, termsCheked: undefined }))
+        console.log(serverRes)
         if(serverRes?.success){
-            navigate("/auth/verify");
+            const searchParams = new URLSearchParams()
+            searchParams.append("email", btoa(formData.email))
+            navigate(`/auth/verify?${searchParams.toString()}`);
         }
     }
     return (
@@ -47,7 +50,7 @@ export default function SignupPage() {
                             label="First name"
                             disabled={loading}
                             required
-                            placeholder="Jane"
+                            placeholder={"Jane"}
                             value={formData.firstName}
                             onChange={(e) => setFormData({ ...formData, firstName: e.target.value })} />
                         <TextInput
@@ -74,7 +77,7 @@ export default function SignupPage() {
                         placeholder="username@company.com"
                         type="email"
                         value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value.trim().toLowerCase() })} />
                     <TextInput
                         label="Password"
                         disabled={loading}
@@ -89,7 +92,7 @@ export default function SignupPage() {
                     </div>
                     <div className="pt-10 text-center">
                         <button disabled={loading} type="submit" className="py-2 flex gap-x-3 justify-center items-center mx-auto min-w-xs bg-sky-600 rounded-md text-white font-medium disabled:bg-neutral-700 disabled:opacity-45">
-                            <span data-loading={loading.toString()} className="loading data-[loading='true']:opacity-100 opacity-0 loading-spinner loading-xs"></span>
+                            <span data-loading={loading.toString()} className="loading data-[loading='true']:block hidden loading-spinner loading-xs"></span>
                             Create account
                         </button>
                     </div>

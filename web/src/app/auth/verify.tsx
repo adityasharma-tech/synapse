@@ -1,8 +1,39 @@
 import React from "react";
+import { useNavigate, useSearchParams } from "react-router";
+import { useFetcher } from "../../hooks/fether.hook";
+import axiosInstance from "../../lib/axios.config";
 
 export default function VerifyPage() {
-  return (
-    <React.Fragment>
+    const [searchParams] = useSearchParams()
+    const navigator = useNavigate()
+
+    const { handleFetch, loading, serverRes } = useFetcher()
+    
+    React.useEffect(()=>{
+        (async()=>await handleVerifyEmail())()
+    }, [])
+
+    async function handleVerifyEmail() {
+        const verificationToken = searchParams.get("verificationToken");
+        if(verificationToken){
+            await handleFetch(axiosInstance.get(`/auth/verify?${searchParams.toString()}`));
+            if(serverRes?.success){
+                navigator('/dashboard')
+            }
+        }
+    }
+
+    async function handleResendEmailVerification() {
+        const email = searchParams.get("email");
+        if(email){
+            await handleFetch(axiosInstance.post(`/auth/resend-email`, {
+                email
+            }))
+        }
+    }
+
+    return (
+        <React.Fragment>
             <header className="px-5 flex justify-between py-4">
                 <img
                     alt="Synapse"
@@ -10,9 +41,30 @@ export default function VerifyPage() {
                     className="object-contain h-10"
                 />
             </header>
-            <div className="rounded-lg px-10 py-8 gap-y-1 h-[calc(100vh-115px)] flex flex-col justify-center items-center mt-10">
-                
+            <div className="rounded-lg px-10 py-8 gap-y-1 h-[calc(100vh-115px)] flex flex-col justify-center items-center">
+                <div>
+                    <h2 className="text-4xl font-bold text-center">Verify your email</h2>
+                </div>
+                <div className="mt-5 max-w-md text-center">
+                    {searchParams.get("email") ? <span>We've sent an email to <strong>{atob(searchParams.get("email") ?? "")}</strong>. Continue account creation using the link via email.</span> : null}
+                    <br />
+                    {searchParams.get("verificationToken") ? <div className="flex gap-x-3">
+                    {loading ? <span className="loading loading-spinner loading-xl"></span> : null}
+                    {searchParams.get("verificationToken") ? <span>Please wait! We are verififying your email.</span> : null}
+                </div> : null}
+                    
+                </div>
+                {searchParams.get("email") ? <div className="pt-3 text-center flex flex-col gap-y-2">
+                    <button onClick={()=>window.location.reload()} type="submit" className="py-1.5 flex gap-x-3 justify-center items-center mx-auto px-10 border-neutral-300 hover:bg-neutral-800 bg-transparent border rounded-md text-white font-medium disabled:bg-neutral-700 disabled:opacity-45">
+                        <span className="loading data-[loading='true']:block hidden loading-spinner loading-xs"></span>
+                        <span>Refresh Page</span>
+                    </button>
+                    <button disabled={loading} onClick={handleResendEmailVerification} type="submit" className="py-1.5 flex gap-x-3 justify-center items-center mx-auto px-10 bg-sky-600 rounded-md text-white font-medium disabled:bg-neutral-700 disabled:opacity-45">
+                        <span data-loading={loading} className="loading data-[loading='true']:block hidden loading-spinner loading-xs"></span>
+                        <span>Resend email</span>
+                    </button>
+                </div> : null}
             </div>
         </React.Fragment>
-  )
+    )
 }

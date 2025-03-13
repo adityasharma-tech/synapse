@@ -28,9 +28,7 @@ if (process.env.NODE_ENV !== 'production') {
     }));
   }
 
-const emailVerificationTokenExpiry = 6 * 60 * 60 // 6 hr
 
 export {
-    logger,
-    emailVerificationTokenExpiry
+    logger
 }

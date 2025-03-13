@@ -12,7 +12,7 @@ import { CookieOptions } from "express";
 import establishDbConnection from "../db";
 import { sendConfirmationMail } from "../services/mail.service";
 import { TokenTable } from "../schemas/tokenTable.sql";
-import { emailVerificationTokenExpiry } from "../lib/configs";
+import { emailVerificationTokenExpiry } from "../lib/constants";
 import { generateUsername } from "../lib/utils";
 
 
@@ -79,13 +79,11 @@ const loginHandler = asyncHandler(async (req, res) => {
         expires: new Date(Date.now() + 60 * 60 * 12)
     }
 
-    res.cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 60 * 60 * 24 * 7, expires: new Date(Date.now() + 60 * 60 * 24 * 7) });
+    res.cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 60 * 60 * 24 * 7 });
     res.cookie("refreshToken", refreshToken, cookieOptions);
 
     res.status(200).json(new ApiResponse(200, {
-        user,
-        accessToken,
-        refreshToken
+        user
     }, "User logged in successfully"))
 })
 
@@ -218,7 +216,7 @@ const verifyEmailHandler = asyncHandler(async (req, res) => {
 
     if (!tokenTableUpdateResult) throw new ApiError(400, "Failed to update tokens.");
 
-    res.status(400).json(new ApiResponse(200, null, "Email verified successfully."))
+    res.status(200).json(new ApiResponse(200, null, "Email verified successfully."))
 })
 
 const resendEmailHandler = asyncHandler(async (req, res) => {
