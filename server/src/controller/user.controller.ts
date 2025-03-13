@@ -50,8 +50,15 @@ const updateUserHandler = asyncHandler(async (req, res)=>{
     res.status(200).json(new ApiResponse(200, null, "User updated success."))
 })
 
+const refreshTokenHandler = asyncHandler(async (req, res)=>{
+
+    
+    res.status(200).json(new ApiResponse(200, null))
+}) 
+
 export {
     logoutHandler,
     getUserHandler,
-    updateUserHandler
+    updateUserHandler,
+    refreshTokenHandler
 }

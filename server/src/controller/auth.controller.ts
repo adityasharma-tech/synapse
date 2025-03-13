@@ -47,20 +47,15 @@ const loginHandler = asyncHandler(async (req, res) => {
     logger.info(`isPasswordCorrect: ${isPasswordCorrect}, user: ${JSON.stringify(user)}`);
 
     const accessToken = jwt.sign({
-        userId: user.id,
-        username: user.username,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role
+        userId: user.id
     }, process.env.ACCESS_SECRET_KEY!, {
-        expiresIn: "7d",
+        expiresIn: "2d",
     })
 
     const refreshToken = jwt.sign({
         userId: user.id
     }, process.env.REFRESH_SECRET_KEY!, {
-        expiresIn: "12h"
+        expiresIn: "7d"
     })
 
     if (!isPasswordCorrect) {
@@ -75,11 +70,10 @@ const loginHandler = asyncHandler(async (req, res) => {
     const cookieOptions: CookieOptions = {
         httpOnly: true,
         secure: true,
-        maxAge: 60 * 60 * 12,
-        expires: new Date(Date.now() + 60 * 60 * 12)
-    }
+        maxAge: 60 * 60 * 24 * 7
+    }    
 
-    res.cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 60 * 60 * 24 * 7 });
+    res.cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 60 * 60 * 48 });
     res.cookie("refreshToken", refreshToken, cookieOptions);
 
     res.status(200).json(new ApiResponse(200, {

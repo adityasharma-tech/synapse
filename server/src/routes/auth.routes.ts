@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authRouteValidators } from "../middleware/validator.middleware";
 import { loginHandler, registerHandler, resendEmailHandler, verifyEmailHandler } from "../controller/auth.controller";
 import { emailVerificationLimiter } from "../middleware/limiters.middleware";
+import { refreshTokenHandler } from "../controller/user.controller";
 
 const router = Router()
 
@@ -15,6 +16,11 @@ router.route("/login")
     .post(
         authRouteValidators.loginRoute,
         loginHandler
+    )
+
+router.route("/refresh-token")
+    .post(
+        refreshTokenHandler
     )
 
 router.route("/register")
