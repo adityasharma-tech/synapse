@@ -2,28 +2,32 @@ import App from "./app";
 
 
 import RootLayout from "./app/_layout";
+import AuthLayout from "./app/auth/_layout";
 import LoginPage from "./app/auth/login";
 import SignupPage from "./app/auth/signup";
 import VerifyPage from "./app/auth/verify";
+import LogoutPage from "./app/user/logout";
+import { NotFound } from "./app/_not-found";
 
 import { useEffect } from "react";
-import { fetchUser } from "./store/reducers/app.reducer";
-import { ErrorBoundary } from "./app/error";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { useAppDispatch, useAppSelector } from "./store";
 
+import { fetchUser } from "./store/actions/user.actions";
+
+
 export default function Main() {
   const dispatch = useAppDispatch()
-  const user = useAppSelector(state=>state.app);
-  useEffect(()=>{
-    // dispatch(fetchUser());
+  const user = useAppSelector(state => state.app);
+  useEffect(() => {
+    dispatch(fetchUser());
   }, [])
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<RootLayout />} errorElement={<ErrorBoundary />}>
+        <Route element={<RootLayout />}>
           <Route index element={<App />} />
-          <Route path="auth">
+          <Route path="auth" element={<AuthLayout />}>
             <Route path="login" element={<LoginPage />} />
             <Route path="signup" element={<SignupPage />} />
             <Route path="verify" element={<VerifyPage />} />
@@ -33,12 +37,14 @@ export default function Main() {
           {user ? <Route path="user">
             <Route element={<SignupPage />} />
             <Route path="reset-password" element={<SignupPage />} />
+            <Route path="logout" element={<LogoutPage />} />
           </Route> : null}
-          <Route path="dashboard">
+          {user ? <Route path="dashboard">
             <Route element={<SignupPage />} />
             <Route path="stream/:streamId" element={<SignupPage />} />
-          </Route>
+          </Route> : null}
           <Route path="stream/:streamId" element={<SignupPage />} />
+          <Route path="*" element={<NotFound />} /> {/* Not found page */}
         </Route>
       </Routes>
     </BrowserRouter>

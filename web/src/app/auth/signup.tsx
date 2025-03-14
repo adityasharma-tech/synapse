@@ -1,14 +1,18 @@
-import React, { FormEventHandler, useCallback, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import React from "react";
 import axiosInstance from "../../lib/axios";
-import { useFetcher } from "../../hooks/fetcher.hook";
 import TextInput from "../../components/cui/TextInput";
+
 import { toast } from "sonner";
+import { Link, useNavigate } from "react-router";
+import { useFetcher } from "../../hooks/fetcher.hook";
+import { FormEventHandler, useCallback, useState } from 'react'
 
 export default function SignupPage() {
     const navigate = useNavigate();
+
     const { loading, handleFetch, serverRes } = useFetcher();
 
+    
     const [formData, setFormData] = useState({
         firstName: "Jon",
         lastName: "Doe",
@@ -30,6 +34,8 @@ export default function SignupPage() {
             navigate(`/auth/verify?${searchParams.toString()}`);
         }
     }, [formData, toast, handleFetch, axiosInstance, serverRes, navigate])
+
+
     return (
         <React.Fragment>
             <header className="px-5 flex justify-between py-4">

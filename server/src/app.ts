@@ -26,7 +26,6 @@ const io = new Server(server, {
     origin: "*",
     credentials: true,
   },
-
 });
 
 io.on("connection", (socket) => {

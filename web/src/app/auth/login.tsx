@@ -1,14 +1,20 @@
-import { Link, useNavigate } from "react-router";
-import React, { FormEventHandler, useCallback, useState } from "react";
+import React from "react";
 import TextInput from "../../components/cui/TextInput";
-import { useFetcher } from "../../hooks/fetcher.hook";
 import axiosInstance from "../../lib/axios";
+
+import { useFetcher } from "../../hooks/fetcher.hook";
+import { fetchUser } from "../../store/actions/user.actions";
+import { useAppDispatch } from "../../store";
+import { Link, useNavigate } from "react-router";
+import { FormEventHandler, useCallback, useState } from 'react'
 
 export default function LoginPage() {
 
     const { handleFetch, loading, serverRes } = useFetcher()
 
     const navigate = useNavigate()
+    const dispatch = useAppDispatch()
+
 
     const [formData, setFormData] = useState({
         dataField: "",
@@ -25,6 +31,7 @@ export default function LoginPage() {
         }))
 
         if (serverRes?.current?.success) {
+            dispatch(fetchUser())
             navigate('/dashboard')
         }
     }, [handleFetch, axiosInstance, formData, serverRes, navigate])

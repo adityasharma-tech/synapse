@@ -11,10 +11,13 @@ const authMiddleware = asyncHandler(async (req, _, next) => {
 
     const accessToken = cookies?.accessToken || req.headers?.accessToken;
 
+    logger.warn(`authMiddeware.cookies: ${JSON.stringify(cookies)}`)
+
     if (!accessToken)
         throw new ApiError(401, "Unauthorized", ErrCodes.UNAUTHORIZED);
     try {
         const decodedUser: any = jwt.verify(cookies.accessToken, process.env.ACCESS_SECRET_KEY!);
+        logger.warn(`Decoded user: ${JSON.stringify(decodedUser)}`)
         const db = establishDbConnection()
 
         const [user] = await db

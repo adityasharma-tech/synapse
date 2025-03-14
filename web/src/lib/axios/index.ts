@@ -4,6 +4,9 @@ const baseHost = import.meta.env.VITE_BACKEND_HOST;
 
 const axiosConfig: CreateAxiosDefaults = {
     baseURL: `${baseHost}/api/v1`,
+    headers: {
+        'Content-Type': 'application/json'
+    },
     withCredentials: true
 }
 
