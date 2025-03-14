@@ -1,16 +1,24 @@
-import "./index.css";
 import App from "./app";
 
-import { createRoot } from "react-dom/client";
-import { BrowserRouter, Route, Routes } from "react-router";
 
+import RootLayout from "./app/_layout";
 import LoginPage from "./app/auth/login";
 import SignupPage from "./app/auth/signup";
-import { ErrorBoundary } from "./app/error";
-import RootLayout from "./app/_layout";
 import VerifyPage from "./app/auth/verify";
 
-createRoot(document.getElementById("root")!).render(
+import { useEffect } from "react";
+import { fetchUser } from "./store/reducers/app.reducer";
+import { ErrorBoundary } from "./app/error";
+import { BrowserRouter, Route, Routes } from "react-router";
+import { useAppDispatch, useAppSelector } from "./store";
+
+export default function Main() {
+  const dispatch = useAppDispatch()
+  const user = useAppSelector(state=>state.app);
+  useEffect(()=>{
+    // dispatch(fetchUser());
+  }, [])
+  return (
     <BrowserRouter>
       <Routes>
         <Route element={<RootLayout />} errorElement={<ErrorBoundary />}>
@@ -22,10 +30,10 @@ createRoot(document.getElementById("root")!).render(
             <Route path="resend-email" element={<SignupPage />} />
             <Route path="forgot-password" element={<SignupPage />} />
           </Route>
-          <Route path="user">
+          {user ? <Route path="user">
             <Route element={<SignupPage />} />
             <Route path="reset-password" element={<SignupPage />} />
-          </Route>
+          </Route> : null}
           <Route path="dashboard">
             <Route element={<SignupPage />} />
             <Route path="stream/:streamId" element={<SignupPage />} />
@@ -34,4 +42,5 @@ createRoot(document.getElementById("root")!).render(
         </Route>
       </Routes>
     </BrowserRouter>
-);
+  )
+}

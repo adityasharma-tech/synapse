@@ -30,7 +30,7 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-
+  
 })
 
 
@@ -49,9 +49,9 @@ const limiter = rateLimit({
  * middlewares
  */
 app.use(cors({
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   credentials: true,
-  origin: corsOrigins
+  origin: corsOrigins,
 }))
 app.use(express.json());
 app.use(cookieParser());

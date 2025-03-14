@@ -1,36 +1,41 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { UserT } from '../../lib/types'
 import axiosInstance from '../../lib/axios';
 
 // Define a type for the slice state
 export interface AppState {
     user: UserT | null;
-    loading: boolean;
+    appLoading: boolean;
 }
+
+export const fetchUser = createAsyncThunk('user/fetchUser', async () => {
+    const result = await axiosInstance.get('/user')
+    if(!result.data.success) throw new Error("Failed to get user.");
+    return result.data.data.user
+})
 
 // Define the initial state using that type
 const initialState: AppState = {
     user: null,
-    loading: false
+    appLoading: true
 }
 
 export const appSlice = createSlice({
     name: 'app',
     initialState,
     reducers: {
-        fetchUser: (state) => {
-            state.loading = true
-            axiosInstance.get('/user')
-                .then((result) => {
-                    if (result.data) {
-                        state.user = result.data.data.user;
-                    }
-                }).finally(() => { state.loading = false })
-
-        }
+    },
+    extraReducers: (builder) => {
+        builder.addCase(fetchUser.pending, (state)=>{
+            state.appLoading = true
+        })
+        builder.addCase(fetchUser.fulfilled, (state, action)=>{
+            state.user = action.payload;
+            state.appLoading = false;
+        })
     }
 })
 
-export const { fetchUser } = appSlice.actions
+export const {  } = appSlice.actions
 
 export default appSlice.reducer
