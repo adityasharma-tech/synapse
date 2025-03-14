@@ -1,22 +1,7 @@
 import { AxiosResponse } from "axios";
 import { createContext, PropsWithChildren, RefObject, useCallback, useContext, useRef, useState } from "react";
 import { toast } from "sonner";
-
-interface ServerResT {
-    statusCode: number;
-    data: any;
-    message: string;
-    success: boolean;
-}
-
-interface ServerErrResponseT {
-    statusCode: number;
-    data?: any;
-    message: string;
-    success: boolean;
-    errType: string;
-    errors?: any[]
-}
+import { ServerErrResponseT, ServerResT } from "../lib/types";
 
 interface FetcherContextT {
     handleFetch: (axiosFn: Promise<AxiosResponse<any, any>>) => Promise<void>;
