@@ -12,7 +12,7 @@ const authMiddleware = asyncHandler(async (req, _, next) => {
     const accessToken = cookies?.accessToken || req.headers?.accessToken;
 
     if (!accessToken)
-        throw new ApiError(401, "Unauthorized");
+        throw new ApiError(401, "Unauthorized", ErrCodes.UNAUTHORIZED);
     try {
         const decodedUser: any = jwt.verify(cookies.accessToken, process.env.ACCESS_SECRET_KEY!);
         const db = establishDbConnection()

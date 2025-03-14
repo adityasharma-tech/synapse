@@ -33,6 +33,8 @@ const loginHandler = asyncHandler(async (req, res) => {
                 eq(User.username, username ? username.trim().toLowerCase() : "")
             )
         )
+        .limit(1)
+        .execute();
 
     logger.info(`loginHandler.users: ${JSON.stringify(users)}`);
 
@@ -61,6 +63,16 @@ const loginHandler = asyncHandler(async (req, res) => {
     if (!isPasswordCorrect) {
         throw new ApiError(401, "Invalid credentials!", ErrCodes.INVALID_CREDS);
     }
+
+    await db
+        .update(TokenTable)
+        .set({
+            userRefreshToken: refreshToken,
+            updatedAt: new Date()
+        })
+        .where(eq(TokenTable.userId, user.id))
+        .execute()
+
     const headers = new Headers()
     headers.append("accessToken", accessToken);
     headers.append("refreshToken", refreshToken);
@@ -80,6 +92,7 @@ const loginHandler = asyncHandler(async (req, res) => {
         user
     }, "User logged in successfully"))
 })
+
 
 const registerHandler = asyncHandler(async (req, res) => {
     const { firstName, lastName, email, phoneNumber, password } = req.body;
@@ -153,7 +166,7 @@ const registerHandler = asyncHandler(async (req, res) => {
     const emailResult = await sendConfirmationMail(email.trim(), emailVerificationToken)
 
     if (!emailResult.accepted) {
-        throw new ApiError(400, "Failed to send verification email.");
+        throw new ApiError(400, "Failed to send verification email.", ErrCodes.EMAIL_SEND_ERR);
     }
 
     res.status(201).json(new ApiResponse(201, {
