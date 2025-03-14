@@ -258,7 +258,7 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
     try {
         jwt.verify(refreshToken, process.env.REFRESH_SECRET_KEY!)
     } catch (error: any) {
-        throw new ApiError(401, "Unauthorized: Refresh token already expired.", ErrCodes.TOKEN_EXPIRED);
+        throw new ApiError(401, "Unauthorized: Refresh token already expired.", ErrCodes.REFRESH_TOKEN_EXPIRED);
     }
 
     const db = establishDbConnection();
@@ -266,15 +266,18 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
     const users = await db
         .select()
         .from(User)
-        .where(eq(User.refreshToken, refreshToken.trim()))
+        .innerJoin(TokenTable, eq(User.id, TokenTable.userId))
+        .where(eq(TokenTable.userRefreshToken, refreshToken))
+        .limit(1)
         .execute();
+
 
     if (!users || users.length <= 0) throw new ApiError(400, "User not found with provided refreshToken.");
 
     const user = users[0];
 
-    const newRefreshToken = jwt.sign({ userId: user.id }, process.env.REFRESH_SECRET_KEY!);
-    const newAccessToken = jwt.sign({ userId: user.id }, process.env.ACCESS_SECRET_KEY!);
+    const newRefreshToken = jwt.sign({ userId: user.users.id }, process.env.REFRESH_SECRET_KEY!);
+    const newAccessToken = jwt.sign({ userId: user.users.id }, process.env.ACCESS_SECRET_KEY!);
 
     const cookieOptions: CookieOptions = {
         httpOnly: true,
@@ -283,11 +286,13 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
     }
 
     await db
-    .update(User)
-    .set({
-        refreshToken: newRefreshToken,
-        updatedAt: new Date()
-    })
+        .update(TokenTable)
+        .set({
+            userRefreshToken: newRefreshToken,
+            updatedAt: new Date()
+        })
+        .where(eq(TokenTable.userId, user.users.id))
+        .execute();
 
     res.cookie("refreshToken", newRefreshToken, cookieOptions)
     res.cookie("accessToken", newAccessToken, { ...cookieOptions, maxAge: 60 * 60 * 48 })
