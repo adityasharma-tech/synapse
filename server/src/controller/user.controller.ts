@@ -50,6 +50,7 @@ const updateUserHandler = asyncHandler(async (req, res)=>{
         User.id,
         user.userId
     )).execute();
+    
     res.status(200).json(new ApiResponse(200, null, "User updated success."))
 })
 

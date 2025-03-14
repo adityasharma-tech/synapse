@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { refreshTokenHandler } from "../controller/auth.controller";
+import { refreshTokenHandler, resetPasswordEmailHandler, resetPasswordHandler } from "../controller/auth.controller";
 import { authRouteValidators } from "../middleware/validator.middleware";
 import { emailVerificationLimiter } from "../middleware/limiters.middleware";
 import { loginHandler, registerHandler, resendEmailHandler, verifyEmailHandler } from "../controller/auth.controller";
@@ -39,6 +39,19 @@ router.route("/resend-email")
         emailVerificationLimiter,
         authRouteValidators.resendEmailRoute,
         resendEmailHandler
+    )
+
+router.route("/reset-pass-mail")
+    .post(
+        emailVerificationLimiter,
+        authRouteValidators.resetPasswordMailRoute,
+        resetPasswordEmailHandler
+    )
+
+router.route("/reset-password")
+    .post(
+        authRouteValidators.resetPasswordRoute,
+        resetPasswordHandler
     )
 
 export default router;

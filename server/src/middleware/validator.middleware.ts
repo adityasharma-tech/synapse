@@ -70,6 +70,25 @@ const authRouteValidators = {
             .withMessage('Invalid email format.')
             .trim()
             .toLowerCase(),
+    ],
+    resetPasswordMailRoute: [
+        body('email')
+            .notEmpty()
+            .withMessage('email is required to login.')
+            .isEmail()
+            .withMessage('Invalid email format.')
+            .trim()
+            .toLowerCase(),
+    ],
+    resetPasswordRoute: [
+        body('password')
+            .notEmpty()
+            .withMessage("Password is required field."),
+            
+        query('verificationToken')
+            .notEmpty()
+            .withMessage("Verification token not found.")
+            .trim()
     ]
 }
 

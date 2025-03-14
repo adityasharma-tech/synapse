@@ -62,12 +62,14 @@ app.use(validatorMiddeware);
 /**
  * Router imports
  */
+import defaultRouter from "./routes/default.routes"
 import authRouter from "./routes/auth.routes";
 import userRouter from "./routes/user.routes";
 
 /**
  * Router handlers
 */
+app.use(defaultRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", userRouter);
 

@@ -11,18 +11,19 @@
 ### Routes
  🛣️ **Auth Routes**
 
-- [ ] /auth/verify `GET`  
-- [ ] /auth/login  `POST`  
-- [ ] /auth/register  `POST`
-- [ ] /auth/resend-email `POST`
+- [x] /auth/verify `GET`  
+- [x] /auth/login  `POST`  
+- [x] /auth/register  `POST`
+- [x] /auth/resend-email `POST`
+- [ ] /auth/forgot-password  `POST` 
 
 🛣️ **User Routes**
 
 - [ ] /user  `GET` 
 - [ ] /user  `PUT`                         _// updates the user data except password_
 - [ ] /user/reset-password `PUT` 
-- [ ] /user/forgot-password  `POST` 
 - [ ] /user/restrict-account `DELETE` 
+
 🛣️ **Streamer Routes**
 
 - [ ] /streamer/block-user `POST`     // block a user from messaging

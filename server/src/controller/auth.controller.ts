@@ -6,8 +6,8 @@ import { TokenTable } from "../schemas/tokenTable.sql";
 import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
 import { CookieOptions } from "express";
-import { generateUsername } from "../lib/utils";
-import { sendConfirmationMail } from "../services/mail.service";
+import { generateUsername, getSigningTokens } from "../lib/utils";
+import { sendConfirmationMail, sendResetPasswordMail } from "../services/mail.service";
 import { emailVerificationTokenExpiry } from "../lib/constants";
 
 import crpyto from "crypto"
@@ -44,25 +44,15 @@ const loginHandler = asyncHandler(async (req, res) => {
 
     const err = new ApiError(401, "Please verify your email to login.", ErrCodes.EMAIL_NOT_VERIFIED);
 
-    logger.error(`Email after${JSON.stringify(err)}`)
+    logger.error(`Email after ${JSON.stringify(err)}`)
 
     if (!user.emailVerified) throw err
 
-    const isPasswordCorrect = bcrypt.compareSync(password.trim(), user.passwordHash);
+    const isPasswordCorrect = await bcrypt.compare(password.trim(), user.passwordHash);
 
     logger.info(`isPasswordCorrect: ${isPasswordCorrect}, user: ${JSON.stringify(user)}`);
 
-    const accessToken = jwt.sign({
-        userId: user.id
-    }, process.env.ACCESS_SECRET_KEY!, {
-        expiresIn: "2d",
-    })
-
-    const refreshToken = jwt.sign({
-        userId: user.id
-    }, process.env.REFRESH_SECRET_KEY!, {
-        expiresIn: "7d"
-    })
+    const { accessToken, refreshToken, refreshCookieOptions, accessCookieOptions } = getSigningTokens({userId: user.id})
 
     if (!isPasswordCorrect) {
         throw new ApiError(401, "Invalid credentials!", ErrCodes.INVALID_CREDS);
@@ -83,14 +73,8 @@ const loginHandler = asyncHandler(async (req, res) => {
 
     res.setHeaders(headers);
 
-    const cookieOptions: CookieOptions = {
-        httpOnly: true,
-        secure: true,
-        maxAge: 60 * 60 * 24 * 7 * 1000
-    }
-
-    res.cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 60 * 60 * 48 * 1000 });
-    res.cookie("refreshToken", refreshToken, cookieOptions);
+    res.cookie("accessToken", accessToken, accessCookieOptions);
+    res.cookie("refreshToken", refreshToken, refreshCookieOptions);
 
     res.status(200).json(new ApiResponse(200, {
         user
@@ -116,9 +100,9 @@ const registerHandler = asyncHandler(async (req, res) => {
 
     if (users.length > 0) throw new ApiError(400, "user already exists with same username or email", ErrCodes.USER_EXISTS);
 
-    const salt = await bcrypt.genSalt(10)
+    const salt = await bcrypt.genSalt(10);
 
-    const hashedPassword = await bcrypt.hash(password, salt)
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     const emailVerificationToken = crpyto.randomBytes(20).toString("hex");
 
@@ -184,33 +168,28 @@ const verifyEmailHandler = asyncHandler(async (req, res) => {
 
     const db = establishDbConnection();
 
-    const tokenTables = await db
-        .select()
-        .from(TokenTable)
-        .where(
-            eq(TokenTable.emailVerificationToken, verificationToken.toString().trim())
-        ).execute();
-    if (tokenTables.length <= 0) throw new ApiError(400, "Failed to get user or user already verified.", ErrCodes.DEFAULT_RES);
-
-    const userToken = tokenTables[0];
-
     const users = await db
         .select()
         .from(User)
-        .where(
-            eq(
-                User.id, userToken.userId
-            )
-        ).execute()
+        .innerJoin(TokenTable, eq(User.id, TokenTable.userId))
+        .where(eq(TokenTable.emailVerificationToken, verificationToken.toString()))
+        .limit(1)
+        .execute();
 
-    if (users[0].emailVerified) throw new ApiError(400, "User already verified.", ErrCodes.DEFAULT_RES);
+    const user = users[0];
+
+    if (!user || !user.token_table || !user.users || !user.token_table.emailVerificationTokenExpiry) throw new ApiError(400, "Failed to get user or user already verified.", ErrCodes.DEFAULT_RES);
+
+    if (user.users.emailVerified) throw new ApiError(400, "User already verified.", ErrCodes.DEFAULT_RES);
+
+    if(user.token_table.emailVerificationTokenExpiry < Date.now()) throw new ApiError(400, "Token expired successfully. 😁 Please request for new.")
 
     const userUpdateResult = await db
         .update(User)
         .set({
             emailVerified: true,
             updatedAt: new Date()
-        }).where(eq(User.id, users[0].id)).execute();
+        }).where(eq(User.id, user.users.id)).execute();
     if (!userUpdateResult) throw new ApiError(400, "Failed to update user.", ErrCodes.DB_UPDATE_ERR);
 
     const tokenTableUpdateResult = await db
@@ -221,7 +200,7 @@ const verifyEmailHandler = asyncHandler(async (req, res) => {
             updatedAt: new Date()
         })
         .where(eq(
-            TokenTable.userId, users[0].id
+            TokenTable.userId, user.users.id
         ))
         .execute()
 
@@ -246,6 +225,7 @@ const resendEmailHandler = asyncHandler(async (req, res) => {
                 eq(User.email, email.trim()),
             )
         ).execute();
+
     if (users.length <= 0) throw new ApiError(400, "Failed to get user.", ErrCodes.DB_ROW_NOT_FOUND)
 
     const user = users[0];
@@ -293,14 +273,7 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
 
     const user = users[0];
 
-    const newRefreshToken = jwt.sign({ userId: user.users.id }, process.env.REFRESH_SECRET_KEY!);
-    const newAccessToken = jwt.sign({ userId: user.users.id }, process.env.ACCESS_SECRET_KEY!);
-
-    const cookieOptions: CookieOptions = {
-        httpOnly: true,
-        secure: true,
-        maxAge: 60 * 60 * 24 * 7 * 1000
-    }
+    const { refreshToken: newRefreshToken, accessToken: newAccessToken, accessCookieOptions, refreshCookieOptions } = getSigningTokens({userId: user.users.id})
 
     await db
         .update(TokenTable)
@@ -311,19 +284,85 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
         .where(eq(TokenTable.userId, user.users.id))
         .execute();
 
-    res.cookie("refreshToken", newRefreshToken, cookieOptions)
-    res.cookie("accessToken", newAccessToken, { ...cookieOptions, maxAge: 60 * 60 * 48 * 1000 })
+    res.cookie("refreshToken", newRefreshToken, refreshCookieOptions)
+    res.cookie("accessToken", newAccessToken, accessCookieOptions)
 
     res.status(200).json(new ApiResponse(200, {
         user
     }))
 })
 
+const resetPasswordEmailHandler = asyncHandler(async (req, res)=>{
+    const { email } = req.body;
+
+    if(!email) throw new ApiError(400, "Please provide email!", ErrCodes.VALIDATION_ERR);
+
+    const verificationToken = crpyto.randomBytes(10).toString("hex");
+
+    const result = await sendResetPasswordMail(email, verificationToken);
+
+    if(!result.accepted)
+        throw new ApiError(400, "Err in sending email.", ErrCodes.EMAIL_SEND_ERR);
+    
+    res.status(200).json(new ApiResponse(200, null))
+})
+
+const resetPasswordHandler = asyncHandler(async (req, res)=>{
+    const { verificationToken } = req.query;
+    const { password } = req.body;
+
+    if(!verificationToken || !password) throw new ApiError(400, "Verification token not found", ErrCodes.VALIDATION_ERR);
+
+    const db = establishDbConnection();
+
+    const users = await db
+        .select()
+        .from(User)
+        .innerJoin(TokenTable, eq(User.id, TokenTable.userId))
+        .where(eq(TokenTable.resetPasswordToken, verificationToken.toString()))
+        .limit(1)
+        .execute();
+
+    const user = users[0];
+
+    if (!user || !user.token_table || !user.users || !user.token_table.resetPasswordTokenExpiry) throw new ApiError(400, "Failed to get user or user already verified.", ErrCodes.DEFAULT_RES);
+
+    if (user.users.emailVerified) throw new ApiError(400, "User already verified.", ErrCodes.DEFAULT_RES);
+
+    if(user.token_table.resetPasswordTokenExpiry < Date.now()) throw new ApiError(400, "Token expired successfully. 😁 Please request for a brand new.")
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const userUpdateResult = await db
+        .update(User)
+        .set({
+            passwordHash,
+            updatedAt: new Date()
+        }).where(eq(User.id, user.users.id)).execute();
+    if (!userUpdateResult) throw new ApiError(400, "Failed to update user.", ErrCodes.DB_UPDATE_ERR);
+
+    const tokenTableUpdateResult = await db
+        .update(TokenTable)
+        .set({
+            userRefreshToken: null,
+            updatedAt: new Date()
+        })
+        .where(eq(
+            TokenTable.userId, user.users.id
+        ))
+        .execute()
+
+    if (!tokenTableUpdateResult) throw new ApiError(400, "Failed to update tokens.", ErrCodes.DB_UPDATE_ERR);
+
+    res.status(200).json(new ApiResponse(200, null, "Email verified successfully."))
+})
 
 export {
     registerHandler,
     loginHandler,
     verifyEmailHandler,
     resendEmailHandler,
-    refreshTokenHandler
+    refreshTokenHandler,
+    resetPasswordEmailHandler,
+    resetPasswordHandler
 }
