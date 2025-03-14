@@ -28,7 +28,7 @@ function getSigningTokens(payload: any) {
   const refreshCookieOptions: CookieOptions = {
     httpOnly: true,
     secure: true,
-    maxAge: 60 * 60 * 24 * 7 * 1000
+    maxAge: 60 * 60 * 24 * 7 * 1000,
   }
 
   const accessCookieOptions = { ...refreshCookieOptions, maxAge: 60 * 60 * 48 * 1000 }

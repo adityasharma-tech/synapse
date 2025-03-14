@@ -1,14 +1,13 @@
 import { User } from "../schemas/user.sql";
 import { eq, or } from "drizzle-orm";
 import { logger } from "../lib/configs";
-import { ApiError, ErrCodes } from "../lib/ApiError";
 import { TokenTable } from "../schemas/tokenTable.sql";
 import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
-import { CookieOptions } from "express";
+import { ApiError, ErrCodes } from "../lib/ApiError";
+import { emailVerificationTokenExpiry } from "../lib/constants";
 import { generateUsername, getSigningTokens } from "../lib/utils";
 import { sendConfirmationMail, sendResetPasswordMail } from "../services/mail.service";
-import { emailVerificationTokenExpiry } from "../lib/constants";
 
 import crpyto from "crypto"
 import bcrypt from "bcryptjs"

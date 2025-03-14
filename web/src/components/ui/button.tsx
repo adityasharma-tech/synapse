@@ -8,19 +8,19 @@ const colorClasses = {
 
 interface ButtonPropT extends DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> {
   bgClr: "emerald" | "neutral"
-} 
+}
 
 export default function PrimaryButton(
   { bgClr, children, ...props }: ButtonPropT
 ) {
   return (
     <button
-    className={cn(
-      props.className,
-      colorClasses[bgClr],
-      "flex items-center text-sm h-8 group rounded-lg ring cursor-pointer disabled:opacity-90 disabled:cursor-not-allowed px-4 bg-gradient-to-b transition-colors justify-center gap-x-2 font-medium text-neutral-100"
-    )}
     {...props}
+      className={cn(
+        "flex items-center text-sm h-8 group rounded-lg ring cursor-pointer disabled:opacity-90 disabled:cursor-not-allowed px-4 bg-gradient-to-b transition-colors justify-center gap-x-2 font-medium text-neutral-100",
+        colorClasses[bgClr],
+        props.className,
+      )}
     >
       {children}
     </button>
