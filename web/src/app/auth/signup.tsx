@@ -1,36 +1,35 @@
-import React, { FormEventHandler, useState } from "react";
+import React, { FormEventHandler, useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import axiosInstance from "../../lib/axios.config";
+import axiosInstance from "../../lib/axios";
 import { useFetcher } from "../../hooks/fetcher.hook";
 import TextInput from "../../components/cui/TextInput";
 import { toast } from "sonner";
 
 export default function SignupPage() {
-    const { loading, handleFetch, serverRes } = useFetcher();
     const navigate = useNavigate();
+    const { loading, handleFetch, serverRes } = useFetcher();
 
     const [formData, setFormData] = useState({
-        firstName: "FirstText",
-        lastName: "LastText",
-        email: "test@adityasharma.com",
+        firstName: "Jon",
+        lastName: "Doe",
+        email: "aditya@adityasharma.live",
         phoneNumber: "+91 123123 1231",
         password: "testpassword",
-        username: "test0",
         termsCheked: false
     })
 
 
-    const handleSignup: FormEventHandler<HTMLFormElement> = async function (e) {
+    const handleSignup: FormEventHandler<HTMLFormElement> = useCallback(async (e)=>{
         e.preventDefault();
         if(!formData.termsCheked) return toast("You need to aggree to our terms & conditions first.");
         await handleFetch(axiosInstance.post("/auth/register", { ...formData, termsCheked: undefined }))
-        console.log(serverRes)
-        if(serverRes?.success){
+        console.log(`handleSignupServerRes: `, serverRes)
+        if(serverRes?.current?.success){
             const searchParams = new URLSearchParams()
             searchParams.append("email", btoa(formData.email))
             navigate(`/auth/verify?${searchParams.toString()}`);
         }
-    }
+    }, [formData, toast, handleFetch, axiosInstance, serverRes, navigate])
     return (
         <React.Fragment>
             <header className="px-5 flex justify-between py-4">

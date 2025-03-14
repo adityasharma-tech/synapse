@@ -25,7 +25,7 @@ class ApiError extends Error {
   constructor(
     statusCode: number,
     message: string,
-    errType?: ErrCodes,
+    errType: ErrCodes = ErrCodes.DEFAULT_RES,
     errors?: [],
     stack = ""
   ) {
@@ -34,7 +34,7 @@ class ApiError extends Error {
     this.data = null;
     this.message = message;
     this.success = false;
-    this.errType = errType ?? ErrCodes.DEFAULT_RES;
+    this.errType = errType;
     this.errors = errors;
 
     if (process.env.NODE_ENV == "development") {

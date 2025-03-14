@@ -42,7 +42,11 @@ const loginHandler = asyncHandler(async (req, res) => {
 
     const user = users[0];
 
-    if (!user.emailVerified) throw new ApiError(401, "Please verify your email to login.", ErrCodes.EMAIL_NOT_VERIFIED);
+    const err = new ApiError(401, "Please verify your email to login.", ErrCodes.EMAIL_NOT_VERIFIED);
+
+    logger.error(`Email after${JSON.stringify(err)}`)
+
+    if (!user.emailVerified) throw err
 
     const isPasswordCorrect = bcrypt.compareSync(password.trim(), user.passwordHash);
 

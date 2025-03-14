@@ -1,5 +1,5 @@
 import { AxiosResponse } from "axios";
-import { createContext, PropsWithChildren, useContext, useState } from "react";
+import { createContext, PropsWithChildren, RefObject, useCallback, useContext, useRef, useState } from "react";
 import { toast } from "sonner";
 
 interface ServerResT {
@@ -14,15 +14,16 @@ interface ServerErrResponseT {
     data?: any;
     message: string;
     success: boolean;
+    errType: string;
     errors?: any[]
 }
 
 interface FetcherContextT {
     handleFetch: (axiosFn: Promise<AxiosResponse<any, any>>) => Promise<void>;
-    serverRes: null | ServerResT;
-    errResponse: null | ServerErrResponseT;
-    response: any;
-    error: any;
+    serverRes: RefObject<ServerResT | null>;
+    errResponse: RefObject<ServerErrResponseT | null>;
+    response: RefObject<any>;
+    error: RefObject<any>;
     loading: boolean;
     setDisableToast: (value: boolean) => void;
 }
@@ -33,12 +34,13 @@ const FetcherContext = createContext<null | FetcherContextT>(null)
 
 const FetcherProvider = ({ children }: PropsWithChildren) => {
 
-    const [serverRes, setServerRes] = useState<null | ServerResT>(null);
-    const [errResponse, setErrResponse] = useState<null | ServerErrResponseT>(null);
+    const serverRes = useRef<null | ServerResT>(null)
+    const errResponse = useRef<null | ServerErrResponseT>(null)
+    
     const [disableToast, setDisableToast] = useState<boolean>(false);
 
-    const [response, setResponse] = useState<any>(null);
-    const [error, setError] = useState<any>(null);
+    const response = useRef<any>(null); 
+    const error = useRef<any>(null);
     const [loading, setLoading] = useState<boolean>(false);
 
     function showToast(message: string, variant: "error" | "success" | "default" = "default") {
@@ -59,27 +61,27 @@ const FetcherProvider = ({ children }: PropsWithChildren) => {
             })
     }
 
-    async function handleFetch(axiosFn: Promise<AxiosResponse<any, any>>) {
+    const handleFetch = useCallback(async (axiosFn: Promise<AxiosResponse<any, any>>)=>{
         setLoading(true);
         try {
             const result = await axiosFn;
             showToast(result.data.message);
-            setResponse(result);
-            setServerRes(result.data);
+            response.current = result;
+            serverRes.current = result.data;
         } catch (err: any) {
-            setError(err);
+            error.current = err;
             if (err.response) {
                 console.error('Server error:', err.response.data);
+                errResponse.current = err.response.data
                 showToast(`Error: ${err.response.data.message}`, "error")
-                setErrResponse(err.response.data)
             } else {
-                showToast(`Unknown error: ${err.message}`, "error")
                 console.error('Unknown error occured: ', err.message);
+                showToast(`Unknown error: ${err.message}`, "error")
             }
         } finally {
             setLoading(false)
         }
-    }
+    }, [setLoading, showToast, response, serverRes, error, errResponse])
 
     return <FetcherContext.Provider value={{ handleFetch, serverRes, errResponse, response, error, loading, setDisableToast }}>
         {children}

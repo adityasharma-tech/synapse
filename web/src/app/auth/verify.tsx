@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { useFetcher } from "../../hooks/fetcher.hook";
-import axiosInstance from "../../lib/axios.config";
+import axiosInstance from "../../lib/axios";
 
 export default function VerifyPage() {
     const [searchParams] = useSearchParams()
@@ -17,7 +17,7 @@ export default function VerifyPage() {
         const verificationToken = searchParams.get("verificationToken");
         if(verificationToken){
             await handleFetch(axiosInstance.get(`/auth/verify?${searchParams.toString()}`));
-            if(serverRes?.success){
+            if(serverRes?.current?.success){
                 navigator('/dashboard')
             }
         }

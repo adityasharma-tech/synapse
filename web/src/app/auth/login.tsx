@@ -1,21 +1,21 @@
 import { Link, useNavigate } from "react-router";
-import React, { FormEventHandler, useState } from "react";
+import React, { FormEventHandler, useCallback, useState } from "react";
 import TextInput from "../../components/cui/TextInput";
 import { useFetcher } from "../../hooks/fetcher.hook";
-import axiosInstance from "../../lib/axios.config";
+import axiosInstance from "../../lib/axios";
 
 export default function LoginPage() {
 
     const { handleFetch, loading, serverRes } = useFetcher()
 
-    const navigator = useNavigate()
+    const navigate = useNavigate()
 
     const [formData, setFormData] = useState({
         dataField: "",
         password: ""
     })
 
-    const handleLoginSubmit: FormEventHandler<HTMLFormElement> = async function (e) {
+    const handleLoginSubmit: FormEventHandler<HTMLFormElement> = useCallback(async (e) => {
         e.preventDefault();
 
         await handleFetch(axiosInstance.post('/auth/login', {
@@ -23,10 +23,12 @@ export default function LoginPage() {
             username: formData.dataField.includes("@") ? undefined : formData.dataField,
             password: formData.password
         }))
-        if (serverRes?.success) {
-            navigator('/dashboard')
+
+        if (serverRes?.current?.success) {
+            navigate('/dashboard')
         }
-    }
+    }, [handleFetch, axiosInstance, formData, serverRes, navigate])
+
     return (
         <React.Fragment>
             <header className="px-5 flex justify-between py-4">
@@ -44,13 +46,13 @@ export default function LoginPage() {
                     <TextInput
                         required
                         value={formData.dataField}
-                        onChange={(e)=>setFormData({...formData, dataField: e.target.value.trim().toLowerCase()})}
+                        onChange={(e) => setFormData({ ...formData, dataField: e.target.value.trim().toLowerCase() })}
                         placeholder="username@company.com"
                         label="Username or Email Address" />
 
                     <TextInput
                         value={formData.password}
-                        onChange={(e)=>setFormData({...formData, password: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                         type="password"
                         required
                         placeholder="********"
@@ -59,7 +61,7 @@ export default function LoginPage() {
 
                     <div className="pt-10 text-center">
                         <button type="submit" className="py-2 flex gap-x-2 justify-center items-center mx-auto min-w-[200px] bg-sky-600 rounded-md text-white font-medium disabled:bg-neutral-700 disabled:opacity-45">
-                        <span data-loading={loading.toString()} className="loading data-[loading='true']:block hidden loading-spinner loading-xs"></span>
+                            <span data-loading={loading.toString()} className="loading data-[loading='true']:block hidden loading-spinner loading-xs"></span>
                             Login
                         </button>
                     </div>
