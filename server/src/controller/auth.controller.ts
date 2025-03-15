@@ -112,8 +112,8 @@ const registerHandler = asyncHandler(async (req, res) => {
         .values({
             firstName,
             lastName,
-            username: username,
-            email: email,
+            username,
+            email,
             phoneNumber,
             passwordHash: hashedPassword,
             emailVerified: false,

@@ -35,7 +35,7 @@ const updateUserHandler = asyncHandler(async (req, res)=>{
     const [dbUser] = await db
     .select()
     .from(User)
-    .where(eq(User.id, user.userId))
+    .where(eq(User.id, user?.id))
     .execute()
 
     if(!dbUser) throw new ApiError(400, "User not found.", ErrCodes.DB_ROW_NOT_FOUND);
@@ -48,7 +48,7 @@ const updateUserHandler = asyncHandler(async (req, res)=>{
         username: updateData.username ?? dbUser.username
     }).where(eq(
         User.id,
-        user.userId
+        user?.id
     )).execute();
     
     res.status(200).json(new ApiResponse(200, null, "User updated success."))

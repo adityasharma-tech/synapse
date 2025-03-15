@@ -1,8 +1,8 @@
 import { cn } from '../../lib/utils'
 
-export default function TextInput({ className, label, ...props }: { className?: string; label: string; } & React.InputHTMLAttributes<HTMLInputElement>) {
+export default function TextInput({ className, contentClassName, label, ...props }: { className?: string; contentClassName?: string; label: string; } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <div className="flex flex-col gap-y-2 mt-4">
+    <div className={cn("flex flex-col gap-y-2 mt-4", contentClassName)}>
       <label style={{
         fontSize: "14px"
       }} className="font-medium dark:text-white">{label} {props.required ? <span className="text-red-600">*</span> : null}</label>

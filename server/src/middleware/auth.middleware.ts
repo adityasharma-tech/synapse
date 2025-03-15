@@ -5,13 +5,12 @@ import jwt from "jsonwebtoken"
 import { User } from "../schemas/user.sql";
 import { eq } from "drizzle-orm";
 import { logger } from "../lib/configs";
+import { TokenTable } from "../schemas/tokenTable.sql";
 
 const authMiddleware = asyncHandler(async (req, _, next) => {
     const cookies = req.cookies
 
     const accessToken = cookies?.accessToken || req.headers?.accessToken;
-
-    logger.warn(`authMiddeware.cookies: ${JSON.stringify(cookies)}`)
 
     if (!accessToken)
         throw new ApiError(401, "Unauthorized", ErrCodes.UNAUTHORIZED);
@@ -45,6 +44,36 @@ const authMiddleware = asyncHandler(async (req, _, next) => {
     next()
 })
 
+
+const streamerAuthMiddeware = asyncHandler(async (req, res, next) => {
+    if (!req.user) throw new ApiError(401, "Unauthorized");
+
+    if (req.user.role != "streamer") throw new ApiError(401, "You are not authorized to create new stream.");
+
+    const db = establishDbConnection()
+
+    const tokens = await db
+        .select()
+        .from(TokenTable)
+        .where(eq(User.id, req.user.id))
+        .limit(1)
+        .execute();
+
+    if (!tokens || tokens.length <= 0 || !tokens[0].streamerVerificationToken) throw new ApiError(401, "Streamer token not found. You may need to verify your details to start streaming.");
+    try {
+        jwt.verify(tokens[0].streamerVerificationToken, process.env.STREAMER_SECRET_KEY!);
+    } catch (error: any) {
+        logger.error(`Error during accessing middleware: ${error.message}`)
+        if (error instanceof jwt.TokenExpiredError)
+            throw new ApiError(401, "Unauthorized", ErrCodes.STREAMER_TOKEN_EXPIRED);
+        else if (error instanceof jwt.JsonWebTokenError)
+            throw new ApiError(401, "Unauthorized: Invalid token");
+        else throw new ApiError(401, "Unauthorized", ErrCodes.UNAUTHORIZED)
+    }
+    next()
+})
+
 export {
-    authMiddleware
+    authMiddleware,
+    streamerAuthMiddeware
 }

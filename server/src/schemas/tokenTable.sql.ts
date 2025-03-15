@@ -6,7 +6,7 @@ const TokenTable = t.pgTable('token_table', {
   id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
   userId: t.integer().references(()=>User.id).notNull(),
   userRefreshToken: t.varchar(),
-  streamingVerificationToken: t.varchar(),
+  streamerVerificationToken: t.varchar(),
   resetPasswordToken: t.varchar(),
   resetPasswordTokenExpiry: t.integer().default(Date.now()+ 60*60*5*1000),
   emailVerificationToken: t.varchar(),
