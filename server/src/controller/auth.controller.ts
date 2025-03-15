@@ -51,7 +51,7 @@ const loginHandler = asyncHandler(async (req, res) => {
 
     logger.info(`isPasswordCorrect: ${isPasswordCorrect}, user: ${JSON.stringify(user)}`);
 
-    const { accessToken, refreshToken, refreshCookieOptions, accessCookieOptions } = getSigningTokens({userId: user.id})
+    const { accessToken, refreshToken, cookieOptions } = getSigningTokens({ userId: user.id })
 
     if (!isPasswordCorrect) {
         throw new ApiError(401, "Invalid credentials!", ErrCodes.INVALID_CREDS);
@@ -72,8 +72,8 @@ const loginHandler = asyncHandler(async (req, res) => {
 
     res.setHeaders(headers);
 
-    res.cookie("accessToken", accessToken, accessCookieOptions);
-    res.cookie("refreshToken", refreshToken, refreshCookieOptions);
+    res.cookie("accessToken", accessToken, cookieOptions);
+    res.cookie("refreshToken", refreshToken, cookieOptions);
 
     res.status(200).json(new ApiResponse(200, {
         user
@@ -118,7 +118,9 @@ const registerHandler = asyncHandler(async (req, res) => {
             passwordHash: hashedPassword,
             emailVerified: false,
             updatedAt: new Date()
-        }).returning().execute();
+        })
+        .returning()
+        .execute();
 
     if (!result || result.length <= 0) {
         throw new ApiError(400, "Failed to create new user", ErrCodes.DB_INSERT_ERR);
@@ -138,7 +140,9 @@ const registerHandler = asyncHandler(async (req, res) => {
                 emailVerificationToken,
                 emailVerificationTokenExpiry, // 6hr expiry
                 updatedAt: new Date()
-            }).returning().execute();
+            })
+            .returning()
+            .execute();
         if (!tokenInsertResults || tokenInsertResults.length <= 0) throw new ApiError(400, "Failed to insert token in token table", ErrCodes.DB_INSERT_ERR);
     } else {
         const tokenUpdateResults = await db
@@ -181,7 +185,7 @@ const verifyEmailHandler = asyncHandler(async (req, res) => {
 
     if (user.users.emailVerified) throw new ApiError(400, "User already verified.", ErrCodes.DEFAULT_RES);
 
-    if(user.token_table.emailVerificationTokenExpiry < Date.now()) throw new ApiError(400, "Token expired successfully. 😁 Please request for new.")
+    if (user.token_table.emailVerificationTokenExpiry > new Date()) throw new ApiError(400, "Token expired successfully. 😁 Please request for new.")
 
     const userUpdateResult = await db
         .update(User)
@@ -272,7 +276,7 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
 
     const user = users[0];
 
-    const { refreshToken: newRefreshToken, accessToken: newAccessToken, accessCookieOptions, refreshCookieOptions } = getSigningTokens({userId: user.users.id})
+    const { refreshToken: newRefreshToken, accessToken: newAccessToken, cookieOptions } = getSigningTokens({ userId: user.users.id })
 
     await db
         .update(TokenTable)
@@ -283,34 +287,34 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
         .where(eq(TokenTable.userId, user.users.id))
         .execute();
 
-    res.cookie("refreshToken", newRefreshToken, refreshCookieOptions)
-    res.cookie("accessToken", newAccessToken, accessCookieOptions)
+    res.cookie("refreshToken", newRefreshToken, cookieOptions)
+    res.cookie("accessToken", newAccessToken, cookieOptions)
 
     res.status(200).json(new ApiResponse(200, {
         user
     }))
 })
 
-const resetPasswordEmailHandler = asyncHandler(async (req, res)=>{
+const resetPasswordEmailHandler = asyncHandler(async (req, res) => {
     const { email } = req.body;
 
-    if(!email) throw new ApiError(400, "Please provide email!", ErrCodes.VALIDATION_ERR);
+    if (!email) throw new ApiError(400, "Please provide email!", ErrCodes.VALIDATION_ERR);
 
     const verificationToken = crpyto.randomBytes(10).toString("hex");
 
     const result = await sendResetPasswordMail(email, verificationToken);
 
-    if(!result.accepted)
+    if (!result.accepted)
         throw new ApiError(400, "Err in sending email.", ErrCodes.EMAIL_SEND_ERR);
-    
+
     res.status(200).json(new ApiResponse(200, null))
 })
 
-const resetPasswordHandler = asyncHandler(async (req, res)=>{
+const resetPasswordHandler = asyncHandler(async (req, res) => {
     const { verificationToken } = req.query;
     const { password } = req.body;
 
-    if(!verificationToken || !password) throw new ApiError(400, "Verification token not found", ErrCodes.VALIDATION_ERR);
+    if (!verificationToken || !password) throw new ApiError(400, "Verification token not found", ErrCodes.VALIDATION_ERR);
 
     const db = establishDbConnection();
 
@@ -328,7 +332,7 @@ const resetPasswordHandler = asyncHandler(async (req, res)=>{
 
     if (user.users.emailVerified) throw new ApiError(400, "User already verified.", ErrCodes.DEFAULT_RES);
 
-    if(user.token_table.resetPasswordTokenExpiry < Date.now()) throw new ApiError(400, "Token expired successfully. 😁 Please request for a brand new.")
+    if (user.token_table.resetPasswordTokenExpiry > new Date()) throw new ApiError(400, "Token expired successfully. 😁 Please request for a brand new.")
 
     const passwordHash = await bcrypt.hash(password, 10);
 

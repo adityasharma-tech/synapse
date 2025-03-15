@@ -5,7 +5,7 @@ import axiosInstance from "../../lib/axios";
 
 import { useFetcher } from "../../hooks/fetcher.hook";
 import { FormEventHandler, useCallback } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 export default function DashboardPage() {
 
@@ -27,9 +27,11 @@ export default function DashboardPage() {
   return (
     <React.Fragment>
       <Header>
-        <button className="border border-neutral-400 rounded-md px-5 py-2 capitalize font-medium">
-          apply for streamer
-        </button>
+        <Link to="/dashboard/apply">
+          <button className="border border-neutral-400 rounded-md px-5 py-2 capitalize font-medium">
+            apply for streamer
+          </button>
+        </Link>
       </Header>
       <section className="h-[calc(100vh-72px)]">
         <div className="flex w-full gap-x-4 py-3 px-4 min-h-36">

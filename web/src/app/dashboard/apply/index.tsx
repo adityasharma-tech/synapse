@@ -5,24 +5,25 @@ import { Link, useNavigate } from "react-router";
 import { FormEventHandler, useCallback, useState } from 'react'
 import { useFetcher } from "../../../hooks/fetcher.hook";
 import TextInput from "../../../components/cui/TextInput";
+import { useAppSelector } from "../../../store";
 
-export default function ApplyFor() {
+export default function ApplyForStreamer() {
     const navigate = useNavigate();
+
+    const user = useAppSelector(state=>state.app.user);
 
     const { loading, handleFetch, serverRes } = useFetcher();
 
-    
+
     const [formData, setFormData] = useState({
-        firstName: "Jon",
-        lastName: "Doe",
-        email: "aditya@adityasharma.live",
-        phoneNumber: "+91 123123 1231",
-        password: "testpassword",
-        termsCheked: false
+        phoneNumber: user?.phoneNumber,
+        upiId: "payment@upi",
+        otpVerified: false,
+        otp: ""
     })
 
 
-    const handleSignup: FormEventHandler<HTMLFormElement> = useCallback(async (e)=>{
+    const handleSignup: FormEventHandler<HTMLFormElement> = useCallback(async (e) => {
         e.preventDefault();
         // if(!formData.termsCheked) return toast("You need to aggree to our terms & conditions first.");
         // await handleFetch(axiosInstance.post("/auth/register", { ...formData, termsCheked: undefined }))
@@ -44,28 +45,24 @@ export default function ApplyFor() {
                     className="object-contain h-10"
                 />
             </header>
-            <div className="rounded-lg px-10 py-8 gap-y-1 h-[calc(100vh-115px)] flex flex-col justify-center items-center mt-10">
+            <div className="rounded-lg px-10 py-8 gap-y-1 h-[calc(100vh-115px)] flex flex-col justify-center items-center">
                 <form onSubmit={handleSignup} className="max-w-lg">
                     <div>
-                        <h2 className="text-4xl font-bold text-center">Signup on Synapse</h2>
+                        <h2 className="text-4xl font-bold text-center">Apply for streamer</h2>
                     </div>
-                    <div className="flex gap-x-2 mt-8">
-                        <TextInput
-                            label="First name"
-                            disabled={loading}
-                            required
-                            placeholder={"Jane"}
-                            value={formData.firstName}
-                            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })} />
-                        <TextInput
-                            label="Last name"
-                            disabled={loading}
-                            required
-                            placeholder="Doe"
-                            type="text"
-                            value={formData.lastName}
-                            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })} />
-                    </div>
+                    <TextInput
+                        required
+                        label="Name"
+                        disabled
+                        placeholder={"Jane"}
+                        value={`${user?.firstName} ${user?.lastName}`} />
+                    <TextInput
+                        label="Email"
+                        disabled
+                        required
+                        placeholder="username@company.com"
+                        type="email"
+                        value={user?.email} />
                     <TextInput
                         label="Phone number"
                         disabled={loading}
@@ -74,36 +71,32 @@ export default function ApplyFor() {
                         type="tel"
                         value={formData.phoneNumber}
                         onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })} />
-                    <TextInput
-                        label="Email"
-                        disabled={loading}
-                        required
-                        placeholder="username@company.com"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value.trim().toLowerCase() })} />
-                    <TextInput
-                        label="Password"
-                        disabled={loading}
-                        required
-                        placeholder="*******"
-                        type="password"
-                        value={formData.password}
-                        onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
-                    <div className="flex gap-x-2 items-center mt-3 justify-start">
-                        <input disabled={loading} checked={formData.termsCheked} onChange={() => setFormData({ ...formData, termsCheked: !formData.termsCheked })} id="terms-services" type="checkbox" />
-                        <label htmlFor="terms-services" className="text-sm">By clicking on signup you are aggring our <a href="/legal/terms-and-conditions" className="text-sky-600 hover:underline">terms & conditions</a></label>
+                    <div className="flex justify-end">
+                        <button className="text-sm px-3 py-1 border rounded-md">Send otp</button>
                     </div>
+
+                    <TextInput
+                        label="Otp input"
+                        disabled={!formData.otpVerified}
+                        placeholder="******"
+                        type="text"
+                        value={formData.otp}
+                        onChange={(e) => setFormData({ ...formData, otp: e.target.value })} />
+                    <TextInput
+                        required
+                        label="UPI ID"
+                        disabled={loading}
+                        placeholder="payment@upi"
+                        type="text"
+                        value={formData.upiId}
+                        onChange={(e) => setFormData({ ...formData, upiId: e.target.value })} />
                     <div className="pt-10 text-center">
-                        <button disabled={loading} type="submit" className="py-2 flex gap-x-3 justify-center items-center mx-auto min-w-xs bg-sky-600 rounded-md text-white font-medium disabled:bg-neutral-700 disabled:opacity-45">
+                        <button disabled type="submit" className="py-2 flex gap-x-3 justify-center items-center mx-auto min-w-xs bg-sky-600 rounded-md text-white font-medium disabled:bg-neutral-700 disabled:opacity-45">
                             <span data-loading={loading.toString()} className="loading data-[loading='true']:block hidden loading-spinner loading-xs"></span>
-                            Create account
+                            Apply
                         </button>
                     </div>
                 </form>
-                <div className="mt-auto">
-                    Already have an account? <Link className="text-sky-600 hover:underline" to="/auth/login">Log in</Link> instead
-                </div>
             </div>
         </React.Fragment>
     )

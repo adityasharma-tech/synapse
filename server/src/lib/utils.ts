@@ -20,24 +20,21 @@ function generateUsername() {
 
 function getSigningTokens(payload: any) {
   const refreshToken = jwt.sign(payload, process.env.REFRESH_SECRET_KEY!, {
-    expiresIn: "7d",
+    expiresIn: "4d",
   });
   const accessToken = jwt.sign(payload, process.env.ACCESS_SECRET_KEY!, {
     expiresIn: "2d"
   });
-  const refreshCookieOptions: CookieOptions = {
+  const cookieOptions: CookieOptions = {
     httpOnly: true,
     secure: true,
     maxAge: 60 * 60 * 24 * 7 * 1000,
   }
 
-  const accessCookieOptions = { ...refreshCookieOptions, maxAge: 60 * 60 * 48 * 1000 }
-
   return {
     refreshToken,
     accessToken,
-    refreshCookieOptions,
-    accessCookieOptions
+    cookieOptions
   }
 }
 

@@ -8,7 +8,7 @@ export default function TextInput({ className, contentClassName, label, ...props
       }} className="font-medium dark:text-white">{label} {props.required ? <span className="text-red-600">*</span> : null}</label>
       <input
         {...props}
-        className={cn("focus:outline-none p-2 w-full text-neutral-100 border border-neutral-700 bg-neutral-800 focus:ring-2 ring-sky-400 rounded-sm", className)} />
+        className={cn("focus:outline-none p-2 w-full disabled:text-neutral-600 disabled:cursor-not-allowed text-neutral-100 border border-neutral-700 bg-neutral-800 focus:ring-2 ring-sky-400 rounded-sm", className)} />
     </div>
   )
 }

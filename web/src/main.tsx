@@ -17,6 +17,7 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import { useAppDispatch, useAppSelector } from "./store";
 
 import { fetchUser } from "./store/actions/user.actions";
+import ApplyForStreamer from "./app/dashboard/apply";
 
 
 export default function Main() {
@@ -47,6 +48,7 @@ export default function Main() {
           {user ? <Route path="dashboard" element={<DashboardLayout/>}>
             <Route index element={<DashboardPage />} />
             <Route path="stream/:streamId" element={<SignupPage />} />
+            <Route path="apply" element={<ApplyForStreamer/>}/>
           </Route> : null}
           <Route path="stream/:streamId" element={<SignupPage />} />
           <Route path="*" element={<NotFound />} /> {/* Not found page */}
