@@ -5,11 +5,13 @@ import { PropsWithChildren } from "react";
 export default function Header({ children }: PropsWithChildren) {
   return (
     <header className="px-5 flex justify-between py-4">
+      <Link to="/">
       <img
         alt="Synapse"
         src="/T&W@2x.png"
         className="object-contain h-10"
-      />
+        />
+        </Link>
       <div className="flex gap-x-4 items-center">
         {children ?? <Link to="/auth/signup">
           <PrimaryButton bgClr="emerald">

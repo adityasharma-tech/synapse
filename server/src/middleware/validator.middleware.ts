@@ -1,7 +1,21 @@
 import { body, query, validationResult } from "express-validator"
 import { asyncHandler } from "../lib/asyncHandler"
-import { ApiError } from "../lib/ApiError";
+import { ApiError, ErrCodes } from "../lib/ApiError";
 import { logger } from "../lib/configs";
+
+const validator = asyncHandler((req, res, next)=>{
+    const errors = validationResult(req);
+
+    logger.info('I am crossing validator Middleware.');
+
+    if(errors.isEmpty()){
+        return next();
+    }
+
+    logger.error(`Validation errors: ${JSON.stringify(errors)}`);
+
+    throw new ApiError(400, `${errors.array()[0].msg}`, ErrCodes.VALIDATION_ERR, errors.array())
+})
 
 const authRouteValidators = {
     loginRoute: [
@@ -27,13 +41,15 @@ const authRouteValidators = {
             .matches(/^[a-zA-Z0-9.-]+$/)
             .withMessage('Username can only contain letters, numbers and can\'t user special chars other than dot(.) or dash(-) special chars. ')
             .trim()
-            .toLowerCase()
+            .toLowerCase(),
+        validator
     ],
     verifyEmailRoute: [
         query('verificationToken')
         .notEmpty()
         .withMessage('\'verificationToken\' is a required query parameter.')
-        .trim()
+        .trim(),
+        validator
     ],
     registerRoute: [
         body(['firstName', 'lastName'])
@@ -60,7 +76,8 @@ const authRouteValidators = {
         //     .matches(/^[a-zA-Z0-9.-]+$/)
         //     .withMessage('Username can only contain letters, numbers and can\'t user special chars other than dot(.) or dash(-) special chars. ')
         //     .trim()
-        //     .toLowerCase()
+        //     .toLowerCase(),
+        validator
     ],
     resendEmailRoute: [
         body('email')
@@ -70,6 +87,7 @@ const authRouteValidators = {
             .withMessage('Invalid email format.')
             .trim()
             .toLowerCase(),
+        validator
     ],
     resetPasswordMailRoute: [
         body('email')
@@ -79,6 +97,7 @@ const authRouteValidators = {
             .withMessage('Invalid email format.')
             .trim()
             .toLowerCase(),
+        validator
     ],
     resetPasswordRoute: [
         body('password')
@@ -88,24 +107,26 @@ const authRouteValidators = {
         query('verificationToken')
             .notEmpty()
             .withMessage("Verification token not found.")
-            .trim()
-    ]
+            .trim(),
+        validator
+    ],
+    
 }
 
 const userRouteValidators = {
     updateUserRoute: [
         body('firstName')
-        .if((value, { req })=> !(req.body.lastName && req.body.username))
+        .if((_, { req })=> !(req.body.lastName && req.body.username))
         .optional()
         .notEmpty(),
 
         body('lastName')
-        .if((value, { req })=> !(req.body.firstName && req.body.username))
+        .if((_, { req })=> !(req.body.firstName && req.body.username))
         .optional()
         .notEmpty(),
 
         body('username')
-            .if((value, { req })=> !(req.body.firstName && req.body.username))
+            .if((_, { req })=> !(req.body.firstName && req.body.username))
             .optional()
             .notEmpty()
             .withMessage('Atleast provide the username to update it.')
@@ -114,24 +135,29 @@ const userRouteValidators = {
             .matches(/^[a-zA-Z0-9.-]+$/)
             .withMessage('Username can only contain letters, numbers and can\'t user special chars other than dot(.) or dash(-) special chars. ')
             .trim()
-            .toLowerCase()
+            .toLowerCase(),
+            validator
     ] 
 }
 
-const validatorMiddeware = asyncHandler((req, res, next)=>{
-    const errors = validationResult(req);
+const streamRouteValidators = {
+    createStreamRoute: [
+        body('title')
+        .notEmpty()
+        .withMessage('Title is required field.')
+        .isLength({
+            min: 3,
+            max: 60
+        })
+        .withMessage('Title must be within 3-60 characters.')
+        .trim(),
+        validator
+    ]
+}
 
-    if(errors.isEmpty()){
-        return next();
-    }
-
-    logger.error(`Validation errors: ${JSON.stringify(errors)}`);
-
-    throw new ApiError(400, `[${req.path}]: Validation error.`)
-})
 
 export {
-    validatorMiddeware,
     authRouteValidators,
-    userRouteValidators
+    userRouteValidators,
+    streamRouteValidators
 }

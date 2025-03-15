@@ -11,7 +11,6 @@ import { Server } from "socket.io";
 import { corsOrigins } from './lib/constants';
 import { rateLimit } from "express-rate-limit";
 import { ApiResponse } from "./lib/ApiResponse";
-import { validatorMiddeware } from "./middleware/validator.middleware";
 
 /**
  * Http Express Server
@@ -58,7 +57,6 @@ app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(helmet());
 app.use(limiter);
-app.use(validatorMiddeware);
 
 /**
  * Router imports
@@ -66,6 +64,7 @@ app.use(validatorMiddeware);
 import defaultRouter from "./routes/default.routes"
 import authRouter from "./routes/auth.routes";
 import userRouter from "./routes/user.routes";
+import streamRouter from "./routes/stream.routes";
 
 /**
  * Router handlers
@@ -73,6 +72,7 @@ import userRouter from "./routes/user.routes";
 app.use(defaultRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", userRouter);
+app.use("/api/v1/streams", streamRouter);
 
 
 /**

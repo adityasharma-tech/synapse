@@ -1,15 +1,21 @@
 import React from "react"
 import { useAppDispatch, useAppSelector } from "../../store"
 import { logoutUser } from "../../store/actions/user.actions"
+import { useNavigate } from "react-router"
 
 export default function LogoutPage() {
 
     const dispath = useAppDispatch()
+    const navigate = useNavigate();
     const loadingStatus = useAppSelector(state => state.app.loadingStatus)
 
     React.useEffect(() => {
         dispath(logoutUser())
     }, [])
+
+    React.useEffect(()=>{
+        if(loadingStatus == "fulfilled") navigate("/");
+    }, [loadingStatus])
     return (
         <div className="flex items-center justify-center h-full">
             <div className="flex flex-col gap-y-5">

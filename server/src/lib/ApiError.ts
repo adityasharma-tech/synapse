@@ -27,7 +27,7 @@ class ApiError extends Error {
     statusCode: number,
     message: string,
     errType: ErrCodes = ErrCodes.DEFAULT_RES,
-    errors?: [],
+    errors: any[] = [],
     stack = ""
   ) {
     super();
