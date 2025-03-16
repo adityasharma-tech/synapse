@@ -137,7 +137,12 @@ const userRouteValidators = {
             .trim()
             .toLowerCase(),
             validator
-    ] 
+    ],
+    verifyMobileOtpRoute: [
+        body('otpWidgetVerificationToken')
+            .notEmpty()
+            .withMessage('Please provide otp widget verification token.')
+    ]
 }
 
 const streamRouteValidators = {

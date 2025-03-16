@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { getUserHandler, logoutHandler, updateUserHandler } from "../controller/user.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { userRouteValidators } from "../middleware/validator.middleware";
+import { getUserHandler, logoutHandler, updateUserHandler } from "../controller/user.controller";
 
 const router = Router();
 

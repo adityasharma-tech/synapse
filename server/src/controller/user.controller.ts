@@ -4,6 +4,8 @@ import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
 import { User } from "../schemas/user.sql";
 import { ApiError, ErrCodes } from "../lib/ApiError";
+import { msg91AuthKey } from "../lib/constants";
+import msg91 from "msg91";
 
 const logoutHandler = asyncHandler(async (_, res)=>{
 
@@ -54,8 +56,9 @@ const updateUserHandler = asyncHandler(async (req, res)=>{
     res.status(200).json(new ApiResponse(200, null, "User updated success."))
 })
 
+
 export {
     logoutHandler,
     getUserHandler,
-    updateUserHandler
+    updateUserHandler,
 }

@@ -5,7 +5,7 @@ import { TokenTable } from "../schemas/tokenTable.sql";
 import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
 import { ApiError, ErrCodes } from "../lib/ApiError";
-import { emailVerificationTokenExpiry } from "../lib/constants";
+import { emailVerificationTokenExpiry, msg91AuthKey } from "../lib/constants";
 import { generateUsername, getSigningTokens } from "../lib/utils";
 import { sendConfirmationMail, sendResetPasswordMail } from "../services/mail.service";
 
@@ -79,7 +79,6 @@ const loginHandler = asyncHandler(async (req, res) => {
         user
     }, "User logged in successfully"))
 })
-
 
 const registerHandler = asyncHandler(async (req, res) => {
     const { firstName, lastName, email, phoneNumber, password } = req.body;
@@ -361,8 +360,8 @@ const resetPasswordHandler = asyncHandler(async (req, res) => {
 })
 
 export {
-    registerHandler,
     loginHandler,
+    registerHandler,
     verifyEmailHandler,
     resendEmailHandler,
     refreshTokenHandler,

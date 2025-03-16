@@ -1,16 +1,17 @@
-import React from "react";
+import React, { useEffect } from "react";
+import TextInput from "../../../components/cui/TextInput";
 
-import { toast } from "sonner";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { FormEventHandler, useCallback, useState } from 'react'
 import { useFetcher } from "../../../hooks/fetcher.hook";
-import TextInput from "../../../components/cui/TextInput";
+import { OTPWidget } from '@msg91comm/sendotp-react-native';
 import { useAppSelector } from "../../../store";
+import { msgAuthToken, msgWidgetId } from "../../../lib/constants";
 
 export default function ApplyForStreamer() {
     const navigate = useNavigate();
 
-    const user = useAppSelector(state=>state.app.user);
+    const user = useAppSelector(state => state.app.user);
 
     const { loading, handleFetch, serverRes } = useFetcher();
 
@@ -21,6 +22,36 @@ export default function ApplyForStreamer() {
         otpVerified: false,
         otp: ""
     })
+
+    useEffect(() => {
+        OTPWidget.initializeWidget(msgWidgetId, msgAuthToken);
+    }, [])
+
+    const handleSendOtp = useCallback(async () => {
+        const data = {
+            identifier: user?.phoneNumber
+        }
+        const response = await OTPWidget.sendOTP(data);
+        console.log("handleSendOtp: ", response);
+    }, [user, OTPWidget])
+
+    const handleVerifyOtp = useCallback(async () => {
+        const data = {
+            reqId: '',
+            otp: ''
+        }
+        const response = await OTPWidget.verifyOTP(data);
+        console.log("handleVerifyOtp: ", response);
+    }, [user, OTPWidget])
+
+    const handleResetOtp = useCallback(async () => {
+        const data = {
+            reqId: '',
+            retryChannel: 11
+        }
+        const response = await OTPWidget.sendOTP(data);
+        console.log("handleResetOtp: ", response);
+    }, [user, OTPWidget])
 
 
     const handleSignup: FormEventHandler<HTMLFormElement> = useCallback(async (e) => {
@@ -71,10 +102,12 @@ export default function ApplyForStreamer() {
                         type="tel"
                         value={formData.phoneNumber}
                         onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })} />
-                    <div className="flex justify-end">
-                        <button className="text-sm px-3 py-1 border rounded-md">Send otp</button>
+                    <div className="flex justify-end pt-2">
+                        <button type="button" onClick={handleSendOtp} className="btn btn-soft"><span className="loading loading-xs loading-spinner"></span>Send otp</button>
                     </div>
+                    <div id="captcha-renderer">
 
+                    </div>
                     <TextInput
                         label="Otp input"
                         disabled={!formData.otpVerified}

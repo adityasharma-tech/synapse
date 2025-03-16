@@ -54,6 +54,7 @@
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
+    "msg91": "^2.2.4",
     "nodemailer": "^6.10.0",
     "pg": "^8.13.3",
     "socket.io": "^4.8.1",
