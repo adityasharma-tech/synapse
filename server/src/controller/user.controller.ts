@@ -6,6 +6,8 @@ import { User } from "../schemas/user.sql";
 import { ApiError, ErrCodes } from "../lib/ApiError";
 import { msg91AuthKey } from "../lib/constants";
 import msg91 from "msg91";
+import { createBeneficiary } from "../services/payments.service";
+import { TokenTable } from "../schemas/tokenTable.sql";
 
 const logoutHandler = asyncHandler(async (_, res)=>{
 
@@ -57,8 +59,46 @@ const updateUserHandler = asyncHandler(async (req, res)=>{
 })
 
 
+const applyForStreamer = asyncHandler(async (req, res)=>{
+    const user = req.user;
+    const { bankAccountNumber, vpa, bankIfsc, email, phoneNumber, countryCode, streetAddress, city, state, postalCode } = req.body;
+
+    if(!user) throw new ApiError(400, 'Please provide required fields.', ErrCodes.VALIDATION_ERR)
+
+    const db = establishDbConnection();
+    
+    const streamerToken = await createBeneficiary({
+        bankAccountNumber,
+        vpa,
+        bankIfsc,
+        email,
+        phoneNumber,
+        countryCode,
+        streetAddress,
+        city,
+        state,
+        postalCode,
+        userId: user.id,
+        name: `${user.firstName} ${user.lastName}`
+    })
+
+    const result = await db
+        .update(TokenTable)
+        .set({
+            streamerVerificationToken: streamerToken,
+            updatedAt: new Date()
+        })
+        .where(eq(TokenTable.userId, user.id))
+        .execute()
+
+    if(!result) throw new ApiError(400, "Failed to update streamer token.", ErrCodes.DB_UPDATE_ERR);
+    res.status(201).json(new ApiResponse(201, null));
+})
+
+
 export {
     logoutHandler,
     getUserHandler,
     updateUserHandler,
+    applyForStreamer
 }

@@ -1,12 +1,11 @@
-import React, { useEffect } from "react";
+import React from "react";
 import TextInput from "../../../components/cui/TextInput";
 
 import { useNavigate } from "react-router";
 import { FormEventHandler, useCallback, useState } from 'react'
 import { useFetcher } from "../../../hooks/fetcher.hook";
-import { OTPWidget } from '@msg91comm/sendotp-react-native';
 import { useAppSelector } from "../../../store";
-import { msgAuthToken, msgWidgetId } from "../../../lib/constants";
+import axiosInstance from "../../../lib/axios";
 
 export default function ApplyForStreamer() {
     const navigate = useNavigate();
@@ -23,47 +22,11 @@ export default function ApplyForStreamer() {
         otp: ""
     })
 
-    useEffect(() => {
-        OTPWidget.initializeWidget(msgWidgetId, msgAuthToken);
-    }, [])
 
-    const handleSendOtp = useCallback(async () => {
-        const data = {
-            identifier: user?.phoneNumber
-        }
-        const response = await OTPWidget.sendOTP(data);
-        console.log("handleSendOtp: ", response);
-    }, [user, OTPWidget])
-
-    const handleVerifyOtp = useCallback(async () => {
-        const data = {
-            reqId: '',
-            otp: ''
-        }
-        const response = await OTPWidget.verifyOTP(data);
-        console.log("handleVerifyOtp: ", response);
-    }, [user, OTPWidget])
-
-    const handleResetOtp = useCallback(async () => {
-        const data = {
-            reqId: '',
-            retryChannel: 11
-        }
-        const response = await OTPWidget.sendOTP(data);
-        console.log("handleResetOtp: ", response);
-    }, [user, OTPWidget])
-
-
-    const handleSignup: FormEventHandler<HTMLFormElement> = useCallback(async (e) => {
+    const handleStreamer: FormEventHandler<HTMLFormElement> = useCallback(async (e) => {
         e.preventDefault();
-        // if(!formData.termsCheked) return toast("You need to aggree to our terms & conditions first.");
-        // await handleFetch(axiosInstance.post("/auth/register", { ...formData, termsCheked: undefined }))
-        // console.log(`handleSignupServerRes: `, serverRes)
-        // if(serverRes?.current?.success){
-        //     const searchParams = new URLSearchParams()
-        //     searchParams.append("email", btoa(formData.email))
-        //     navigate(`/auth/verify?${searchParams.toString()}`);
-        // }
+        
+        
     }, [])
 
 
@@ -77,7 +40,7 @@ export default function ApplyForStreamer() {
                 />
             </header>
             <div className="rounded-lg px-10 py-8 gap-y-1 h-[calc(100vh-115px)] flex flex-col justify-center items-center">
-                <form onSubmit={handleSignup} className="max-w-lg">
+                <form onSubmit={handleStreamer} className="max-w-lg">
                     <div>
                         <h2 className="text-4xl font-bold text-center">Apply for streamer</h2>
                     </div>
@@ -103,18 +66,19 @@ export default function ApplyForStreamer() {
                         value={formData.phoneNumber}
                         onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })} />
                     <div className="flex justify-end pt-2">
-                        <button type="button" onClick={handleSendOtp} className="btn btn-soft"><span className="loading loading-xs loading-spinner"></span>Send otp</button>
+                        <span className="text-xs">We are facing issues with msg91 otp verification.*</span>
+                        <button type="button" disabled className="btn btn-soft"><span hidden className="loading loading-xs loading-spinner"></span>Send otp</button>
                     </div>
                     <div id="captcha-renderer">
 
                     </div>
-                    <TextInput
+                    {false ? <TextInput
                         label="Otp input"
                         disabled={!formData.otpVerified}
                         placeholder="******"
                         type="text"
                         value={formData.otp}
-                        onChange={(e) => setFormData({ ...formData, otp: e.target.value })} />
+                        onChange={(e) => setFormData({ ...formData, otp: e.target.value })} /> : null}
                     <TextInput
                         required
                         label="UPI ID"
@@ -124,7 +88,7 @@ export default function ApplyForStreamer() {
                         value={formData.upiId}
                         onChange={(e) => setFormData({ ...formData, upiId: e.target.value })} />
                     <div className="pt-10 text-center">
-                        <button disabled type="submit" className="py-2 flex gap-x-3 justify-center items-center mx-auto min-w-xs bg-sky-600 rounded-md text-white font-medium disabled:bg-neutral-700 disabled:opacity-45">
+                        <button disabled type="submit" className="py-2 g-recaptcha flex gap-x-3 justify-center items-center mx-auto min-w-xs bg-sky-600 rounded-md text-white font-medium disabled:bg-neutral-700 disabled:opacity-45">
                             <span data-loading={loading.toString()} className="loading data-[loading='true']:block hidden loading-spinner loading-xs"></span>
                             Apply
                         </button>
