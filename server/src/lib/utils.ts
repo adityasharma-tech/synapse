@@ -23,12 +23,12 @@ function getSigningTokens(payload: any) {
     expiresIn: "4d",
   });
   const accessToken = jwt.sign(payload, process.env.ACCESS_SECRET_KEY!, {
-    expiresIn: "2d"
+    expiresIn: "5min"
   });
   const cookieOptions: CookieOptions = {
     httpOnly: true,
     secure: true,
-    maxAge: 60 * 60 * 24 * 7 * 1000,
+    maxAge: 60 * 60 * 24 * 4 * 1000,
   }
 
   return {
