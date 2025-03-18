@@ -148,16 +148,22 @@ const userRouteValidators = {
     validator,
   ],
   applyForStreamerRoute: [
-    body(["city", "state", "postalCode"])
+    body(["city", "state"])
       .notEmpty()
       .trim()
       .isLength({ min: 3 }),
+
+    body("postalCode")
+      .notEmpty()
+      .trim()
+      .matches(/^\d+$/)
+      .withMessage("Postal code must only contain numbers."),
 
     body("vpa")
       .if((_, { req }) => !(req.body.bankAccountNumber && req.body.bankIfsc))
       .notEmpty()
       .withMessage("bank account or upi is required to login.")
-      .matches(/^[a-zA-Z0-9.-]{2, 256}@[a-zA-Z][a-zA-Z]{2, 64}$/)
+      .matches(/^[0-9A-Za-z.-]{2,256}@[A-Za-z]{2,64}$/)
       .withMessage("Invalid upi id.")
       .trim()
       .toLowerCase(),
@@ -166,8 +172,8 @@ const userRouteValidators = {
       .if((_, { req }) => !req.body.vpa)
       .notEmpty()
       .withMessage("bank account or upi is required to login.")
-      .isNumeric()
-      .withMessage("It must be a numeric value.")
+      .trim()
+      .matches(/^\d+$/)
       .isLength({ max: 18, min: 9 })
       .withMessage("Invalid bank account number."),
 

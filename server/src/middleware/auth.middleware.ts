@@ -27,6 +27,8 @@ const authMiddleware = asyncHandler(async (req, _, next) => {
                 eq(User.id, decodedUser.userId)
             ).execute();
 
+        if(!user) throw new ApiError(401, "Unauthorized", ErrCodes.UNAUTHORIZED);
+
         req.user = {
             ...user,
             password: undefined,

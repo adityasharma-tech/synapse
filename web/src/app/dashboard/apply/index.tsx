@@ -6,6 +6,8 @@ import { FormEventHandler, useCallback, useState } from "react";
 import { useFetcher } from "../../../hooks/fetcher.hook";
 import { useAppSelector } from "../../../store";
 import axiosInstance from "../../../lib/axios";
+import TextArea from "../../../components/cui/TextArea";
+import { toast } from "sonner";
 
 export default function ApplyForStreamer() {
   const navigate = useNavigate();
@@ -22,30 +24,44 @@ export default function ApplyForStreamer() {
     bankAccountNumber: string;
     bankIfsc: string;
     payoutType: "upi" | "bank";
+    address: string;
+    city: string;
+    state: string;
+    pinCode: string;
   }>({
     phoneNumber: user?.phoneNumber ?? "",
     upiId: "",
     otpVerified: false,
     otp: "",
-    bankAccountNumber: "",
+    city: "",
+    state: "",
+    pinCode: "",
+    address: "",
     bankIfsc: "",
     payoutType: "upi",
+    bankAccountNumber: "",
   });
 
   const handleStreamer: FormEventHandler<HTMLFormElement> = useCallback(
     async (e) => {
       e.preventDefault();
-      /**
-       * Select radio options for bank or upi id payout methods
-       * address box,
-       * phoneNumber with country code
-       * steet address
-       * city
-       * state
-       * pin code
-       */
+      if(formData.phoneNumber.includes("+")) return toast("Please don't include country code in phone number")
+      await handleFetch(
+        axiosInstance.post("/user/apply-streamer", {
+          city: formData.city,
+          state: formData.state,
+          postalCode: formData.pinCode,
+          vpa: formData.payoutType == "upi" ? formData.upiId : "",
+          bankAccountNumber: formData.payoutType == "bank" ? formData.bankAccountNumber : "",
+          bankIfsc: formData.payoutType == "bank" ? formData.bankIfsc : "",
+          phoneNumber: formData.phoneNumber,
+          countryCode: "+91",
+          streetAddress: formData.address,
+        })
+      );
+      navigate('/dashboard');
     },
-    []
+    [formData, axiosInstance, handleFetch, toast]
   );
 
   return (
@@ -81,14 +97,13 @@ export default function ApplyForStreamer() {
                 label="Phone number"
                 disabled={loading}
                 required
-                placeholder="+91 12312 12312"
+                placeholder="12312 12312 (country code not included)"
                 type="tel"
                 value={formData.phoneNumber}
-                onChange={(e) =>
-                  setFormData({ ...formData, phoneNumber: e.target.value })
-                }
+                onChange={(e) => {
+                  setFormData({ ...formData, phoneNumber: e.target.value });
+                }}
               />
-
               <div className="flex justify-end pt-2">
                 <span className="text-xs">
                   We are facing issues with msg91 otp verification.*
@@ -101,6 +116,53 @@ export default function ApplyForStreamer() {
                   Send otp
                 </button>
               </div>
+              <TextArea
+                required
+                label="Address"
+                disabled={loading}
+                placeholder="Address here"
+                value={formData.address}
+                onChange={(e) =>
+                  setFormData({ ...formData, address: e.target.value })
+                }
+              />
+
+              <TextInput
+                label="City"
+                disabled={loading}
+                required
+                placeholder="New york"
+                type="text"
+                value={formData.city}
+                onChange={(e) =>
+                  setFormData({ ...formData, city: e.target.value })
+                }
+              />
+
+              <TextInput
+                label="Pincode"
+                disabled={loading}
+                required
+                placeholder="123456"
+                type="tel"
+                value={formData.pinCode}
+                onChange={(e) =>
+                  setFormData({ ...formData, pinCode: e.target.value })
+                }
+              />
+
+              <TextInput
+                label="State"
+                disabled={loading}
+                required
+                placeholder="Delhi"
+                type="text"
+                value={formData.state}
+                onChange={(e) =>
+                  setFormData({ ...formData, state: e.target.value })
+                }
+              />
+
               <div id="captcha-renderer"></div>
               {false ? (
                 <TextInput
@@ -154,36 +216,65 @@ export default function ApplyForStreamer() {
                   </span>
                 </div>
               </div>
-              {formData.payoutType == "upi" ? <TextInput
-                required={formData.payoutType == "upi"}
-                label="UPI"
-                type="email"
-                onChange={(e)=>setFormData({...formData, upiId: e.target.value})}
-                placeholder={"123456@upi"}
-                value={formData.upiId}
-              /> :
-              <React.Fragment>
+              {formData.payoutType == "upi" ? (
                 <TextInput
-                  label="Bank account number"
-                  required={formData.payoutType == "bank"}
-                  type="text"
-                  placeholder="**************"
-                  onChange={(e)=>setFormData({...formData, bankAccountNumber: e.target.value.trim().replace(" ", "")})}
-                  value={formData.bankAccountNumber}
+                  required={formData.payoutType == "upi"}
+                  label="UPI"
+                  type="email"
+                  onChange={(e) =>
+                    setFormData({ ...formData, upiId: e.target.value })
+                  }
+                  placeholder={"123456@upi"}
+                  value={formData.upiId}
                 />
-                <TextInput
-                  label="IFSC Code"
-                  required={formData.payoutType == "bank"}
-                  placeholder="**********"
-                  type="text"
-                  onChange={(e)=>setFormData({...formData, bankIfsc: e.target.value.trim().replace(" ", "")})}
-                  value={formData.bankIfsc}
-                />
-              </React.Fragment>}
+              ) : (
+                <React.Fragment>
+                  <TextInput
+                    label="Bank account number"
+                    required={formData.payoutType == "bank"}
+                    type="text"
+                    placeholder="**************"
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        bankAccountNumber: e.target.value
+                          .trim()
+                          .replace(" ", ""),
+                      })
+                    }
+                    value={formData.bankAccountNumber}
+                  />
+                  <TextInput
+                    label="IFSC Code"
+                    required={formData.payoutType == "bank"}
+                    placeholder="**********"
+                    type="text"
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        bankIfsc: e.target.value.trim().replace(" ", ""),
+                      })
+                    }
+                    value={formData.bankIfsc}
+                  />
+                </React.Fragment>
+              )}
             </div>
           </div>
           <div className="pt-10 text-center">
             <button
+              disabled={
+                loading ||
+                formData.phoneNumber.trim() == "" ||
+                (formData.payoutType == "upi"
+                  ? formData.upiId.trim() == ""
+                  : formData.bankAccountNumber.trim() == "" ||
+                    formData.bankIfsc.trim() == "") ||
+                formData.address.trim() == "" ||
+                formData.city.trim() == "" ||
+                formData.pinCode.trim() == "" ||
+                formData.state.trim() == ""
+              }
               type="submit"
               className="py-2 g-recaptcha flex gap-x-3 justify-center items-center mx-auto min-w-xs bg-sky-600 rounded-md text-white font-medium disabled:bg-neutral-700 disabled:opacity-45"
             >

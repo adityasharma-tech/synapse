@@ -1,7 +1,7 @@
 import { ApiError } from "../lib/ApiError";
 import { logger } from "../lib/configs";
-import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
+import crypto from "crypto"
 
 const cashfreeClientHeaders = new Headers();
 cashfreeClientHeaders.set("x-api-version", process.env.CF_XAPI_VERSION!);
@@ -26,7 +26,7 @@ interface CreateBeneficiaryPropT {
 
 const createBeneficiary: (p: CreateBeneficiaryPropT) => Promise<string> = function (props) {
   const payload = {
-    beneficiary_id: uuidv4().toString(),
+    beneficiary_id: crypto.randomBytes(24).toString("hex"),
     beneficiary_name: props.name,
     beneficiary_instrument_details: {
       vpa: props.vpa, // upi id
@@ -56,6 +56,7 @@ const createBeneficiary: (p: CreateBeneficiaryPropT) => Promise<string> = functi
         options
       );
       const response = await result.json();
+      console.log("response,. ", response)
       if (response["beneficiary_status"] != "VERIFIED")
         throw new ApiError(400, "Failed to create new beneficiary.");
 
@@ -70,6 +71,7 @@ const createBeneficiary: (p: CreateBeneficiaryPropT) => Promise<string> = functi
       );
       resolve(streamerToken);
     } catch (error: any) {
+      console.error(`Erorr:`, error)
       logger.error(`Error during creating new beneficiary: ${error.message}`);
       reject(error);
     }
