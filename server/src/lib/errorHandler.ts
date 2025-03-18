@@ -7,7 +7,7 @@ const errorHandler = (err: any, req: Request, res: Response, next: NextFunction)
     const errMsg = err.message || 'Internal server error';
     const errType = err.errType || ErrCodes.DEFAULT_RES
     const error = new ApiError(errStatus, errMsg, errType, err.errors ?? []);
-    logger.error(JSON.stringify(error));
+    logger.error(JSON.stringify(err));
     res.status(errStatus).json(JSON.parse(JSON.stringify(error)));
 }
 

@@ -31,6 +31,17 @@ export default function DashboardPage() {
     [handleFetch, axiosInstance, serverRes.current, title]
   );
 
+  const handleFetchStreams = useCallback(async()=>{
+    await handleFetch(
+      axiosInstance.get(`/streams`)
+    );
+    console.log(serverRes)
+  },[serverRes, handleFetch, axiosInstance])
+
+  React.useEffect(()=>{
+    handleFetchStreams()
+  }, [])
+
   return (
     <React.Fragment>
       <Header>

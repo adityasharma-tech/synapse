@@ -5,7 +5,9 @@ import LoginPage from "./app/auth/login";
 import SignupPage from "./app/auth/signup";
 import VerifyPage from "./app/auth/verify";
 import LogoutPage from "./app/user/logout";
+import DashStream from "./app/dashboard/stream";
 import DashboardPage from "./app/dashboard";
+import ApplyForStreamer from "./app/dashboard/apply";
 
 import RootLayout from "./app/_layout";
 import { NotFound } from "./app/_not-found";
@@ -17,7 +19,6 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import { useAppDispatch, useAppSelector } from "./store";
 
 import { fetchUser } from "./store/actions/user.actions";
-import ApplyForStreamer from "./app/dashboard/apply";
 
 
 export default function Main() {
@@ -47,7 +48,7 @@ export default function Main() {
           </Route> : null}
           {user ? <Route path="dashboard" element={<DashboardLayout/>}>
             <Route index element={<DashboardPage />} />
-            <Route path="stream/:streamId" element={<SignupPage />} />
+            <Route path="stream/:streamId" element={<DashStream />} />
             <Route path="apply" element={<ApplyForStreamer/>}/>
           </Route> : null}
           <Route path="stream/:streamId" element={<SignupPage />} />
