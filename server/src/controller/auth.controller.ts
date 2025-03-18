@@ -5,7 +5,7 @@ import { TokenTable } from "../schemas/tokenTable.sql";
 import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
 import { ApiError, ErrCodes } from "../lib/ApiError";
-import { emailVerificationTokenExpiry, msg91AuthKey } from "../lib/constants";
+import { emailVerificationTokenExpiry } from "../lib/constants";
 import { generateUsername, getSigningTokens } from "../lib/utils";
 import { sendConfirmationMail, sendResetPasswordMail } from "../services/mail.service";
 
@@ -251,7 +251,7 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
     const refreshToken = cookies?.refreshToken || req.headers?.refreshToken;
 
     if (!refreshToken) {
-        throw new ApiError(401, "Unauthorized to refresh token.");
+        throw new ApiError(401, "Unauthorized", ErrCodes.VALIDATION_ERR);
     }
 
     try {

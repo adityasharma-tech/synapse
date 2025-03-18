@@ -14,14 +14,22 @@ export default function ApplyForStreamer() {
 
   const { loading, handleFetch, serverRes } = useFetcher();
 
-  const [formData, setFormData] = useState({
-    phoneNumber: user?.phoneNumber,
+  const [formData, setFormData] = useState<{
+    phoneNumber: string;
+    upiId: string;
+    otpVerified: boolean;
+    otp: string;
+    bankAccountNumber: string;
+    bankIfsc: string;
+    payoutType: "upi" | "bank";
+  }>({
+    phoneNumber: user?.phoneNumber ?? "",
     upiId: "",
     otpVerified: false,
     otp: "",
     bankAccountNumber: "",
     bankIfsc: "",
-    payoutType: "upi"
+    payoutType: "upi",
   });
 
   const handleStreamer: FormEventHandler<HTMLFormElement> = useCallback(
@@ -106,61 +114,76 @@ export default function ApplyForStreamer() {
                   }
                 />
               ) : null}
-              <TextInput
-                required
-                label="UPI ID"
-                disabled={loading}
-                placeholder="payment@upi"
-                type="text"
-                value={formData.upiId}
-                onChange={(e) =>
-                  setFormData({ ...formData, upiId: e.target.value })
-                }
-              />
             </div>
 
             <div className="min-w-xs mt-4">
-                <div>
-                    <span>Select your payout option.</span>
+              <div>
+                <span>Select your payout option.</span>
+              </div>
+              <div className="flex gap-x-2 py-3">
+                <div
+                  onClick={() =>
+                    setFormData({ ...formData, payoutType: "upi" })
+                  }
+                  role="button"
+                  tabIndex={0}
+                  aria-selected={
+                    formData.payoutType == "upi" ? "true" : "false"
+                  }
+                  className="flex cursor-pointer flex-col border border-transparent transition-all aria-selected:border-sky-300 aria-selected:bg-sky-300/10 gap-y-3 px-3 py-2 pb-4 bg-neutral-700/40 rounded-lg"
+                >
+                  <span className="text-lg font-semibold">UPI ID</span>
+                  <span className="text-xs max-w-36">
+                    directly though your upi id
+                  </span>
                 </div>
-                <div className="flex gap-x-2 py-3">
-                    <div role="button" tabIndex={0} className="flex cursor-pointer flex-col border border-sky-300 gap-y-3 px-3 py-2 pb-4 bg-sky-300/10 rounded-lg">
-                        <span className="text-lg font-semibold">UPI ID</span>
-                        <span className="text-xs max-w-36">directly though your upi id</span>
-                    </div>
-                    <div role="button" tabIndex={0} className="flex cursor-pointer flex-col gap-y-3 px-3 py-2 pb-4 bg-neutral-700/40 rounded-lg">
-                        <span className="text-lg font-semibold">Bank Account</span>
-                        <span className="text-xs max-w-36">through your bank account</span>
-                    </div>
+                <div
+                  onClick={() =>
+                    setFormData({ ...formData, payoutType: "bank" })
+                  }
+                  role="button"
+                  tabIndex={0}
+                  aria-selected={
+                    formData.payoutType == "bank" ? "true" : "false"
+                  }
+                  className="flex cursor-pointer flex-col border border-transparent transition-all aria-selected:border-sky-300 aria-selected:bg-sky-300/10 gap-y-3 px-3 py-2 pb-4 bg-neutral-700/40 rounded-lg"
+                >
+                  <span className="text-lg font-semibold">Bank Account</span>
+                  <span className="text-xs max-w-36">
+                    through your bank account
+                  </span>
                 </div>
-              <TextInput
-                required
+              </div>
+              {formData.payoutType == "upi" ? <TextInput
+                required={formData.payoutType == "upi"}
                 label="UPI"
-                disabled
                 type="email"
+                onChange={(e)=>setFormData({...formData, upiId: e.target.value})}
                 placeholder={"123456@upi"}
                 value={formData.upiId}
-              />
-              <TextInput
-                label="Bank account number"
-                disabled
-                required
-                placeholder="username@company.com"
-                value={user?.email}
-              />
-              <TextInput
-                label="Email"
-                disabled
-                required
-                placeholder="username@company.com"
-                type="email"
-                value={user?.email}
-              />
+              /> :
+              <React.Fragment>
+                <TextInput
+                  label="Bank account number"
+                  required={formData.payoutType == "bank"}
+                  type="text"
+                  placeholder="**************"
+                  onChange={(e)=>setFormData({...formData, bankAccountNumber: e.target.value.trim().replace(" ", "")})}
+                  value={formData.bankAccountNumber}
+                />
+                <TextInput
+                  label="IFSC Code"
+                  required={formData.payoutType == "bank"}
+                  placeholder="**********"
+                  type="text"
+                  onChange={(e)=>setFormData({...formData, bankIfsc: e.target.value.trim().replace(" ", "")})}
+                  value={formData.bankIfsc}
+                />
+              </React.Fragment>}
             </div>
           </div>
           <div className="pt-10 text-center">
             <button
-              disabled
               type="submit"
               className="py-2 g-recaptcha flex gap-x-3 justify-center items-center mx-auto min-w-xs bg-sky-600 rounded-md text-white font-medium disabled:bg-neutral-700 disabled:opacity-45"
             >

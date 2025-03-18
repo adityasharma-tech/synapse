@@ -24,7 +24,7 @@ export default function VerifyPage() {
     }
 
     async function handleResendEmailVerification() {
-        const email = searchParams.get("email");
+        const email = atob(searchParams.get("email") ?? "");
         if(email){
             await handleFetch(axiosInstance.post(`/auth/resend-email`, {
                 email

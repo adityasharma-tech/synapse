@@ -1,11 +1,12 @@
-import establishDbConnection from "../db";
-import { ApiError, ErrCodes } from "../lib/ApiError";
-import { asyncHandler } from "../lib/asyncHandler";
 import jwt from "jsonwebtoken"
-import { User } from "../schemas/user.sql";
+import establishDbConnection from "../db";
+
 import { eq } from "drizzle-orm";
+import { User } from "../schemas/user.sql";
 import { logger } from "../lib/configs";
 import { TokenTable } from "../schemas/tokenTable.sql";
+import { asyncHandler } from "../lib/asyncHandler";
+import { ApiError, ErrCodes } from "../lib/ApiError";
 
 const authMiddleware = asyncHandler(async (req, _, next) => {
     const cookies = req.cookies

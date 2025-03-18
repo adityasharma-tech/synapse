@@ -52,6 +52,7 @@ app.use(cors({
   credentials: true,
   origin: corsOrigins,
 }))
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
@@ -80,6 +81,5 @@ app.use("/api/v1/streams", streamRouter);
 */
 import errorHandler from "./lib/errorHandler";
 app.use(errorHandler);
-
 
 export default server

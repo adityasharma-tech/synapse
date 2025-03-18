@@ -16,7 +16,6 @@ const transporter = nodemailer.createTransport(transportOptions)
 
 const sendConfirmationMail = async function (email: string, verificationToken: string) {
     try {
-
         const verificationUrl = `${process.env.FRONTEND_URL}/auth/verify/?verificationToken=${verificationToken}`
 
         const mailOptions: SendMailOptions = {
@@ -37,7 +36,6 @@ const sendConfirmationMail = async function (email: string, verificationToken: s
 
 const sendResetPasswordMail = async function (email: string, verificationToken: string) {
     try {
-
         const verificationUrl = `${process.env.FRONTEND_URL}/auth/reset-password/?verificationToken=${verificationToken}`
 
         const mailOptions: SendMailOptions = {
