@@ -3,7 +3,7 @@ import establishDbConnection from "../db";
 
 import { eq } from "drizzle-orm";
 import { User } from "../schemas/user.sql";
-import { logger } from "../lib/configs";
+import { logger } from "../lib/logger";
 import { TokenTable } from "../schemas/tokenTable.sql";
 import { asyncHandler } from "../lib/asyncHandler";
 import { ApiError, ErrCodes } from "../lib/ApiError";

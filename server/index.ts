@@ -1,6 +1,6 @@
 import server from "./src/app";
 import { config } from "dotenv";
-import { logger } from "./src/lib/configs";
+import { logger } from "./src/lib/logger";
 
 config({ path: "./.env", debug: true, encoding: "UTF-8" });
 

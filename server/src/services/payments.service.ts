@@ -1,5 +1,5 @@
 import { ApiError } from "../lib/ApiError";
-import { logger } from "../lib/configs";
+import { logger } from "../lib/logger";
 import jwt from "jsonwebtoken";
 import crypto from "crypto"
 

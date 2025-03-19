@@ -27,4 +27,10 @@ declare global {
   }
 }
 
+declare module "socket.io" {
+  interface Socket {
+    user?: UserT | {[key: string]: any};
+  }
+}
+
 export {};

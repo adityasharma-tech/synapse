@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { ApiError, ErrCodes } from "./ApiError";
-import { logger } from "./configs";
+import { logger } from "./logger";
 
 const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
     const errStatus = err.statusCode ?? 500;

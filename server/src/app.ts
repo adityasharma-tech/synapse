@@ -7,10 +7,14 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 
 
-import { Server } from "socket.io";
-import { corsOrigins } from './lib/constants';
 import { rateLimit } from "express-rate-limit";
+import { corsOrigins, SocketEventEnum } from './lib/constants';
 import { ApiResponse } from "./lib/ApiResponse";
+import { redisClient } from './services/redis.service';
+import { createAdapter } from '@socket.io/redis-adapter';
+import { Socket, Server as SocketIO } from "socket.io";
+import { socketAuthMiddleware } from './middleware/socket.middleware';
+
 
 /**
  * Http Express Server
@@ -20,18 +24,56 @@ const server = http.createServer(app);
 
 /**
  * Socket io server
+ * using redis as a pub/sub for sockets
  */
-const io = new Server(server, {
+const subClient = redisClient.duplicate();
+(async ()=> await Promise.all([redisClient.connect(), subClient.connect()]))()
+
+const io = new SocketIO(server, {
   cors: {
     origin: "*",
     credentials: true,
   },
+  adapter: createAdapter(redisClient, subClient)
 });
 
-io.on("connection", (socket) => {
-  
-})
+// socket.io middlewares
+io.engine.use(helmet())
 
+// created /ws path to maintain paths, not to conflict with express server
+const ws = io.of('/ws');
+// Authentication middleware for socket.io to let in authenticated users only and streamer verification
+ws.use(socketAuthMiddleware);
+
+ws.on(SocketEventEnum.CONNECTED_EVENT, (socket: Socket) => {
+  
+  try {
+    socket.on(SocketEventEnum.JOIN_STREAM_EVENT, (roomId: string)=>{
+      socket.join(roomId)
+    })
+    socket.on(SocketEventEnum.LEAVE_STREAM_EVENT, (roomId: string)=>{
+      socket.leave(roomId)
+    })
+    socket.on(SocketEventEnum.CHAT_CREATE_EVENT, (chatMessage, roomId)=>{
+      // socket.to(roomId).emit(SocketEvent, {
+      //   user: {
+      //     username: socket.user?.username,
+      //     profilePicture: socket.user?.profilePicture,
+      //     fullName: `${socket.user?.firstName} ${socket.user?.lastName}`
+      //   },
+      //   chatMessage
+      // });
+    })
+  } catch (error: any) {
+    socket.emit(SocketEventEnum.SOCKET_ERROR_EVENT, new ApiError(400, error.message ?? "Some error occured"))
+  }
+
+  socket.on(SocketEventEnum.DISCONNECT_EVENT, () => {
+    if(socket.user?.id){
+      socket.leave(socket.user?.id);
+    }
+  })
+})
 
 /**
  * Rate limiter configuration
@@ -80,6 +122,7 @@ app.use("/api/v1/streams", streamRouter);
  * Error handler
 */
 import errorHandler from "./lib/errorHandler";
+import { ApiError } from './lib/ApiError';
 app.use(errorHandler);
 
 export default server

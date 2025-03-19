@@ -1,6 +1,6 @@
 import { User } from "../schemas/user.sql";
 import { eq, or } from "drizzle-orm";
-import { logger } from "../lib/configs";
+import { logger } from "../lib/logger";
 import { TokenTable } from "../schemas/tokenTable.sql";
 import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
