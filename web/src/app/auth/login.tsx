@@ -1,19 +1,18 @@
 import React from "react";
 import TextInput from "../../components/cui/TextInput";
-import axiosInstance from "../../lib/axios";
 
-import { useFetcher } from "../../hooks/fetcher.hook";
 import { fetchUser } from "../../store/actions/user.actions";
 import { useAppDispatch } from "../../store";
 import { Link, useNavigate } from "react-router";
 import { FormEventHandler, useCallback, useState } from 'react'
+import { requestHandler } from "../../lib/requestHandler";
+import { loginUser } from "../../lib/apiClient";
 
 export default function LoginPage() {
-
-    const { handleFetch, loading, serverRes } = useFetcher()
-
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
+
+    const [loading, setLoading] = useState(false);
 
 
     const [formData, setFormData] = useState({
@@ -24,17 +23,15 @@ export default function LoginPage() {
     const handleLoginSubmit: FormEventHandler<HTMLFormElement> = useCallback(async (e) => {
         e.preventDefault();
 
-        await handleFetch(axiosInstance.post('/auth/login', {
+        await requestHandler(loginUser({
             email: formData.dataField.includes("@") ? formData.dataField : undefined,
             username: formData.dataField.includes("@") ? undefined : formData.dataField,
             password: formData.password
-        }))
-
-        if (serverRes?.current?.success) {
+        }), setLoading, ()=>{
             dispatch(fetchUser())
             navigate('/dashboard')
-        }
-    }, [handleFetch, axiosInstance, formData, serverRes, navigate])
+        })
+    }, [requestHandler, loginUser, formData, setLoading, dispatch, fetchUser, navigate])
 
     return (
         <React.Fragment>

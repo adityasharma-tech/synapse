@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Header from "../../components/header";
 import TextInput from "../../components/cui/TextInput";
-import axiosInstance from "../../lib/axios";
+import axiosInstance from "../../lib/apiClient";
 
 import { useFetcher } from "../../hooks/fetcher.hook";
 import { FormEventHandler, useCallback } from "react";

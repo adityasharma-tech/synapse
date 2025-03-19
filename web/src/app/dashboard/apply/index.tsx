@@ -5,7 +5,7 @@ import { useNavigate } from "react-router";
 import { FormEventHandler, useCallback, useState } from "react";
 import { useFetcher } from "../../../hooks/fetcher.hook";
 import { useAppSelector } from "../../../store";
-import axiosInstance from "../../../lib/axios";
+import axiosInstance from "../../../lib/apiClient";
 import TextArea from "../../../components/cui/TextArea";
 import { toast } from "sonner";
 
