@@ -54,10 +54,10 @@ function startNewStream(payload: StartNewStreamPayloadT){
     return apiClient.post('/streams', payload);
 }
 
-function getAllStreams(payload: GetAllStreamsPayloadT){
+function getAllStreams(payload?: GetAllStreamsPayloadT){
     const searchParams = new URLSearchParams()
-    searchParams.set('page', String(payload.page))
-    searchParams.set('limit', String(payload.limit))
+    searchParams.set('page', String(payload?.page))
+    searchParams.set('limit', String(payload?.limit))
     return apiClient.get(`/streams?${searchParams}`)
 }
 

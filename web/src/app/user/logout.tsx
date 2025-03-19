@@ -1,6 +1,6 @@
 import React from "react"
 import { useAppDispatch, useAppSelector } from "../../store"
-import { logoutUser } from "../../store/actions/user.actions"
+import { logout } from "../../store/actions/user.actions"
 import { useNavigate } from "react-router"
 
 export default function LogoutPage() {
@@ -10,7 +10,7 @@ export default function LogoutPage() {
     const loadingStatus = useAppSelector(state => state.app.loadingStatus)
 
     React.useEffect(() => {
-        dispath(logoutUser())
+        dispath(logout())
     }, [])
 
     React.useEffect(()=>{

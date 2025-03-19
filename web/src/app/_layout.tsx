@@ -1,8 +1,8 @@
 import { Outlet } from "react-router";
 import { Toaster } from "../components/ui/sooner"
-import { FetcherProvider } from "../hooks/fetcher.hook";
 import { useAppSelector } from "../store";
 import LoadingComp from "../components/loading";
+import React from "react";
 
 export default function RootLayout() {
 
@@ -13,10 +13,10 @@ export default function RootLayout() {
       {appLoading ?
         <LoadingComp />
         :
-        <FetcherProvider>
+        <React.Fragment>
           <Outlet />
           <Toaster />
-        </FetcherProvider>
+        </React.Fragment>
       }
     </main>
   )

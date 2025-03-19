@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { UserT } from '../../lib/types'
-import { fetchUser, logoutUser } from '../actions/user.actions';
+import { fetchUser, logout } from '../actions/user.actions';
 
 // Define a type for the slice state
 export interface AppState {
@@ -33,14 +33,14 @@ export const appSlice = createSlice({
             state.user = null;
             state.appLoading = false;
         })
-        builder.addCase(logoutUser.fulfilled, (state)=>{
+        builder.addCase(logout.fulfilled, (state)=>{
             state.user = null;
             state.loadingStatus = 'fulfilled';
         })
-        builder.addCase(logoutUser.pending, (state)=>{
+        builder.addCase(logout.pending, (state)=>{
             state.loadingStatus = 'pending';
         })
-        builder.addCase(logoutUser.rejected, (state)=>{
+        builder.addCase(logout.rejected, (state)=>{
             state.loadingStatus = 'rejected';
         })
     }

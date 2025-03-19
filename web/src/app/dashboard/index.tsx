@@ -1,46 +1,40 @@
 import React, { useState } from "react";
 import Header from "../../components/header";
 import TextInput from "../../components/cui/TextInput";
-import axiosInstance from "../../lib/apiClient";
 
-import { useFetcher } from "../../hooks/fetcher.hook";
 import { FormEventHandler, useCallback } from "react";
 import { Link, useNavigate } from "react-router";
 import { useAppSelector } from "../../store";
+import { getAllStreams, startNewStream } from "../../lib/apiClient"
+import { requestHandler } from "../../lib/requestHandler";
 
 export default function DashboardPage() {
-  const { handleFetch, loading, serverRes } = useFetcher();
   const navigate = useNavigate();
 
   const user = useAppSelector((state) => state.app.user);
 
   const [title, setTitle] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleCreateStream: FormEventHandler<HTMLFormElement> = useCallback(
     async (e) => {
       e.preventDefault();
-      await handleFetch(
-        axiosInstance.post(`/streams`, {
-          title,
-        })
-      );
-      if (serverRes.current?.success) {
-        navigate(`stream/${serverRes.current.data.stream.streamingUid}`);
-      }
-    },
-    [handleFetch, axiosInstance, serverRes.current, title]
+      await requestHandler(startNewStream({
+        title
+      }), setLoading, (res)=>{
+        navigate(`stream/${res.data.stream.streamingUid}`);
+      })
+      },
+    [title, requestHandler, startNewStream, setLoading, navigate]
   );
 
   const handleFetchStreams = useCallback(async()=>{
-    await handleFetch(
-      axiosInstance.get(`/streams`)
-    );
-    console.log(serverRes)
-  },[serverRes, handleFetch, axiosInstance])
+    await requestHandler(getAllStreams(), undefined, undefined, undefined, false);
+  },[requestHandler, getAllStreams])
 
   React.useEffect(()=>{
     handleFetchStreams()
-  }, [])
+  }, [user])
 
   return (
     <React.Fragment>
