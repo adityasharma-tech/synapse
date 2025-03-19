@@ -29,11 +29,24 @@ interface GetAllStreamsPayloadT {
     limit?: number;
 }
 
+interface ApplyForStreamerPayloadT {
+    city: string;
+    state: string;
+    postalCode: string;
+    vpa?: string;
+    bankAccountNumber?: string;
+    bankIfsc?: string;
+    phoneNumber: string;
+    countryCode: string;
+    streetAddress: string;
+  }
+
 export type {
     LoginUserPayloadT,
     SignupUserPayloadT,
     ResendEmailVerificationPayloadT,
     StartNewStreamPayloadT,
     VerifyEmailPayloadT,
-    GetAllStreamsPayloadT
+    GetAllStreamsPayloadT,
+    ApplyForStreamerPayloadT
 }

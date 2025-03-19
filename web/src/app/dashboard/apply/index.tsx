@@ -1,20 +1,19 @@
 import React from "react";
+import TextArea from "../../../components/cui/TextArea";
 import TextInput from "../../../components/cui/TextInput";
 
-import { useNavigate } from "react-router";
-import { FormEventHandler, useCallback, useState } from "react";
-import { useFetcher } from "../../../hooks/fetcher.hook";
-import { useAppSelector } from "../../../store";
-import axiosInstance from "../../../lib/apiClient";
-import TextArea from "../../../components/cui/TextArea";
 import { toast } from "sonner";
+import { useNavigate } from "react-router";
+import { useAppSelector } from "../../../store";
+import { requestHandler } from "../../../lib/requestHandler";
+import { applyForStreamer } from "../../../lib/apiClient";
+import { FormEventHandler, useCallback, useState } from "react";
 
 export default function ApplyForStreamer() {
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(false);
   const user = useAppSelector((state) => state.app.user);
-
-  const { loading, handleFetch, serverRes } = useFetcher();
 
   const [formData, setFormData] = useState<{
     phoneNumber: string;
@@ -45,23 +44,27 @@ export default function ApplyForStreamer() {
   const handleStreamer: FormEventHandler<HTMLFormElement> = useCallback(
     async (e) => {
       e.preventDefault();
-      if(formData.phoneNumber.includes("+")) return toast("Please don't include country code in phone number")
-      await handleFetch(
-        axiosInstance.post("/user/apply-streamer", {
+      if (formData.phoneNumber.includes("+"))
+        return toast("Please don't include country code in phone number");
+
+      await requestHandler(
+        applyForStreamer({
           city: formData.city,
           state: formData.state,
           postalCode: formData.pinCode,
           vpa: formData.payoutType == "upi" ? formData.upiId : "",
-          bankAccountNumber: formData.payoutType == "bank" ? formData.bankAccountNumber : "",
+          bankAccountNumber:
+            formData.payoutType == "bank" ? formData.bankAccountNumber : "",
           bankIfsc: formData.payoutType == "bank" ? formData.bankIfsc : "",
           phoneNumber: formData.phoneNumber,
           countryCode: "+91",
           streetAddress: formData.address,
-        })
+        }),
+        setLoading
       );
-      navigate('/dashboard');
+      navigate("/dashboard");
     },
-    [formData, axiosInstance, handleFetch, toast]
+    [formData, toast, requestHandler, applyForStreamer, setLoading, navigate]
   );
 
   return (

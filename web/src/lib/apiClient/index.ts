@@ -1,5 +1,5 @@
 import axios, { CreateAxiosDefaults } from "axios";
-import { GetAllStreamsPayloadT, LoginUserPayloadT, ResendEmailVerificationPayloadT, SignupUserPayloadT, StartNewStreamPayloadT, VerifyEmailPayloadT } from "./intefaces";
+import { ApplyForStreamerPayloadT, GetAllStreamsPayloadT, LoginUserPayloadT, ResendEmailVerificationPayloadT, SignupUserPayloadT, StartNewStreamPayloadT, VerifyEmailPayloadT } from "./intefaces";
 
 const baseHost = import.meta.env.VITE_BACKEND_HOST; 
 
@@ -61,6 +61,10 @@ function getAllStreams(payload: GetAllStreamsPayloadT){
     return apiClient.get(`/streams?${searchParams}`)
 }
 
+function applyForStreamer(payload: ApplyForStreamerPayloadT){
+    return apiClient.post('/user/apply-streamer', payload)
+}
+
 export {
     getUser,
     logoutUser,
@@ -70,5 +74,6 @@ export {
     verifyEmail,
     startNewStream,
     getAllStreams,
-     apiClient
+    applyForStreamer,
+    apiClient
 }
