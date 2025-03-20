@@ -15,46 +15,46 @@
 - [x] /auth/login  `POST`  
 - [x] /auth/register  `POST`
 - [x] /auth/resend-email `POST`
-- [ ] /auth/forgot-password  `POST` 
+- [x] /auth/forgot-password  `POST` 
 
 🛣️ **User Routes**
 
-- [ ] /user  `GET` 
-- [ ] /user  `PUT`                         _// updates the user data except password_
-- [ ] /user/reset-password `PUT` 
+- [x] /user  `GET` 
+- [x] /user  `PUT`                         _// updates the user data except password_
+- [x] /user/reset-password `PUT` 
 - [ ] /user/restrict-account `DELETE` 
 
 🛣️ **Streamer Routes**
 
-- [ ] /streamer/block-user `POST`     // block a user from messaging
-- [ ] /streamer/stream `POST`            // create new stream for streaming
-- [ ] /streamer/stream/:id `DELETE`         // delete the chat streaming server
+- [ ] /streamer/block-user `POST`       // block a user from messaging
+- [x] /streamer/stream `POST`           // create new stream for streaming
+- [x] /streamer/stream/:id `DELETE`     // delete the chat streaming server
 🛣️ **Payout Routes (Payment gateway verfied route)**
 
-- [ ] /payout/beneficiary `GET`  // get beneficiary details
-- [ ] /payout/beneficiary `POST`  // create new beneficiary
-- [ ] /payout/update-beneficiary `POST`  // delete old beneficiary and create new with the same id
-- [ ] /payout/beneficiary `DELETE`  // remove the beneficiary
-- [ ] /payout/verify-beneficiary-details  `POST`  // verify beneficiary details by aadhar, pan, bank account, UPI  verify
-- [ ] /payout/beneficiary-history `GET`  // get all beneficiary history
-- [ ] /payout/standard-transfer `POST`  // create standard payment transfer to beneficiary account.
+- [ ] /payout/beneficiary `GET`                     // get beneficiary details
+- [ ] /payout/beneficiary `POST`                    // create new beneficiary
+- [ ] /payout/update-beneficiary `POST`             // delete old beneficiary and create new with the same id
+- [ ] /payout/beneficiary `DELETE`                  // remove the beneficiary
+- [ ] /payout/verify-beneficiary-details  `POST`    // verify beneficiary details by aadhar, pan, bank account, UPI  verify
+- [ ] /payout/beneficiary-history `GET`             // get all beneficiary history
+- [ ] /payout/standard-transfer `POST`              // create standard payment transfer to beneficiary account.
 🌉** Middleware**
 
-- [ ] express authentication middleware
-- [ ] [socket.io](https://socket.io/) authentication middleware
+- [x] express authentication middleware
+- [x] [socket.io](https://socket.io/) authentication middleware
 
 
 ## 💻 Web client setup
 ### 🛣️ Routes
-- [ ] /auth/login
-- [ ] /auth/verify
-- [ ] /auth/register
-- [ ] /auth/resend-email
+- [x] /auth/login
+- [x] /auth/verify
+- [x] /auth/register
+- [x] /auth/resend-email
 - [ ] /profile
 - [ ] /profile/reset-password
-- [ ] /stream/`:id` 
-- [ ] /dashboard
-- [ ] /dashboard/stream/`:id` 
+- [x] /stream/`:id` 
+- [x] /dashboard
+- [x] /dashboard/stream/`:id` 
 
 
 ## 📝 Notes
