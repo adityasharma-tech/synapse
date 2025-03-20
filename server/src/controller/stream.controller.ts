@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import establishDbConnection from "../db";
 
 import { Stream } from "../schemas/stream.sql";
-import { count, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { ApiResponse } from "../lib/ApiResponse";
 import { v4 as uuidv4 } from "uuid";
 import { asyncHandler } from "../lib/asyncHandler";
@@ -96,8 +96,26 @@ const getAllStreams = asyncHandler(async (req, res) => {
 });
 
 const getStreamById = asyncHandler(async (req, res) => {
+  const{ streamId } = req.params;
+
+  const db = establishDbConnection();
+
+  const [stream] = await db
+    .select({
+      id: Stream.id,
+      streamTitle: Stream.streamTitle,
+      streamingUid: Stream.streamingUid,
+      streamerId: Stream.streamerId,
+      updatedAt: Stream.updatedAt,
+    })
+    .from(Stream)
+    .where(and(eq(Stream.id, +streamId)))
+    .execute();
+  
+  if(!stream) throw new ApiError(400, "Stream not found.")
+
   res.status(200).json({
-    
+    stream
   });
 });
 

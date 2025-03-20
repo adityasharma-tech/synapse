@@ -41,6 +41,11 @@ interface ApplyForStreamerPayloadT {
     streetAddress: string;
   }
 
+  interface GetStreamByIdPayloadT
+  {
+    streamId: string;
+  }
+
 export type {
     LoginUserPayloadT,
     SignupUserPayloadT,
@@ -48,5 +53,6 @@ export type {
     StartNewStreamPayloadT,
     VerifyEmailPayloadT,
     GetAllStreamsPayloadT,
-    ApplyForStreamerPayloadT
+    ApplyForStreamerPayloadT,
+    GetStreamByIdPayloadT
 }

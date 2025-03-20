@@ -1,31 +1,23 @@
 services:
-  # node_server:
-  #   build: ./server
-  #   container_name: server_app
-  #   ports:
-  #     - "5174:5174"
-  #   networks:
-  #     - app_network
-
-  # node_client:
-  #   build: ./web
-  #   container_name: client_app
-  #   ports:
-  #     - "5173:5173"
-  #   networks:
-  #     - app_network
-
-  #   depends_on:
-  #     - node_server
-  redis:
-    image: redis:7-alpine
+  redis_service:
+    image: redis
     container_name: redis_service
     ports:
-      - "6379:6380"
-    networks:
-      - app_network
+      - "6379:6379"
 
+  server_app:
+    build: ./server
+    container_name: server_app
+    ports:
+      - "5174:5174"
+    depends_on:
+      - redis_service
 
-networks:
-  app_network:
-    driver: bridge
+  client_app:
+    build: ./web
+    container_name: client_app
+    ports:
+      - "5173:5173"
+
+    depends_on:
+      - server_app

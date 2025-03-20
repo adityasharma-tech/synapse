@@ -10,6 +10,7 @@ import cookieParser from "cookie-parser";
 import { rateLimit } from "express-rate-limit";
 import { corsOrigins, SocketEventEnum } from './lib/constants';
 import { ApiResponse } from "./lib/ApiResponse";
+import { ApiError } from './lib/ApiError';
 import { redisClient } from './services/redis.service';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { Socket, Server as SocketIO } from "socket.io";
@@ -122,7 +123,6 @@ app.use("/api/v1/streams", streamRouter);
  * Error handler
 */
 import errorHandler from "./lib/errorHandler";
-import { ApiError } from './lib/ApiError';
 app.use(errorHandler);
 
 export default server

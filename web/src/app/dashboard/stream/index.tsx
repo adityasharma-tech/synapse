@@ -1,35 +1,95 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 import Header from "../../../components/header";
+import { useSocket } from "../../../hooks/socket.hook";
+import { SocketEventEnum } from "../../../lib/constants";
+import { getStreamById } from "../../../lib/apiClient";
+import { useSearchParams } from "react-router";
+import { requestHandler } from "../../../lib/requestHandler";
+import LoadingComp from "../../../components/loading";
 
 export default function DashStream() {
+  const [streamRunning, setStreamRunning] = useState(false);
+  const [stream, setStream] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+  const { socket } = useSocket();
+
+  const getStreamData = useCallback(async () => {
+    const streamId = searchParams.get("streamId");
+    if (!streamId) return console.error("Failed to get streaming id.");
+
+    const st = await requestHandler(getStreamById({ streamId }), setLoading);
+    setStream(st);
+  }, [searchParams, requestHandler, getStreamById, setLoading, setStream]);
+
+  const startStream = useCallback(() => {
+    if (!socket) return;
+    const streamId = searchParams.get("streamId");
+    if (!streamId) return console.error("Failed to get streaming id.");
+    socket.emit(SocketEventEnum.JOIN_STREAM_EVENT, streamId.trim());
+    socket.on(SocketEventEnum.CHAT_CREATE_EVENT, (chatMessage, roomId) => {
+      console.log(chatMessage, roomId);
+    });
+  }, []);
+
+  React.useEffect(() => {
+    getStreamData();
+  }, []);
+
+  React.useEffect(() => {
+    if (!socket) return;
+    socket.on(SocketEventEnum.SOCKET_ERROR_EVENT, (error) => {
+      console.error(`Error from socket server: `, error);
+    });
+  }, [socket]);
+
+  if (loading) return <LoadingComp />;
   return (
     <React.Fragment>
       <Header>
-        <button className="btn btn-soft btn-error px-20">Exit stream</button>
+        {streamRunning ? (
+          <button className="btn btn-soft btn-error px-20">Exit stream</button>
+        ) : (
+          <button
+            onClick={startStream}
+            className="btn btn-soft btn-success px-20"
+          >
+            Start stream
+          </button>
+        )}
       </Header>
       <div className="h-[calc(93vh-2px)] flex p-2 gap-x-2">
         <div className="h-full w-[40%] bg-neutral-900 rounded-lg p-2">
           <div className="grid grid-cols-2 gap-2">
             <div className="relative flex justify-center items-center min-h-36 bg-neutral-800 rounded-lg">
-                <span className="absolute top-1 left-2 text-xs">Total Payment Recieved</span>
-                <span className="text-4xl">500$</span>
+              <span className="absolute top-1 left-2 text-xs">
+                Total Payment Recieved
+              </span>
+              <span className="text-4xl">500$</span>
             </div>
             <div className="relative flex justify-center items-center min-h-36 bg-neutral-800 rounded-lg">
-                <span className="absolute top-1 left-2 text-xs">Total Payment Recieved</span>
-                <span className="text-4xl">500$</span>
+              <span className="absolute top-1 left-2 text-xs">
+                Total Payment Recieved
+              </span>
+              <span className="text-4xl">500$</span>
             </div>
           </div>
         </div>
-        <div className="h-full w-[60%] bg-neutral-900 rounded-lg px-2 overflow-y-auto scroll-smooth">
-          <PaymentChatComp />
-          <ChatComp />
+        <div className="h-full w-[60%] bg-neutral-900 rounded-lg px-2 flex flex-col justify-between">
+          <div className="overflow-y-auto scroll-smooth">
+            <PaymentChatComp />
+            <ChatComp />
+          </div>
+          <div>
+          <textarea className="textarea"/>
+          </div>
         </div>
       </div>
     </React.Fragment>
   );
 }
 
-function ChatComp(){
+function ChatComp() {
   return (
     <div className="p-3 bg-neutral-800 mt-2 rounded-lg">
       <div className="flex justify-between">
@@ -42,15 +102,15 @@ function ChatComp(){
           </div>
           <span className="font-medium">Aditya Sharma</span>
         </div>
-          <button className="btn btn-soft btn-success btn-sm">Done</button>
+        <button className="btn btn-soft btn-success btn-sm">Done</button>
       </div>
       <div className="divider my-1.5" />
-        <div className="font-medium">
-          Could you clarify what you mean by "simple messages"? Do you need
-          short message examples, code for sending messages, or something else?
-        </div>
+      <div className="font-medium">
+        Could you clarify what you mean by "simple messages"? Do you need short
+        message examples, code for sending messages, or something else?
+      </div>
     </div>
-  )
+  );
 }
 
 function PaymentChatComp() {

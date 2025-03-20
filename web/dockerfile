@@ -13,4 +13,4 @@ EXPOSE 5174
 
 RUN bun run build
 
-CMD [ "bun", "start" ]
+CMD [ "bun", "run", "dev", "--host" ]
