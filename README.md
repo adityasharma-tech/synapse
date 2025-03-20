@@ -64,3 +64,14 @@
 - admin will be connected through web sockets & can send messages with rest api.
 - users will get data through polling and send payments & messages with rest api.
 - once beneficiary is created we can't update beneficiary details.
+
+
+
+
+
+
+## What we need to host this bare minimum socket server live:
+- Postgres service - aiven
+- Redis service
+- Server - onrender
+- Vite - vercel

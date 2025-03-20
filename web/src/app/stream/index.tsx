@@ -30,6 +30,7 @@ export default function Stream() {
   // local states
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [streaming, setStreaming] = useState(false); // TODO: need to update this one (remove)
 
   // state hooks
   const streamState = useAppSelector((state) => state.stream);
@@ -111,17 +112,19 @@ export default function Stream() {
 
   React.useEffect(()=>{
     if(streamId) {
-      if (socket && streamId) {
+      if (socket && streamId && !streaming) {
         socket.emit(SocketEventEnum.JOIN_STREAM_EVENT, streamId);
         handleRegisterSocketEvents();
+        setStreaming(true)
       }
     }
-  },[streamId, socket])
+  },[streamId, socket, streaming])
 
   if (loading) return <LoadingComp />;
   return (
     <React.Fragment>
-      <Header> 
+      <Header>
+        <></>
       </Header>
       <div className="h-[calc(93vh-2px)] flex p-2 gap-x-2">
         <div className="h-full w-[40%] bg-neutral-900 rounded-lg p-2">
@@ -179,8 +182,8 @@ function ChatComp(props: PropsWithChildren<BasicChatT>) {
           </span>
         </div>
         <div className="flex gap-x-2">
-            <button className="btn btn-success btn-outline btn-xs"><svg className="size-3 fill-emerald-500" fill="#000000" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21,21H3L12,3Z"/></svg></button>
-            <button className="btn btn-warning btn-outline btn-xs"><svg className="rotate-180 size-3 fill-amber-400" fill="#000000" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21,21H3L12,3Z"/></svg></button>
+            <button className="btn btn-success btn-outline btn-xs group transition-none"><svg className="size-3 fill-emerald-500 group-hover:fill-neutral-800" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21,21H3L12,3Z"/></svg></button>
+            <button className="btn btn-warning btn-outline btn-xs group transition-none"><svg className="rotate-180 size-3 fill-amber-400 group-hover:fill-neutral-800" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21,21H3L12,3Z"/></svg></button>
         </div>
       </div>
       <div className="divider my-1.5" />
