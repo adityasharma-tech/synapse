@@ -1,9 +1,13 @@
 import jwt from "jsonwebtoken";
 
+import establishDbConnection from "../db"
 import { logger } from "../lib/logger";
 import { ApiError, ErrCodes } from "../lib/ApiError";
 import { ExtendedError, Socket } from "socket.io";
 import { parse } from "cookie";
+import { User } from "../schemas/user.sql";
+import { eq } from "drizzle-orm";
+import { SocketEventEnum } from "../lib/constants";
 
 /**
  * @description A function to emit the socket event also disconnecting it so that user can't make any socket request.
@@ -11,7 +15,7 @@ import { parse } from "cookie";
  * @param {ApiError} error The ApiError to send error in specific format
  */
 function disconnectSocketWithError(socket: Socket, error: ApiError) {
-  socket.emit("connect_error", error);
+  socket.emit(SocketEventEnum.SOCKET_ERROR_EVENT, error);
   socket.disconnect();
 }
 
@@ -22,7 +26,7 @@ function disconnectSocketWithError(socket: Socket, error: ApiError) {
  * @param next 
  * @returns {void}
  */
-const socketAuthMiddleware = (
+const socketAuthMiddleware = async (
   socket: Socket,
   next: (err?: ExtendedError) => void
 ) => {
@@ -39,7 +43,20 @@ const socketAuthMiddleware = (
       String(accessToken),
       process.env.ACCESS_SECRET_KEY!
     );
-    socket.user = decodedUser;
+    const db = establishDbConnection()
+
+    const [user] = await db
+      .select()
+      .from(User)
+      .where(eq(User.id, decodedUser.userId))
+      .execute()
+
+    socket.user = {
+      ...user,
+      passwordHash: undefined,
+      createdAt: undefined,
+      updatedAt: undefined
+    };
     next();
   } catch (error: any) {
     logger.error(`Error during accessing middleware: ${error.message}`);

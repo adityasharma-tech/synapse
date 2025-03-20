@@ -12,6 +12,8 @@ const SocketEventEnum = Object.freeze({
     CHAT_CREATE_EVENT: "stream:chat:create",
     CHAT_DELETE_EVENT: "stream:chat:delete",
     CHAT_UPDATE_EVENT: "stream:chat:update",
+    CHAT_UPVOTE_EVENT: "stream:chat:upvote",
+    CHAT_DOWNVOTE_EVENT: "stream:chat:downvote",
     PAYMENT_CHAT_CREATE_EVENT: "stream:chat-payment:create"
 })
 

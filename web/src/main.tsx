@@ -19,6 +19,8 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import { useAppDispatch, useAppSelector } from "./store";
 
 import { fetchUser } from "./store/actions/user.actions";
+import Stream from "./app/stream";
+import SocketLayout from "./app/stream/_layout";
 
 
 export default function Main() {
@@ -51,7 +53,9 @@ export default function Main() {
             <Route path="stream/:streamId" element={<DashStream />} />
             <Route path="apply" element={<ApplyForStreamer/>}/>
           </Route> : null}
-          <Route path="stream/:streamId" element={<SignupPage />} />
+          <Route element={<SocketLayout/>}>
+          <Route path="stream/:streamId" element={<Stream />} />
+          </Route>
           <Route path="*" element={<NotFound />} /> {/* Not found page */}
         </Route>
       </Routes>

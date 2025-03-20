@@ -1,13 +1,13 @@
 import React, { PropsWithChildren } from "react";
-import Header from "../../../components/header";
-import LoadingComp from "../../../components/loading";
+import Header from "../../components/header";
+import LoadingComp from "../../components/loading";
 
 import { useParams } from "react-router";
-import { useSocket } from "../../../hooks/socket.hook";
-import { getStreamById } from "../../../lib/apiClient";
-import { requestHandler } from "../../../lib/requestHandler";
-import { SocketEventEnum } from "../../../lib/constants";
-import { useAppDispatch, useAppSelector } from "../../../store";
+import { useSocket } from "../../hooks/socket.hook";
+import { getStreamById } from "../../lib/apiClient";
+import { requestHandler } from "../../lib/requestHandler";
+import { SocketEventEnum } from "../../lib/constants";
+import { useAppDispatch, useAppSelector } from "../../store";
 import { FormEventHandler, useCallback, useState } from "react";
 import {
   addBasicChat,
@@ -18,12 +18,10 @@ import {
   removeBasicChat,
   updateStreamId,
   updateBasicChat,
-  upVoteBasicChat,
-  startStreaming,
-  stopStreaming,
-} from "../../../store/reducers/dash-stream.reducer";
+  upVoteBasicChat
+} from "../../store/reducers/stream.reducer";
 
-export default function DashStream() {
+export default function Stream() {
   // hooks
   const { streamId } = useParams();
   const { socket } = useSocket();
@@ -34,7 +32,7 @@ export default function DashStream() {
   const [loading, setLoading] = useState(false);
 
   // state hooks
-  const streamState = useAppSelector((state) => state.dashStream);
+  const streamState = useAppSelector((state) => state.stream);
 
   // send message by admin
   const handleSendMessage: FormEventHandler<HTMLFormElement> = useCallback(
@@ -48,8 +46,9 @@ export default function DashStream() {
           },
           streamId
         );
+      setMessage('');
     },
-    [socket, SocketEventEnum, message, streamId]
+    [socket, SocketEventEnum, message, streamId, setMessage]
   );
 
   // handler to register all the socket events/listeners
@@ -102,38 +101,6 @@ export default function DashStream() {
     downVoteBasicChat,
   ]);
 
-  // start receiving and sending messages to the roomId over sockets
-  const handleStartStream = useCallback(() => {
-    if (socket && streamState.streamId && !streamState.streamRunning) {
-      socket.emit(SocketEventEnum.JOIN_STREAM_EVENT, streamState.streamId);
-      dispatch(startStreaming())
-      handleRegisterSocketEvents();
-    }
-  }, [
-    socket,
-    dispatch,
-    startStreaming,
-    SocketEventEnum,
-    streamState.streamId,
-    streamState.streamRunning,
-    handleRegisterSocketEvents
-  ]);
-
-  // stop streaming and
-  const handleStopStream = useCallback(() => {
-    if (socket && streamState.streamId && streamState.streamRunning) {
-      socket.emit(SocketEventEnum.LEAVE_STREAM_EVENT, streamState.streamId);
-      dispatch(stopStreaming())
-    }
-  }, [
-    socket,
-    streamState.streamId,
-    SocketEventEnum,
-    streamState.streamRunning,
-    dispatch,
-    stopStreaming
-  ]);
-
   React.useEffect(() => {
     if (streamId)
       (async () => {
@@ -142,25 +109,19 @@ export default function DashStream() {
       })();
   }, [streamId]);
 
+  React.useEffect(()=>{
+    if(streamId) {
+      if (socket && streamId) {
+        socket.emit(SocketEventEnum.JOIN_STREAM_EVENT, streamId);
+        handleRegisterSocketEvents();
+      }
+    }
+  },[streamId, socket])
+
   if (loading) return <LoadingComp />;
   return (
     <React.Fragment>
-      <Header>
-        {streamState.streamRunning ? (
-          <button
-            onClick={handleStopStream}
-            className="btn btn-soft btn-error px-20"
-          >
-            Exit stream
-          </button>
-        ) : (
-          <button
-            onClick={handleStartStream}
-            className="btn btn-soft btn-success px-20"
-          >
-            Start stream
-          </button>
-        )}
+      <Header> 
       </Header>
       <div className="h-[calc(93vh-2px)] flex p-2 gap-x-2">
         <div className="h-full w-[40%] bg-neutral-900 rounded-lg p-2">
@@ -217,7 +178,10 @@ function ChatComp(props: PropsWithChildren<BasicChatT>) {
             {props.user.fullName}
           </span>
         </div>
-        <button className="btn btn-soft btn-success btn-sm">Done</button>
+        <div className="flex gap-x-2">
+            <button className="btn btn-success btn-outline btn-xs"><svg className="size-3 fill-emerald-500" fill="#000000" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21,21H3L12,3Z"/></svg></button>
+            <button className="btn btn-warning btn-outline btn-xs"><svg className="rotate-180 size-3 fill-amber-400" fill="#000000" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21,21H3L12,3Z"/></svg></button>
+        </div>
       </div>
       <div className="divider my-1.5" />
       <div className="font-medium">{props.message}</div>
