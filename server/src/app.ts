@@ -1,9 +1,9 @@
-import 'dotenv/config';
 import http from "http";
 import cors from "cors";
+import dotenv from "dotenv";
 import morgan from "morgan";
-import express from "express";
 import helmet from "helmet";
+import express from "express";
 import cookieParser from "cookie-parser";
 
 
@@ -35,19 +35,18 @@ const io = new SocketIO(server, {
     origin: "*",
     credentials: true,
   },
-  adapter: createAdapter(redisClient, subClient)
+  adapter: createAdapter(redisClient, subClient),
+  cookie: true
 });
-
 // socket.io middlewares
 io.engine.use(helmet())
-
 // created /ws path to maintain paths, not to conflict with express server
-const ws = io.of('/ws');
+// const ws = io.of('/ws');
 // Authentication middleware for socket.io to let in authenticated users only and streamer verification
-ws.use(socketAuthMiddleware);
+io.use(socketAuthMiddleware);
 
-ws.on(SocketEventEnum.CONNECTED_EVENT, (socket: Socket) => {
-  
+io.on(SocketEventEnum.CONNECTED_EVENT, (socket: Socket) => {
+  logger.info(`socketid: ${socket.id} connected.`)
   try {
     socket.on(SocketEventEnum.JOIN_STREAM_EVENT, (roomId: string)=>{
       socket.join(roomId)
@@ -56,6 +55,8 @@ ws.on(SocketEventEnum.CONNECTED_EVENT, (socket: Socket) => {
       socket.leave(roomId)
     })
     socket.on(SocketEventEnum.CHAT_CREATE_EVENT, (chatMessage, roomId)=>{
+      logger.info(`CHAT_CREATE_EVENT: ${chatMessage} ${roomId}`)
+      io.to(roomId).emit(chatMessage, roomId, "Kuch to aaya")
       // socket.to(roomId).emit(SocketEvent, {
       //   user: {
       //     username: socket.user?.username,
@@ -66,6 +67,7 @@ ws.on(SocketEventEnum.CONNECTED_EVENT, (socket: Socket) => {
       // });
     })
   } catch (error: any) {
+    logger.error(`Internal sockets error: ${error.message}`)
     socket.emit(SocketEventEnum.SOCKET_ERROR_EVENT, new ApiError(400, error.message ?? "Some error occured"))
   }
 
@@ -123,6 +125,7 @@ app.use("/api/v1/streams", streamRouter);
  * Error handler
 */
 import errorHandler from "./lib/errorHandler";
+import { logger } from './lib/logger';
 app.use(errorHandler);
 
 export default server

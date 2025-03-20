@@ -1,36 +1,46 @@
-import React, { useCallback, useState } from "react";
+import React, { FormEventHandler, useCallback, useState } from "react";
 import Header from "../../../components/header";
 import { useSocket } from "../../../hooks/socket.hook";
 import { SocketEventEnum } from "../../../lib/constants";
 import { getStreamById } from "../../../lib/apiClient";
-import { useSearchParams } from "react-router";
+import { useParams } from "react-router";
 import { requestHandler } from "../../../lib/requestHandler";
 import LoadingComp from "../../../components/loading";
 
 export default function DashStream() {
   const [streamRunning, setStreamRunning] = useState(false);
-  const [stream, setStream] = useState<any>(null);
+  const [_, setStream] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [searchParams] = useSearchParams();
+  const { streamId } = useParams();
   const { socket } = useSocket();
 
-  const getStreamData = useCallback(async () => {
-    const streamId = searchParams.get("streamId");
-    if (!streamId) return console.error("Failed to get streaming id.");
+  const [message, setMessage] = useState("");
 
+  const getStreamData = useCallback(async () => {
+    if(!streamId) return;
     const st = await requestHandler(getStreamById({ streamId }), setLoading);
     setStream(st);
-  }, [searchParams, requestHandler, getStreamById, setLoading, setStream]);
+  }, [requestHandler, getStreamById, setLoading, setStream, streamId]);
 
   const startStream = useCallback(() => {
-    if (!socket) return;
-    const streamId = searchParams.get("streamId");
-    if (!streamId) return console.error("Failed to get streaming id.");
+    if (!socket||!streamId) return;
+    console.log(streamId);
+    setStreamRunning(true);
     socket.emit(SocketEventEnum.JOIN_STREAM_EVENT, streamId.trim());
-    socket.on(SocketEventEnum.CHAT_CREATE_EVENT, (chatMessage, roomId) => {
-      console.log(chatMessage, roomId);
+    socket.on(SocketEventEnum.CHAT_CREATE_EVENT, (chatObject, roomId) => {
+      console.log(chatObject, roomId);
     });
-  }, []);
+  }, [socket, streamId, SocketEventEnum, setStreamRunning]);
+
+  const handleSendMessage: FormEventHandler<HTMLFormElement> = useCallback(
+    (e) => {
+      e.preventDefault();
+      socket?.emit(SocketEventEnum.CHAT_CREATE_EVENT, {
+        
+      }, streamId);
+    },
+    [socket, SocketEventEnum.CHAT_CREATE_EVENT, message]
+  );
 
   React.useEffect(() => {
     getStreamData();
@@ -80,9 +90,17 @@ export default function DashStream() {
             <PaymentChatComp />
             <ChatComp />
           </div>
-          <div>
-          <textarea className="textarea"/>
-          </div>
+          <form onSubmit={handleSendMessage} className="flex gap-x-4">
+            <input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Hello, World!"
+              className="input input-primary w-full"
+            />
+            <button type="submit" className="btn btn-primary">
+              Send
+            </button>
+          </form>
         </div>
       </div>
     </React.Fragment>

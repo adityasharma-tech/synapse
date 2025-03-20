@@ -10,8 +10,8 @@ const corsOrigins = [
 ]
 
 const SocketEventEnum = Object.freeze({
-    CONNECTED_EVENT: "connected",
-    DISCONNECT_EVENT: "disconnected",
+    CONNECTED_EVENT: "connection",
+    DISCONNECT_EVENT: "disconnecting",
     JOIN_STREAM_EVENT: "stream:join",
     LEAVE_STREAM_EVENT: "stream:leave",
     SOCKET_ERROR_EVENT: "socket:error",

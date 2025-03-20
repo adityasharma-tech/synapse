@@ -83,7 +83,7 @@ function applyForStreamer(payload: ApplyForStreamerPayloadT) {
 }
 
 function getStreamById(payload: GetStreamByIdPayloadT) {
-  return apiClient.get(`/${payload.streamId}`);
+  return apiClient.get(`/streams/${payload.streamId}`);
 }
 
 export {

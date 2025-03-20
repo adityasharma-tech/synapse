@@ -24,8 +24,8 @@ const SocketProvider = ({ children }: PropsWithChildren) => {
     const handleConnectSocket = useCallback(()=>{
         const socketClient = io(backendURL, {
             withCredentials: true,
-            path: "/socket.io/ws",
-            transports: ["websockets"],
+            // transports: ["websockets"],
+            autoConnect: true
         })
         setSocket(socketClient);
     }, [io, setSocket])

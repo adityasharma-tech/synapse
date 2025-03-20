@@ -7,6 +7,7 @@ import { ApiResponse } from "../lib/ApiResponse";
 import { v4 as uuidv4 } from "uuid";
 import { asyncHandler } from "../lib/asyncHandler";
 import { ApiError, ErrCodes } from "../lib/ApiError";
+import { logger } from "../lib/logger";
 
 const createNewStream = asyncHandler(async (req, res) => {
   const { title } = req.body;
@@ -96,21 +97,16 @@ const getAllStreams = asyncHandler(async (req, res) => {
 });
 
 const getStreamById = asyncHandler(async (req, res) => {
-  const{ streamId } = req.params;
+  const { id } = req.params;
 
+  logger.info(`Id of stream: ${id}`)
   const db = establishDbConnection();
 
   const [stream] = await db
-    .select({
-      id: Stream.id,
-      streamTitle: Stream.streamTitle,
-      streamingUid: Stream.streamingUid,
-      streamerId: Stream.streamerId,
-      updatedAt: Stream.updatedAt,
-    })
+    .select()
     .from(Stream)
-    .where(and(eq(Stream.id, +streamId)))
-    .execute();
+    .where(eq(Stream.streamingUid, id))
+    .execute()
   
   if(!stream) throw new ApiError(400, "Stream not found.")
 
