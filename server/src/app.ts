@@ -38,7 +38,7 @@ const subClient = redisClient.duplicate();
 
 const io = new SocketIO(server, {
   cors: {
-    origin: "*",
+    origin: corsOrigins,
     credentials: true,
   },
   adapter: createAdapter(redisClient, subClient),
