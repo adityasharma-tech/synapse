@@ -6,6 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    allowedHosts: ["synapse-local.adityasharma.live"]
-  }
+    allowedHosts: ["synapse-local.adityasharma.live", 'synapse.adityasharma.live']
+  },
+  base: "/"
 })
