@@ -1,5 +1,5 @@
-import SMTPTransport from "nodemailer/lib/smtp-transport"
 import { logger } from "../lib/logger"
+import SMTPTransport from "nodemailer/lib/smtp-transport"
 import nodemailer, { SendMailOptions } from "nodemailer"
 
 const transportOptions: SMTPTransport.Options = {

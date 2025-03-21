@@ -86,6 +86,10 @@ function getStreamById(payload: GetStreamByIdPayloadT) {
   return apiClient.get(`/streams/${payload.streamId}`);
 }
 
+function getAllChatByStreamId(payload: GetStreamByIdPayloadT){
+  return apiClient.get(`streams/${payload.streamId}/chats`)
+}
+
 export {
   getUser,
   logoutUser,
@@ -97,5 +101,6 @@ export {
   getAllStreams,
   applyForStreamer,
   apiClient,
-  getStreamById
+  getStreamById,
+  getAllChatByStreamId
 };

@@ -20,6 +20,7 @@ import {
   updateBasicChat,
   upVoteBasicChat,
 } from "../../store/reducers/stream.reducer";
+import { setAllPreChats } from "../../store/actions/stream.actions";
 
 export default function Stream() {
   // hooks
@@ -126,6 +127,7 @@ export default function Stream() {
       (async () => {
         await requestHandler(getStreamById({ streamId }), setLoading);
         dispatch(updateStreamId(streamId));
+        dispatch(setAllPreChats({ streamId }))
       })();
   }, [streamId]);
 

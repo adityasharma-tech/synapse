@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from "react";
+import React from "react";
 import Header from "../../../components/header";
 import LoadingComp from "../../../components/loading";
 
@@ -8,7 +8,12 @@ import { getStreamById } from "../../../lib/apiClient";
 import { requestHandler } from "../../../lib/requestHandler";
 import { SocketEventEnum } from "../../../lib/constants";
 import { useAppDispatch, useAppSelector } from "../../../store";
-import { FormEventHandler, useCallback, useState } from "react";
+import {
+  FormEventHandler,
+  useCallback,
+  useState,
+  PropsWithChildren,
+} from "react";
 import {
   addBasicChat,
   addPremiumChat,
@@ -22,6 +27,7 @@ import {
   startStreaming,
   stopStreaming,
 } from "../../../store/reducers/dash-stream.reducer";
+import { setAllPreChats } from "../../../store/actions/stream.actions";
 
 export default function DashStream() {
   // hooks
@@ -41,17 +47,20 @@ export default function DashStream() {
     (e) => {
       e.preventDefault();
       if (socket)
-        socket.emit(
-          SocketEventEnum.CHAT_CREATE_EVENT,
-          {
-            message,
-            streamId
-          },
-        );
-        setMessage("")
+        socket.emit(SocketEventEnum.CHAT_CREATE_EVENT, {
+          message,
+          streamId,
+        });
+      setMessage("");
     },
     [socket, SocketEventEnum, message, streamId, setMessage]
   );
+
+  // handle mark done
+  const handleUpdateMarkDone = useCallback((messageId: string)=>{
+    if(socket && streamId)
+      socket.emit(SocketEventEnum.CHAT_MARK_DONE, { streamId, id: messageId })
+  }, [streamId, socket, SocketEventEnum.CHAT_MARK_DONE])
 
   // handler to register all the socket events/listeners
   const handleRegisterSocketEvents = useCallback(() => {
@@ -106,25 +115,29 @@ export default function DashStream() {
   // start receiving and sending messages to the roomId over sockets
   const handleStartStream = useCallback(() => {
     if (socket && streamState.streamId && !streamState.streamRunning) {
-      socket.emit(SocketEventEnum.JOIN_STREAM_EVENT, { streamId: streamState.streamId});
-      dispatch(startStreaming())
+      socket.emit(SocketEventEnum.JOIN_STREAM_EVENT, {
+        streamId: streamState.streamId,
+      });
+      dispatch(startStreaming());
+      dispatch(setAllPreChats({ streamId: streamState.streamId }));
       handleRegisterSocketEvents();
     }
   }, [
     socket,
     dispatch,
+    setAllPreChats,
     startStreaming,
     SocketEventEnum,
     streamState.streamId,
     streamState.streamRunning,
-    handleRegisterSocketEvents
+    handleRegisterSocketEvents,
   ]);
 
   // stop streaming and
   const handleStopStream = useCallback(() => {
     if (socket && streamState.streamId && streamState.streamRunning) {
       socket.emit(SocketEventEnum.LEAVE_STREAM_EVENT, streamState.streamId);
-      dispatch(stopStreaming())
+      dispatch(stopStreaming());
     }
   }, [
     socket,
@@ -132,7 +145,7 @@ export default function DashStream() {
     SocketEventEnum,
     streamState.streamRunning,
     dispatch,
-    stopStreaming
+    stopStreaming,
   ]);
 
   React.useEffect(() => {
@@ -183,7 +196,7 @@ export default function DashStream() {
         <div className="h-full w-[60%] bg-neutral-900 rounded-lg px-2 flex flex-col justify-between">
           <div className="overflow-y-auto scroll-smooth">
             {streamState.basicChats.map((chat, index) => (
-              <ChatComp key={index} {...chat} />
+              <ChatComp handleMarkDone={()=>handleUpdateMarkDone(chat.id)} key={index} {...chat} />
             ))}
           </div>
           <form onSubmit={handleSendMessage} className="flex gap-x-4">
@@ -203,7 +216,7 @@ export default function DashStream() {
   );
 }
 
-function ChatComp(props: PropsWithChildren<BasicChatT>) {
+function ChatComp(props: PropsWithChildren<BasicChatT | any>) {
   return (
     <div className="p-3 bg-neutral-800 mt-2 rounded-lg">
       <div className="flex justify-between">
@@ -214,14 +227,17 @@ function ChatComp(props: PropsWithChildren<BasicChatT>) {
               className="rounded-full size-7"
             />
           </div>
-          <span className="font-medium">
-            {props.user.fullName}
-          </span>
+          <span className="font-medium">{props.user.fullName}</span>
         </div>
-        <button className="btn btn-soft btn-success btn-sm">Done</button>
+        <div></div>
+        <div className="gap-x-2 flex items-center">
+          <span className="p-0.5 text-xs border border-green-500 rounded px-1.5">{props.upVotes}</span>
+          <span className="p-0.5 text-xs border border-amber-500 rounded px-1.5">{props.downVotes}</span>
+        <button className="btn btn-soft btn-success btn-xs">Mark read</button>
+        </div>
       </div>
       <div className="divider my-1.5" />
-      <div className="font-medium">{props.message}</div>
+      <div onClick={props.handleMarkDone} className="font-medium">{props.message}</div>
     </div>
   );
 }

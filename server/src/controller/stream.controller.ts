@@ -2,12 +2,14 @@ import jwt from "jsonwebtoken";
 import establishDbConnection from "../db";
 
 import { Stream } from "../schemas/stream.sql";
-import { and, count, eq } from "drizzle-orm";
+import { count, eq, sql } from "drizzle-orm";
 import { ApiResponse } from "../lib/ApiResponse";
 import { v4 as uuidv4 } from "uuid";
 import { asyncHandler } from "../lib/asyncHandler";
 import { ApiError, ErrCodes } from "../lib/ApiError";
 import { logger } from "../lib/logger";
+import { ChatMessage } from "../schemas/chats.sql";
+import { User } from "../schemas/user.sql";
 
 const createNewStream = asyncHandler(async (req, res) => {
   const { title } = req.body;
@@ -99,20 +101,65 @@ const getAllStreams = asyncHandler(async (req, res) => {
 const getStreamById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  logger.info(`Id of stream: ${id}`)
+  logger.info(`Id of stream: ${id}`);
   const db = establishDbConnection();
 
   const [stream] = await db
     .select()
     .from(Stream)
     .where(eq(Stream.streamingUid, id))
-    .execute()
-  
-  if(!stream) throw new ApiError(400, "Stream not found.")
+    .execute();
 
-  res.status(200).json({
-    stream
-  });
+  if (!stream) throw new ApiError(400, "Stream not found.");
+
+  res.status(200).json({ stream });
 });
 
-export { createNewStream, getAllStreams, getStreamById };
+const getAllChatsByStreamingId = asyncHandler(async (req, res) => {
+  const { streamId } = req.params;
+
+  const db = establishDbConnection();
+  const results = await db
+    .select({
+      id: ChatMessage.id,
+      message: ChatMessage.message,
+      user: {
+        fullName: sql`${User.firstName} || ' ' || ${User.lastName}`,
+        username: User.username,
+        profilePicture: User.profilePicture,
+      },
+      markRead: ChatMessage.markRead,
+      upVotes: sql`COALESCE(array_length(${ChatMessage.upVotes}, 1), 0)`,
+      downVotes: sql`COALESCE(array_length(${ChatMessage.downVotes}, 1), 0)`,
+      pinned: ChatMessage.pinned,
+      orderId: ChatMessage.orderId,
+      createdAt: ChatMessage.createdAt,
+      updatedAt: ChatMessage.updatedAt,
+    })
+    .from(ChatMessage)
+    .groupBy(
+      ChatMessage.id,
+      ChatMessage.message,
+      User.firstName,
+      User.lastName,
+      User.username,
+      User.profilePicture,
+      ChatMessage.markRead,
+      ChatMessage.pinned,
+      ChatMessage.orderId,
+      ChatMessage.createdAt,
+      ChatMessage.updatedAt
+    )
+    .leftJoin(User, eq(ChatMessage.userId, User.id))
+    .where(eq(ChatMessage.streamUid, String(streamId)))
+    .execute();
+
+  res.status(200).json(new ApiResponse(200, { chats: results }));
+});
+
+export {
+  createNewStream,
+  getAllStreams,
+  getStreamById,
+  getAllChatsByStreamingId,
+};

@@ -1,17 +1,18 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { UserT } from "../../lib/types";
+import { setAllPreChats } from "../actions/stream.actions";
 
 interface StreamUserT extends UserT {
-  fullName: string
+  fullName: string;
 }
 
 export interface BasicChatT {
-  id: number;
+  id: string;
   message: string;
   markRead: boolean;
   upVotes: number;
   downVotes: number;
-  user: Partial<StreamUserT> | {[key: string]: any};
+  user: Partial<StreamUserT> | { [key: string]: any };
   pinned: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -23,14 +24,15 @@ export interface PremiumChatT extends BasicChatT {
 }
 
 interface RemoveBasicChatT {
-  id: number;
+  id: string;
 }
 
 interface UpVoteBasicChatT extends RemoveBasicChatT {}
 interface DownVoteBasicChatT extends RemoveBasicChatT {}
+interface MarkReadDoneChatT extends RemoveBasicChatT {}
 
 interface UpdateBasicChatPayloadT {
-  id: number;
+  id: string;
   message: string;
 }
 
@@ -64,7 +66,7 @@ export const dashStreamSlice = createSlice({
     },
 
     // start streaming
-    startStreaming: (state)=>{
+    startStreaming: (state) => {
       state.streamRunning = true;
     },
 
@@ -134,6 +136,27 @@ export const dashStreamSlice = createSlice({
 
       state.basicChats[updateIndex].downVotes++;
     },
+
+    // mark read done
+    markDoneChat: (state, action: PayloadAction<MarkReadDoneChatT>) => {
+      let updateBChat = state.basicChats.findIndex(
+        value=> value.id == action.payload.id
+      )
+      if(updateBChat <= -1) {
+        const updatePChat = state.premiumChats.findIndex(
+          value=> value.id  == action.payload.id
+        )
+        if(updateBChat >= 0) state.premiumChats[updatePChat].markRead = true;
+      } else {
+        state.basicChats[updateBChat].markRead = true;
+      }
+    }
+  },
+  // extra reducers for async thunks
+  extraReducers: (builder) => {
+    builder.addCase(setAllPreChats.fulfilled, (state, action) => {
+      state.basicChats = action.payload;
+    });
   },
 });
 
@@ -146,7 +169,7 @@ export const {
   removeBasicChat,
   upVoteBasicChat,
   downVoteBasicChat,
-  startStreaming
+  startStreaming,
 } = dashStreamSlice.actions;
 
 export default dashStreamSlice.reducer;

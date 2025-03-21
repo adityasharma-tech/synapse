@@ -1,8 +1,9 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { UserT } from "../../lib/types";
+import { setAllPreChats } from "../actions/stream.actions";
 
 interface StreamUserT extends UserT {
-  fullName: string
+  fullName: string;
 }
 
 export interface BasicChatT {
@@ -11,7 +12,7 @@ export interface BasicChatT {
   markRead: boolean;
   upVotes: number;
   downVotes: number;
-  user: Partial<StreamUserT> | {[key: string]: any};
+  user: Partial<StreamUserT> | { [key: string]: any };
   pinned: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -113,7 +114,10 @@ export const streamSlice = createSlice({
         return console.error(`Cann't find message to be updated.`);
 
       state.basicChats[updateIndex].upVotes++;
-      state.basicChats = state.basicChats.sort((pre, post)=>(post.upVotes - post.downVotes) - (pre.upVotes - pre.downVotes))
+      state.basicChats = state.basicChats.sort(
+        (pre, post) =>
+          post.upVotes - post.downVotes - (pre.upVotes - pre.downVotes)
+      );
     },
 
     // downvoting a basic chat
@@ -125,8 +129,24 @@ export const streamSlice = createSlice({
         return console.error(`Cann't find message to be updated.`);
 
       state.basicChats[updateIndex].downVotes++;
-      state.basicChats = state.basicChats.sort((pre, post)=>(post.upVotes - post.downVotes) - (pre.upVotes - pre.downVotes))
+      state.basicChats = state.basicChats.sort(
+        (pre, post) =>
+          post.upVotes - post.downVotes - (pre.upVotes - pre.downVotes)
+      );
     },
+  },
+
+  // extra reducers for async thunks
+  extraReducers: (builder) => {
+    builder.addCase(setAllPreChats.fulfilled, (state, action) => {
+      if (action.payload.length <= 0) return;
+
+      action.payload.forEach((chat: any) => {
+        chat.orderId
+          ? state.premiumChats.push(chat)
+          : state.basicChats.push(chat);
+      });
+    });
   },
 });
 
