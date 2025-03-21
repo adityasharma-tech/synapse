@@ -56,8 +56,8 @@ const getAllStreams = asyncHandler(async (req, res) => {
   const user = req.user;
   const { page, limit } = req.query;
 
-  const currentPage = parseInt(page?.toString() ?? "1");
-  const currentLimit = parseInt(limit?.toString() ?? "10");
+  const currentPage = parseInt(page ? page.toString() : "1");
+  const currentLimit = parseInt(limit ? limit.toString() : "10");
 
   const db = establishDbConnection();
 

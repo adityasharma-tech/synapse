@@ -18,7 +18,7 @@ import {
   removeBasicChat,
   updateStreamId,
   updateBasicChat,
-  upVoteBasicChat
+  upVoteBasicChat,
 } from "../../store/reducers/stream.reducer";
 
 export default function Stream() {
@@ -44,13 +44,32 @@ export default function Stream() {
           SocketEventEnum.CHAT_CREATE_EVENT,
           {
             message,
+            streamId
           },
-          streamId
         );
-      setMessage('');
+      setMessage("");
     },
     [socket, SocketEventEnum, message, streamId, setMessage]
   );
+
+  const handleUpVoteChat = useCallback(
+    (messageId: string) => {
+      if (socket && streamId)
+        socket.emit(SocketEventEnum.CHAT_UPVOTE_EVENT, {
+          streamId: streamState.streamId,
+          id: messageId,
+        });
+    },
+    [socket, streamId, SocketEventEnum, streamState]
+  );
+
+  const handleDownVoteChat = useCallback((messageId: string) => {
+    if (socket && streamId)
+      socket.emit(SocketEventEnum.CHAT_DOWNVOTE_EVENT, {
+        streamId: streamState.streamId,
+        id: messageId,
+      });
+  }, [socket, streamId, SocketEventEnum, streamState]);
 
   // handler to register all the socket events/listeners
   const handleRegisterSocketEvents = useCallback(() => {
@@ -82,7 +101,7 @@ export default function Stream() {
     );
 
     // specific chat is down voted
-    socket.on(SocketEventEnum.CHAT_UPVOTE_EVENT, (chatObject) =>
+    socket.on(SocketEventEnum.CHAT_DOWNVOTE_EVENT, (chatObject) =>
       dispatch(downVoteBasicChat(chatObject))
     );
 
@@ -110,15 +129,15 @@ export default function Stream() {
       })();
   }, [streamId]);
 
-  React.useEffect(()=>{
-    if(streamId) {
+  React.useEffect(() => {
+    if (streamId) {
       if (socket && streamId && !streaming) {
-        socket.emit(SocketEventEnum.JOIN_STREAM_EVENT, streamId);
+        socket.emit(SocketEventEnum.JOIN_STREAM_EVENT, {streamId});
         handleRegisterSocketEvents();
-        setStreaming(true)
+        setStreaming(true);
       }
     }
-  },[streamId, socket, streaming])
+  }, [streamId, socket, streaming]);
 
   if (loading) return <LoadingComp />;
   return (
@@ -146,7 +165,12 @@ export default function Stream() {
         <div className="h-full w-[60%] bg-neutral-900 rounded-lg px-2 flex flex-col justify-between">
           <div className="overflow-y-auto scroll-smooth">
             {streamState.basicChats.map((chat, index) => (
-              <ChatComp key={index} {...chat} />
+              <ChatComp
+                key={index}
+                {...chat}
+                handleUpVoteChat={handleUpVoteChat}
+                handleDownVoteChat={handleDownVoteChat}
+              />
             ))}
           </div>
           <form onSubmit={handleSendMessage} className="flex gap-x-4">
@@ -166,7 +190,7 @@ export default function Stream() {
   );
 }
 
-function ChatComp(props: PropsWithChildren<BasicChatT>) {
+function ChatComp(props: PropsWithChildren<BasicChatT | any>) {
   return (
     <div className="p-3 bg-neutral-800 mt-2 rounded-lg">
       <div className="flex justify-between">
@@ -177,13 +201,35 @@ function ChatComp(props: PropsWithChildren<BasicChatT>) {
               className="rounded-full size-7"
             />
           </div>
-          <span className="font-medium">
-            {props.user.fullName}
-          </span>
+          <span className="font-medium">{props.user.fullName}</span>
         </div>
         <div className="flex gap-x-2">
-            <button className="btn btn-success btn-outline btn-xs group transition-none"><svg className="size-3 fill-emerald-500 group-hover:fill-neutral-800" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21,21H3L12,3Z"/></svg></button>
-            <button className="btn btn-warning btn-outline btn-xs group transition-none"><svg className="rotate-180 size-3 fill-amber-400 group-hover:fill-neutral-800" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21,21H3L12,3Z"/></svg></button>
+          <button
+            onClick={() => props.handleUpVoteChat(props.id)}
+            className="btn btn-success btn-outline btn-xs group transition-none"
+          >
+            <svg
+              className="size-3 fill-emerald-500 group-hover:fill-neutral-800"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M21,21H3L12,3Z" />
+            </svg>
+            <span>{props.upVotes}</span>
+          </button>
+          <button
+            onClick={() => props.handleDownVoteChat(props.id)}
+            className="btn btn-warning btn-outline btn-xs group transition-none"
+          >
+            <svg
+              className="rotate-180 size-3 fill-amber-400 group-hover:fill-neutral-800"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M21,21H3L12,3Z" />
+            </svg>
+            <span>{props.downVotes}</span>
+          </button>
         </div>
       </div>
       <div className="divider my-1.5" />

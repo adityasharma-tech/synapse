@@ -2,6 +2,9 @@ import { Socket, Server } from "socket.io";
 import { logger } from "../lib/logger";
 import { SocketEventEnum } from "../lib/constants";
 import { ApiError } from "../lib/ApiError";
+import establishDbConnection from "../db";
+import { ChatMessage } from "../schemas/chats.sql";
+import { eq } from "drizzle-orm";
 
 // basic data types to support
 interface UserT {
@@ -20,7 +23,8 @@ interface BasicChatT {
   id: number;
   message: string;
   markRead?: boolean;
-  votes: number;
+  upVotes: number;
+  downVotes: number;
   user: Partial<UserT>;
   pinned?: boolean;
 }
@@ -56,10 +60,13 @@ interface ChatDeletePayloadT {
 interface ChatUpvotePaylaodT extends ChatDeletePayloadT {}
 interface ChatDownVotePaylaodT extends ChatDeletePayloadT {}
 
+const db = establishDbConnection();
+
 // event handlers
 function joinStreamHandler(socket: Socket, payload: JoinStreamHandlerPayloadT) {
   socket.join(payload.streamId);
 }
+
 // when user leaves
 function leaveStreamHandler(
   socket: Socket,
@@ -69,28 +76,54 @@ function leaveStreamHandler(
 }
 
 // when user create a basic chat
-function chatCreateHandler(
+async function chatCreateHandler(
   io: Server,
   socket: Socket,
   payload: ChatCreateHandlerPayloadT
 ) {
-  io.to(payload.streamId).emit(SocketEventEnum.CHAT_CREATE_EVENT, {
-    ...payload,
-    streamId: undefined,
-    markRead: false,
-    votes: 0,
-    user: {
-      fullName: `${socket.user?.firstName} ${socket.user?.lastName}`,
-      username: socket.user?.username,
-      profilePicture: socket.user?.profilePicture,
-      role: socket.user?.role ?? "viewer",
-    },
-    pinned: false,
-  });
+
+  const [result] = await db
+    .insert(ChatMessage)
+    .values({
+      streamUid: payload.streamId,
+      userId: socket.user?.id,
+      message: payload.message,
+      updatedAt: new Date()
+    })
+    .returning()
+    .execute()
+
+  if(result){
+    io.to(String(payload.streamId)).emit(SocketEventEnum.CHAT_CREATE_EVENT, {
+      ...payload,
+      id: String(result.id),
+      streamId: undefined,
+      markRead: false,
+      upVotes: 0,
+      downVotes: 0,
+      user: {
+        fullName: `${socket.user?.firstName} ${socket.user?.lastName}`,
+        username: socket.user?.username,
+        profilePicture: socket.user?.profilePicture,
+        role: socket.user?.role ?? "viewer",
+      },
+      pinned: false,
+    });
+  }
+
 }
 
 // when user updates it's chat
-function chatUpdateHandler(io: Server, payload: ChatUpdatePayloadT) {
+async function chatUpdateHandler(io: Server, payload: ChatUpdatePayloadT) {
+
+  await db
+    .update(ChatMessage)
+    .set({
+      message: payload.message
+    })
+    .where(eq(ChatMessage.id, parseInt(payload.id)))
+    .execute()
+
   io.to(payload.streamId).emit(SocketEventEnum.CHAT_UPDATE_EVENT, {
     ...payload,
     streamId: undefined,
@@ -98,7 +131,13 @@ function chatUpdateHandler(io: Server, payload: ChatUpdatePayloadT) {
 }
 
 // when user delete a chat
-function chatDeleteHandler(io: Server, payload: ChatDeletePayloadT) {
+async function chatDeleteHandler(io: Server, payload: ChatDeletePayloadT) {
+  
+  await db
+    .delete(ChatMessage)
+    .where(eq(ChatMessage.id, parseInt(payload.id)))
+    .execute()
+  
   io.to(payload.streamId).emit(SocketEventEnum.CHAT_UPDATE_EVENT, {
     ...payload,
     streamId: undefined,
@@ -107,13 +146,57 @@ function chatDeleteHandler(io: Server, payload: ChatDeletePayloadT) {
 function paymentChatCreateHandler() {}
 
 // when a chat is being upvoted
-function chatUpvoteHandler(io: Server, payload: ChatUpvotePaylaodT) {
-  io.to(payload.streamId).emit(SocketEventEnum.CHAT_UPVOTE_EVENT, payload);
+async function chatUpvoteHandler(io: Server,socket: Socket, payload: ChatUpvotePaylaodT) {
+  
+  const [result] = await db
+    .select({
+      upVotes: ChatMessage.upVotes,
+    })
+    .from(ChatMessage)
+    .where(eq(ChatMessage.id, parseInt(payload.id))) // problem here
+
+  if(!result) return; // send socket error messages
+  if(result.upVotes.includes(socket.user?.id)) return;
+
+  await db
+    .update(ChatMessage)
+    .set({
+      upVotes: [...result.upVotes, socket.user?.id]
+    })
+    .where(eq(ChatMessage.id, parseInt(payload.id)))
+    .execute()
+
+  io.to(payload.streamId).emit(SocketEventEnum.CHAT_UPVOTE_EVENT, {
+    ...payload,
+    streamId: undefined,
+  });
 }
 
 // when a chat is being down voted
-function chatDownVoteHandler(io: Server, payload: ChatDownVotePaylaodT) {
-  io.to(payload.streamId).emit(SocketEventEnum.CHAT_DOWNVOTE_EVENT, payload);
+async function chatDownVoteHandler(io: Server, socket: Socket, payload: ChatDownVotePaylaodT) {
+
+  const [result] = await db
+    .select({
+      downVotes: ChatMessage.downVotes
+    })
+    .from(ChatMessage)
+    .where(eq(ChatMessage.id, parseInt(payload.id))) // problem here
+
+  if(!result) return; // send socket error messages
+  if(result.downVotes.includes(socket.user?.id)) return;
+
+  await db
+    .update(ChatMessage)
+    .set({
+      downVotes: [...result.downVotes, socket.user?.id]
+    })
+    .where(eq(ChatMessage.id, parseInt(payload.id)))
+    .execute()
+
+  io.to(payload.streamId).emit(SocketEventEnum.CHAT_DOWNVOTE_EVENT, {
+    ...payload,
+    streamId: undefined,
+  });
 }
 
 // when socket will be disconnected
@@ -146,8 +229,8 @@ function socketHandler(io: Server, socket: Socket) {
       SocketEventEnum.PAYMENT_CHAT_CREATE_EVENT,
       paymentChatCreateHandler
     );
-    socket.on(SocketEventEnum.CHAT_UPVOTE_EVENT, chatUpvoteHandler);
-    socket.on(SocketEventEnum.CHAT_DOWNVOTE_EVENT, chatDownVoteHandler);
+    socket.on(SocketEventEnum.CHAT_UPVOTE_EVENT, (payload)=>chatUpvoteHandler(io, socket, payload));
+    socket.on(SocketEventEnum.CHAT_DOWNVOTE_EVENT, (payload)=>chatDownVoteHandler(io, socket, payload));
   } catch (error: any) {
     // Internal error handling & emit errors to client
     logger.error(`Internal sockets error: ${error.message}`);

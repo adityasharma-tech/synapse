@@ -45,11 +45,12 @@ export default function DashStream() {
           SocketEventEnum.CHAT_CREATE_EVENT,
           {
             message,
+            streamId
           },
-          streamId
         );
+        setMessage("")
     },
-    [socket, SocketEventEnum, message, streamId]
+    [socket, SocketEventEnum, message, streamId, setMessage]
   );
 
   // handler to register all the socket events/listeners
@@ -105,7 +106,7 @@ export default function DashStream() {
   // start receiving and sending messages to the roomId over sockets
   const handleStartStream = useCallback(() => {
     if (socket && streamState.streamId && !streamState.streamRunning) {
-      socket.emit(SocketEventEnum.JOIN_STREAM_EVENT, streamState.streamId);
+      socket.emit(SocketEventEnum.JOIN_STREAM_EVENT, { streamId: streamState.streamId});
       dispatch(startStreaming())
       handleRegisterSocketEvents();
     }

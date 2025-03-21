@@ -9,7 +9,8 @@ export interface BasicChatT {
   id: number;
   message: string;
   markRead: boolean;
-  votes: number;
+  upVotes: number;
+  downVotes: number;
   user: Partial<StreamUserT> | {[key: string]: any};
   pinned: boolean;
   createdAt: Date;
@@ -17,8 +18,6 @@ export interface BasicChatT {
 }
 
 export interface PremiumChatT extends BasicChatT {
-  message: string;
-  pinned: boolean;
   amount: string;
   paymentStatus?: string;
 }
@@ -122,7 +121,7 @@ export const dashStreamSlice = createSlice({
       if (updateIndex <= -1)
         return console.error(`Cann't find message to be updated.`);
 
-      state.basicChats[updateIndex].votes += 1;
+      state.basicChats[updateIndex].upVotes++;
     },
 
     // downvoting a basic chat
@@ -133,7 +132,7 @@ export const dashStreamSlice = createSlice({
       if (updateIndex <= -1)
         return console.error(`Cann't find message to be updated.`);
 
-      state.basicChats[updateIndex].votes -= 1;
+      state.basicChats[updateIndex].downVotes++;
     },
   },
 });

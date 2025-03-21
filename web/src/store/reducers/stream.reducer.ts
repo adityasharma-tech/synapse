@@ -6,10 +6,11 @@ interface StreamUserT extends UserT {
 }
 
 export interface BasicChatT {
-  id: number;
+  id: string;
   message: string;
   markRead: boolean;
-  votes: number;
+  upVotes: number;
+  downVotes: number;
   user: Partial<StreamUserT> | {[key: string]: any};
   pinned: boolean;
   createdAt: Date;
@@ -24,14 +25,14 @@ export interface PremiumChatT extends BasicChatT {
 }
 
 interface RemoveBasicChatT {
-  id: number;
+  id: string;
 }
 
 interface UpVoteBasicChatT extends RemoveBasicChatT {}
 interface DownVoteBasicChatT extends RemoveBasicChatT {}
 
 interface UpdateBasicChatPayloadT {
-  id: number;
+  id: string;
   message: string;
 }
 
@@ -111,7 +112,8 @@ export const streamSlice = createSlice({
       if (updateIndex <= -1)
         return console.error(`Cann't find message to be updated.`);
 
-      state.basicChats[updateIndex].votes += 1;
+      state.basicChats[updateIndex].upVotes++;
+      state.basicChats = state.basicChats.sort((pre, post)=>(post.upVotes - post.downVotes) - (pre.upVotes - pre.downVotes))
     },
 
     // downvoting a basic chat
@@ -122,7 +124,8 @@ export const streamSlice = createSlice({
       if (updateIndex <= -1)
         return console.error(`Cann't find message to be updated.`);
 
-      state.basicChats[updateIndex].votes -= 1;
+      state.basicChats[updateIndex].downVotes++;
+      state.basicChats = state.basicChats.sort((pre, post)=>(post.upVotes - post.downVotes) - (pre.upVotes - pre.downVotes))
     },
   },
 });
