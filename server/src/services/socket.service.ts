@@ -5,6 +5,7 @@ import { ApiError } from "../lib/ApiError";
 import establishDbConnection from "../db";
 import { ChatMessage } from "../schemas/chats.sql";
 import { eq } from "drizzle-orm";
+import { hasPermission, Role } from "../lib/utils";
 
 // basic data types to support
 interface UserT {
@@ -15,7 +16,7 @@ interface UserT {
   email: string;
   profilePicture?: string;
   phoneNumber: string;
-  role: string;
+  role: Role;
   emailVerified: boolean;
 }
 
@@ -59,6 +60,7 @@ interface ChatDeletePayloadT {
 
 interface ChatUpvotePaylaodT extends ChatDeletePayloadT {}
 interface ChatDownVotePaylaodT extends ChatDeletePayloadT {}
+interface ChatMarkDonePayloadT extends ChatDeletePayloadT {}
 
 interface ChatTypingEventT extends LeaveStreamHandlerPayloadT {}
 
@@ -83,6 +85,7 @@ async function chatCreateHandler(
   socket: Socket,
   payload: ChatCreateHandlerPayloadT
 ) {
+  if (!hasPermission(socket.user, "chat:create")) return;
   const [result] = await db
     .insert(ChatMessage)
     .values({
@@ -128,7 +131,12 @@ async function chatUpdateHandler(io: Server, payload: ChatUpdatePayloadT) {
 }
 
 // when user delete a chat
-async function chatDeleteHandler(io: Server, payload: ChatDeletePayloadT) {
+async function chatDeleteHandler(
+  io: Server,
+  socket: Socket,
+  payload: ChatDeletePayloadT
+) {
+  if (!hasPermission(socket.user, "chat:delete")) return;
   await db
     .delete(ChatMessage)
     .where(eq(ChatMessage.id, parseInt(payload.id)))
@@ -147,6 +155,7 @@ async function chatUpvoteHandler(
   socket: Socket,
   payload: ChatUpvotePaylaodT
 ) {
+  if (!hasPermission(socket.user, "chat:own-upvote")) return;
   const [result] = await db
     .select({ upVotes: ChatMessage.upVotes })
     .from(ChatMessage)
@@ -185,24 +194,38 @@ async function chatDownVoteHandler(
   socket: Socket,
   payload: ChatDownVotePaylaodT
 ) {
+  if (!hasPermission(socket.user, "chat:own-downvote")) return;
   const [result] = await db
     .select({ downVotes: ChatMessage.downVotes })
     .from(ChatMessage)
-    .where(eq(ChatMessage.id, parseInt(payload.id))); // problem here
-
-  if (!result) return; // send socket error messages
-  if (result.downVotes.includes(socket.user?.id)) return;
-
-  await db
-    .update(ChatMessage)
-    .set({ downVotes: [...result.downVotes, socket.user?.id] })
-    .where(eq(ChatMessage.id, parseInt(payload.id)))
+    .where(eq(ChatMessage.id, parseInt(payload.id))) // problem here
     .execute();
 
-  io.to(payload.streamId).emit(SocketEventEnum.CHAT_DOWNVOTE_EVENT, {
-    ...payload,
-    streamId: undefined,
-  });
+  if (!result) return; // send socket error messages
+  if (result.downVotes.includes(socket.user?.id)) {
+    await db
+      .update(ChatMessage)
+      .set({
+        downVotes: result.downVotes.filter((value) => value != socket.user?.id),
+      })
+      .where(eq(ChatMessage.id, parseInt(payload.id)))
+      .execute();
+    io.to(payload.streamId).emit(SocketEventEnum.CHAT_DOWNVOTE_DOWN_EVENT, {
+      ...payload,
+      streamId: undefined,
+    });
+  } else {
+    await db
+      .update(ChatMessage)
+      .set({ downVotes: [...result.downVotes, socket.user?.id] })
+      .where(eq(ChatMessage.id, parseInt(payload.id)))
+      .execute();
+
+    io.to(payload.streamId).emit(SocketEventEnum.CHAT_DOWNVOTE_EVENT, {
+      ...payload,
+      streamId: undefined,
+    });
+  }
 }
 
 // send typing event
@@ -229,10 +252,25 @@ async function stopChatTypingEvent(
   });
 }
 
+// set mark read done to specific message
+async function markChatDone(
+  _: Server,
+  socket: Socket,
+  payload: ChatMarkDonePayloadT
+) {
+  if (!hasPermission(socket.user, "chat:mark-read")) return;
+
+  await db
+    .update(ChatMessage)
+    .set({ markRead: true })
+    .where(eq(ChatMessage.id, +payload.id))
+    .execute();
+}
+
 // when socket will be disconnected
 function socketDisconnectHandler(socket: Socket) {
-  if (socket.user?.id) {
-    socket.leave(socket.user?.id);
+  if (socket.user.id) {
+    socket.leave(String(socket.user.id));
   }
 }
 
@@ -253,7 +291,7 @@ function socketHandler(io: Server, socket: Socket) {
       chatUpdateHandler(io, payload)
     );
     socket.on(SocketEventEnum.CHAT_DELETE_EVENT, (payload) =>
-      chatDeleteHandler(io, payload)
+      chatDeleteHandler(io, socket, payload)
     );
     socket.on(
       SocketEventEnum.PAYMENT_CHAT_CREATE_EVENT,
@@ -271,6 +309,9 @@ function socketHandler(io: Server, socket: Socket) {
     socket.on(SocketEventEnum.STREAM_STOP_TYPING_EVENT, (payload) =>
       stopChatTypingEvent(io, socket, payload)
     );
+    socket.on(SocketEventEnum.CHAT_MARK_DONE, (payload) => {
+      markChatDone(io, socket, payload);
+    });
   } catch (error: any) {
     // Internal error handling & emit errors to client
     logger.error(`Internal sockets error: ${error.message}`);

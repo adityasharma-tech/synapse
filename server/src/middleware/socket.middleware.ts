@@ -8,6 +8,7 @@ import { parse } from "cookie";
 import { User } from "../schemas/user.sql";
 import { eq } from "drizzle-orm";
 import { SocketEventEnum } from "../lib/constants";
+import { TokenTable } from "../schemas/tokenTable.sql";
 
 /**
  * @description A function to emit the socket event also disconnecting it so that user can't make any socket request.
@@ -45,16 +46,43 @@ const socketAuthMiddleware = async (
     const db = establishDbConnection();
 
     const [user] = await db
-      .select()
+      .select({
+        id: User.id,
+        firstName: User.firstName,
+        lastName: User.lastName,
+        username: User.username,
+        email: User.email,
+        profilePicture: User.profilePicture,
+        role: User.role,
+        emailVerified: User.emailVerified,
+        streamerToken: TokenTable.streamerVerificationToken,
+      })
       .from(User)
+      .innerJoin(TokenTable, eq(TokenTable.userId, TokenTable.userId))
+      .groupBy(
+        User.id,
+        User.firstName,
+        User.lastName,
+        User.username,
+        User.email,
+        User.profilePicture,
+        User.role,
+        User.emailVerified,
+        TokenTable.streamerVerificationToken
+      )
       .where(eq(User.id, decodedUser.userId))
       .execute();
 
     socket.user = {
-      ...user,
-      passwordHash: undefined,
-      createdAt: undefined,
-      updatedAt: undefined,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      emailVerified: user.emailVerified,
+      id: user.id,
+      role: user.role ?? "viewer",
+      username: user.username,
+      profilePicture: user.profilePicture || undefined,
+      streamerToken: user.streamerToken || undefined,
     };
     next();
   } catch (error: any) {

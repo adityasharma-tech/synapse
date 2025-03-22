@@ -2,6 +2,7 @@ import { ApiError } from "../lib/ApiError";
 import { logger } from "../lib/logger";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import { signStreamerVerficationToken } from "../lib/utils";
 
 const cashfreeClientHeaders = new Headers();
 cashfreeClientHeaders.set("x-api-version", process.env.CF_XAPI_VERSION!);
@@ -61,15 +62,12 @@ const createBeneficiary: (p: CreateBeneficiaryPropT) => Promise<string> =
         if (response["beneficiary_status"] != "VERIFIED")
           throw new ApiError(400, "Failed to create new beneficiary.");
 
-        const streamerToken = jwt.sign(
-          {
-            beneficiaryId: response["beneficiary_id"],
-            userId: props.userId,
-            addedAt: response["added_on"],
-          },
-          process.env.STREAMER_SECRET_KEY!,
-          { expiresIn: "180d" }
-        );
+        const streamerToken = signStreamerVerficationToken({
+          beneficiaryId: response["beneficiary_id"],
+          userId: props.userId,
+          addedAt: response["added_on"],
+        });
+
         resolve(streamerToken);
       } catch (error: any) {
         console.error(`Erorr:`, error);

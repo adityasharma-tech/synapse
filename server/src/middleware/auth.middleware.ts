@@ -71,11 +71,11 @@ const streamerAuthMiddeware = asyncHandler(async (req, _, next) => {
     );
 
   try {
-    const streamerPayload = jwt.verify(
+    jwt.verify(
       tokens[0].streamerVerificationToken,
       process.env.STREAMER_SECRET_KEY!
     );
-    req.streamer = JSON.parse(JSON.stringify(streamerPayload));
+    // req.streamer = JSON.parse(JSON.stringify(streamerPayload));
   } catch (error: any) {
     logger.error(`Error during accessing middleware: ${error.message}`);
     if (error instanceof jwt.TokenExpiredError)
