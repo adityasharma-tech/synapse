@@ -8,7 +8,13 @@ import { getStreamById } from "../../lib/apiClient";
 import { requestHandler } from "../../lib/requestHandler";
 import { SocketEventEnum } from "../../lib/constants";
 import { useAppDispatch, useAppSelector } from "../../store";
-import { FormEventHandler, useCallback, useState, PropsWithChildren, useRef } from "react";
+import {
+  FormEventHandler,
+  useCallback,
+  useState,
+  PropsWithChildren,
+  useRef,
+} from "react";
 import {
   addBasicChat,
   addPremiumChat,
@@ -21,6 +27,7 @@ import {
   upVoteBasicChat,
   registerTypingEvent,
   removeTypingEvent,
+  markDoneChat,
 } from "../../store/reducers/stream.reducer";
 import { setAllPreChats } from "../../store/actions/stream.actions";
 import { useDebounce, useThrottle } from "../../lib/utils";
@@ -42,7 +49,8 @@ export default function Stream() {
   // state hooks
   const streamState = useAppSelector((state) => state.stream);
 
-  const messageInputRef = useRef<HTMLInputElement | null>(null);
+  // refs
+  const lastMessageRef = useRef<HTMLDivElement | null>(null);
 
   // send message by admin TODO: handle permission on server side, check if he is admin or not and add a check mark and highlight
   const handleSendMessage: FormEventHandler<HTMLFormElement> = useCallback(
@@ -83,16 +91,21 @@ export default function Stream() {
   );
 
   // send event to db to update the mark done of that specific chat
-    const handleUpdateMarkDone = useCallback(
-      (messageId: string) => {
-        if (socket && streamId)
-          socket.emit(SocketEventEnum.CHAT_MARK_DONE, {
-            streamId,
-            id: messageId,
-          });
-      },
-      [streamId, socket, SocketEventEnum.CHAT_MARK_DONE]
-    );
+  const handleUpdateMarkDone = useCallback(
+    (messageId: string) => {
+      if (socket && streamId)
+        socket.emit(SocketEventEnum.CHAT_MARK_DONE, {
+          streamId,
+          id: messageId,
+        });
+      dispatch(
+        markDoneChat({
+          id: messageId,
+        })
+      );
+    },
+    [streamId, socket, SocketEventEnum.CHAT_MARK_DONE, dispatch, markDoneChat]
+  );
 
   // handler to register all the socket events/listeners
   const handleRegisterSocketEvents = useCallback(() => {
@@ -138,6 +151,11 @@ export default function Stream() {
       dispatch(removeTypingEvent(chatObject));
     });
 
+    socket.onAny(() => {
+      if (lastMessageRef.current)
+        lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
+    });
+
     // error listener
     socket.on(SocketEventEnum.SOCKET_ERROR_EVENT, (error) => {
       console.error(`Error from socket server: `, error);
@@ -153,6 +171,7 @@ export default function Stream() {
     upVoteBasicChat,
     removeTypingEvent,
     downVoteBasicChat,
+    lastMessageRef,
     registerTypingEvent,
   ]);
 
@@ -220,10 +239,11 @@ export default function Stream() {
                 {...chat}
                 role={user?.role ?? "viewer"}
                 handleMarkDone={() => handleUpdateMarkDone(chat.id)}
-                handleUpVoteChat={()=>handleUpVoteChat(chat.id)}
-                handleDownVoteChat={()=>handleDownVoteChat(chat.id)}
+                handleUpVoteChat={() => handleUpVoteChat(chat.id)}
+                handleDownVoteChat={() => handleDownVoteChat(chat.id)}
               />
             ))}
+            <div ref={lastMessageRef}></div>
           </div>
           <div>
             {streamState.typerNames.length > 0 ? (
@@ -239,7 +259,6 @@ export default function Stream() {
             ) : null}
             <form onSubmit={handleSendMessage} className="flex gap-x-4 py-2">
               <input
-                ref={messageInputRef}
                 onChange={(e) => {
                   setMessage(e.target.value);
                   throttle(handleStartTyping, 4000);
@@ -269,7 +288,12 @@ interface BasicChatCompPropT extends BasicChatT {
 
 function ChatComp(props: PropsWithChildren<BasicChatCompPropT>) {
   return (
-    <div className="p-3 bg-neutral-800 mt-2 rounded-lg">
+    <div
+      style={{
+        opacity: props.markRead ? 0.5 : 1,
+      }}
+      className="p-3 bg-neutral-800 mt-2 rounded-lg"
+    >
       <div className="flex justify-between">
         <div className="flex gap-x-3 items-center">
           <div>
@@ -280,42 +304,51 @@ function ChatComp(props: PropsWithChildren<BasicChatCompPropT>) {
           </div>
           <span className="text-neutral-50">{props.user.fullName}</span>
         </div>
-        {props.role == "viewer" ?  <div className="flex gap-x-2">
-          <button
-            onClick={props.handleUpVoteChat}
-            className="btn btn-success btn-outline btn-xs group transition-none"
-          >
-            <svg
-              className="size-3 fill-emerald-500 group-hover:fill-neutral-800"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
+        {props.role == "viewer" ? (
+          <div className="flex gap-x-2">
+            <button
+              onClick={props.handleUpVoteChat}
+              className="btn btn-success btn-outline btn-xs group transition-none"
             >
-              <path d="M21,21H3L12,3Z" />
-            </svg>
-            <span>{props.upVotes}</span>
-          </button>
-          <button
-            onClick={props.handleDownVoteChat}
-            className="btn btn-warning btn-outline btn-xs group transition-none"
-          >
-            <svg
-              className="rotate-180 size-3 fill-amber-400 group-hover:fill-neutral-800"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
+              <svg
+                className="size-3 fill-emerald-500 group-hover:fill-neutral-800"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M21,21H3L12,3Z" />
+              </svg>
+              <span>{props.upVotes}</span>
+            </button>
+            <button
+              onClick={props.handleDownVoteChat}
+              className="btn btn-warning btn-outline btn-xs group transition-none"
             >
-              <path d="M21,21H3L12,3Z" />
-            </svg>
-            <span>{props.downVotes}</span>
-          </button>
-        </div>: props.role == "streamer" ? <div className="gap-x-2 flex items-center">
-          <span className="p-0.5 text-xs border border-green-500 rounded px-1.5">
-            {props.upVotes}
-          </span>
-          <span className="p-0.5 text-xs border border-amber-500 rounded px-1.5">
-            {props.downVotes}
-          </span>
-          <button onClick={props.handleMarkDone} className="btn btn-soft btn-success btn-xs">Mark read</button>
-        </div> : null}
+              <svg
+                className="rotate-180 size-3 fill-amber-400 group-hover:fill-neutral-800"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M21,21H3L12,3Z" />
+              </svg>
+              <span>{props.downVotes}</span>
+            </button>
+          </div>
+        ) : props.role == "streamer" ? (
+          <div className="gap-x-2 flex items-center">
+            <span className="p-0.5 text-xs border border-green-500 rounded px-1.5">
+              {props.upVotes}
+            </span>
+            <span className="p-0.5 text-xs border border-amber-500 rounded px-1.5">
+              {props.downVotes}
+            </span>
+            <button
+              onClick={props.handleMarkDone}
+              className="btn btn-soft btn-success btn-xs"
+            >
+              Mark read
+            </button>
+          </div>
+        ) : null}
       </div>
       <div className="divider my-1.5" />
       <div className="font-medium text-neutral-100">{props.message}</div>

@@ -200,6 +200,7 @@ export const {
   downVoteBasicChat,
   registerTypingEvent,
   removeTypingEvent,
+  markDoneChat
 } = streamSlice.actions;
 
 export default streamSlice.reducer;
