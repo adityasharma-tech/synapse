@@ -5,7 +5,7 @@
   "type": "commonjs",
   "scripts": {
     "dev": "nodemon index.ts --project tsconfig.json",
-    "build": "tsc",
+    "compile": "tsc",
     "start": "node dist/index.js",
     "format": "prettier . --write"
   },

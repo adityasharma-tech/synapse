@@ -148,10 +148,7 @@ const userRouteValidators = {
     validator,
   ],
   applyForStreamerRoute: [
-    body(["city", "state"])
-      .notEmpty()
-      .trim()
-      .isLength({ min: 3 }),
+    body(["city", "state"]).notEmpty().trim().isLength({ min: 3 }),
 
     body("postalCode")
       .notEmpty()

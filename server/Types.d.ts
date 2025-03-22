@@ -21,15 +21,15 @@ interface StreamerT {
 declare global {
   namespace Express {
     interface Request {
-      user?: UserT | {[key: string]: any};
-      streamer?: StreamerT | {[key: string]: any};
+      user?: UserT | { [key: string]: any };
+      streamer?: StreamerT | { [key: string]: any };
     }
   }
 }
 
 declare module "socket.io" {
   interface Socket {
-    user?: UserT | {[key: string]: any};
+    user?: UserT | { [key: string]: any };
   }
 }
 

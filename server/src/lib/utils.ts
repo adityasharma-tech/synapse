@@ -10,8 +10,9 @@ function areValuesValid(...values: any[]) {
 }
 
 function generateUsername() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let username = '';
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let username = "";
   for (let i = 0; i < 8; i++) {
     username += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -23,19 +24,15 @@ function getSigningTokens(payload: any) {
     expiresIn: "4d",
   });
   const accessToken = jwt.sign(payload, process.env.ACCESS_SECRET_KEY!, {
-    expiresIn: "5min"
+    expiresIn: "5min",
   });
   const cookieOptions: CookieOptions = {
     httpOnly: true,
     secure: true,
     maxAge: 60 * 60 * 24 * 4 * 1000,
-  }
+  };
 
-  return {
-    refreshToken,
-    accessToken,
-    cookieOptions
-  }
+  return { refreshToken, accessToken, cookieOptions };
 }
 
 export { areValuesValid, generateUsername, getSigningTokens };

@@ -2,9 +2,9 @@ import * as t from "drizzle-orm/pg-core";
 import { timestamps } from "./helpers.sql";
 import { User } from "./user.sql";
 
-const Payout = t.pgTable('payouts', {
+const Payout = t.pgTable("payouts", {
   id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
-  userId: t.integer().references(()=>User.id),
+  userId: t.integer().references(() => User.id),
   transferId: t.varchar().notNull(),
   cfTransferId: t.varchar().notNull(),
   status: t.varchar().notNull(),
@@ -14,9 +14,7 @@ const Payout = t.pgTable('payouts', {
   transferServiceCharge: t.varchar(),
   transferServiceTax: t.varchar(),
   transferUtr: t.varchar(),
-  ...timestamps
-})
+  ...timestamps,
+});
 
-export {
-  Payout
-}
+export { Payout };

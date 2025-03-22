@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-import establishDbConnection from "../db"
+import establishDbConnection from "../db";
 import { logger } from "../lib/logger";
 import { ApiError, ErrCodes } from "../lib/ApiError";
 import { ExtendedError, Socket } from "socket.io";
@@ -19,11 +19,10 @@ function disconnectSocketWithError(socket: Socket, error: ApiError) {
   socket.disconnect();
 }
 
-
 /**
  * @description Socket.io middlware to verify the authenticated users only.
- * @param socket 
- * @param next 
+ * @param socket
+ * @param next
  * @returns {void}
  */
 const socketAuthMiddleware = async (
@@ -43,39 +42,39 @@ const socketAuthMiddleware = async (
       String(accessToken),
       process.env.ACCESS_SECRET_KEY!
     );
-    const db = establishDbConnection()
+    const db = establishDbConnection();
 
     const [user] = await db
       .select()
       .from(User)
       .where(eq(User.id, decodedUser.userId))
-      .execute()
+      .execute();
 
     socket.user = {
       ...user,
       passwordHash: undefined,
       createdAt: undefined,
-      updatedAt: undefined
+      updatedAt: undefined,
     };
     next();
   } catch (error: any) {
     logger.error(`Error during accessing middleware: ${error.message}`);
-    
+
     // checking if token is expired then send unauthorized with access token expired code
     if (error instanceof jwt.TokenExpiredError)
-      return disconnectSocketWithError(socket, new ApiError(401, "Unauthorized", ErrCodes.ACCESS_TOKEN_EXPIRED));
-
+      return disconnectSocketWithError(
+        socket,
+        new ApiError(401, "Unauthorized", ErrCodes.ACCESS_TOKEN_EXPIRED)
+      );
     // it may be json encrpyt-decrpyt error
     else if (error instanceof jwt.JsonWebTokenError)
       return disconnectSocketWithError(
         socket,
         new ApiError(401, "Unauthorized: Invalid token", ErrCodes.UNAUTHORIZED)
       );
-
     // If its an ApiError class Instance means directly we can throw it.
     else if (error instanceof ApiError)
       return disconnectSocketWithError(socket, error);
-
     // or may be some internal server errror can happen
     else
       return disconnectSocketWithError(

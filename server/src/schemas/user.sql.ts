@@ -1,9 +1,9 @@
 import * as t from "drizzle-orm/pg-core";
 import { timestamps } from "./helpers.sql";
 
-export const userRolesEnum = t.pgEnum("roles", ["streamer", "viewer"])
+export const userRolesEnum = t.pgEnum("roles", ["streamer", "viewer"]);
 
-const User = t.pgTable('users', {
+const User = t.pgTable("users", {
   id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
   firstName: t.varchar({ length: 255 }).notNull(),
   lastName: t.varchar({ length: 255 }).notNull(),
@@ -14,9 +14,7 @@ const User = t.pgTable('users', {
   passwordHash: t.varchar().notNull(),
   role: userRolesEnum().default("viewer"),
   emailVerified: t.boolean().default(false).notNull(),
-  ...timestamps
-})
+  ...timestamps,
+});
 
-export {
-  User
-}
+export { User };

@@ -13,8 +13,8 @@ const ErrCodes = Object.freeze({
   REFRESH_TOKEN_EXPIRED: "REFRESH_TOKEN_EXPIRED",
   ACCESS_TOKEN_EXPIRED: "ACCESS_TOKEN_EXPIRED",
   STREAMER_TOKEN_EXPIRED: "STREAMER_TOKEN_EXPIRED",
-  MSG91_ERROR: "MSG91_ERROR"
-})
+  MSG91_ERROR: "MSG91_ERROR",
+});
 
 class ApiError extends Error {
   statusCode?: number;
@@ -43,7 +43,7 @@ class ApiError extends Error {
       if (stack) this.stack = stack;
       else Error.captureStackTrace(this, this.constructor);
     } else {
-      this.stack = ""
+      this.stack = "";
     }
   }
 }
