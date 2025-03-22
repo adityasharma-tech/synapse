@@ -5,7 +5,6 @@ import LoginPage from "./app/auth/login";
 import SignupPage from "./app/auth/signup";
 import VerifyPage from "./app/auth/verify";
 import LogoutPage from "./app/user/logout";
-import DashStream from "./app/dashboard/stream";
 import DashboardPage from "./app/dashboard";
 import ApplyForStreamer from "./app/dashboard/apply";
 
@@ -50,7 +49,6 @@ export default function Main() {
           </Route> : null}
           {user ? <Route path="dashboard" element={<DashboardLayout/>}>
             <Route index element={<DashboardPage />} />
-            <Route path="stream/:streamId" element={<DashStream />} />
             <Route path="apply" element={<ApplyForStreamer/>}/>
           </Route> : null}
           <Route element={<SocketLayout/>}>

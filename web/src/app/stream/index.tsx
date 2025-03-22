@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, useRef } from "react";
+import React from "react";
 import Header from "../../components/header";
 import LoadingComp from "../../components/loading";
 
@@ -8,7 +8,7 @@ import { getStreamById } from "../../lib/apiClient";
 import { requestHandler } from "../../lib/requestHandler";
 import { SocketEventEnum } from "../../lib/constants";
 import { useAppDispatch, useAppSelector } from "../../store";
-import { FormEventHandler, useCallback, useState } from "react";
+import { FormEventHandler, useCallback, useState, PropsWithChildren, useRef } from "react";
 import {
   addBasicChat,
   addPremiumChat,
@@ -30,6 +30,9 @@ export default function Stream() {
   const { streamId } = useParams();
   const { socket } = useSocket();
   const dispatch = useAppDispatch();
+  const throttle = useThrottle();
+  const debounce = useDebounce();
+  const user = useAppSelector((state) => state.app.user);
 
   // local states
   const [message, setMessage] = useState("");
@@ -41,7 +44,7 @@ export default function Stream() {
 
   const messageInputRef = useRef<HTMLInputElement | null>(null);
 
-  // send message by admin
+  // send message by admin TODO: handle permission on server side, check if he is admin or not and add a check mark and highlight
   const handleSendMessage: FormEventHandler<HTMLFormElement> = useCallback(
     (e) => {
       e.preventDefault();
@@ -55,6 +58,7 @@ export default function Stream() {
     [socket, SocketEventEnum, message, streamId, setMessage]
   );
 
+  // need to remove this if role==="viewer"
   const handleUpVoteChat = useCallback(
     (messageId: string) => {
       if (socket && streamId)
@@ -66,6 +70,7 @@ export default function Stream() {
     [socket, streamId, SocketEventEnum, streamState]
   );
 
+  // need to remoe this if role==="streamer"
   const handleDownVoteChat = useCallback(
     (messageId: string) => {
       if (socket && streamId)
@@ -76,6 +81,18 @@ export default function Stream() {
     },
     [socket, streamId, SocketEventEnum, streamState]
   );
+
+  // send event to db to update the mark done of that specific chat
+    const handleUpdateMarkDone = useCallback(
+      (messageId: string) => {
+        if (socket && streamId)
+          socket.emit(SocketEventEnum.CHAT_MARK_DONE, {
+            streamId,
+            id: messageId,
+          });
+      },
+      [streamId, socket, SocketEventEnum.CHAT_MARK_DONE]
+    );
 
   // handler to register all the socket events/listeners
   const handleRegisterSocketEvents = useCallback(() => {
@@ -140,24 +157,18 @@ export default function Stream() {
   ]);
 
   const handleStartTyping = useCallback(() => {
-    console.log("Start typing");
     if (socket)
       socket.emit(SocketEventEnum.STREAM_TYPING_EVENT, {
         streamId: streamState.streamId,
       });
   }, [socket, SocketEventEnum, streamState.streamId]);
 
-  const handleStopTyping = useCallback(()=>{
-    console.log("Stop typing");
+  const handleStopTyping = useCallback(() => {
     if (socket)
       socket.emit(SocketEventEnum.STREAM_STOP_TYPING_EVENT, {
         streamId: streamState.streamId,
       });
-  },[socket, SocketEventEnum, streamState.streamId])
-
-  const throttle = useThrottle()
-
-  const debounce = useDebounce()
+  }, [socket, SocketEventEnum, streamState.streamId]);
 
   React.useEffect(() => {
     if (streamId)
@@ -207,8 +218,10 @@ export default function Stream() {
               <ChatComp
                 key={index}
                 {...chat}
-                handleUpVoteChat={handleUpVoteChat}
-                handleDownVoteChat={handleDownVoteChat}
+                role={user?.role ?? "viewer"}
+                handleMarkDone={() => handleUpdateMarkDone(chat.id)}
+                handleUpVoteChat={()=>handleUpVoteChat(chat.id)}
+                handleDownVoteChat={()=>handleDownVoteChat(chat.id)}
               />
             ))}
           </div>
@@ -229,8 +242,8 @@ export default function Stream() {
                 ref={messageInputRef}
                 onChange={(e) => {
                   setMessage(e.target.value);
-                  throttle(handleStartTyping, 4000)
-                  debounce(handleStopTyping, 3000)
+                  throttle(handleStartTyping, 4000);
+                  debounce(handleStopTyping, 3000);
                 }}
                 value={message}
                 placeholder="Hello, World!"
@@ -247,7 +260,14 @@ export default function Stream() {
   );
 }
 
-function ChatComp(props: PropsWithChildren<BasicChatT | any>) {
+interface BasicChatCompPropT extends BasicChatT {
+  handleDownVoteChat: () => void;
+  handleUpVoteChat: () => void;
+  handleMarkDone: () => void;
+  role?: "streamer" | "viewer";
+}
+
+function ChatComp(props: PropsWithChildren<BasicChatCompPropT>) {
   return (
     <div className="p-3 bg-neutral-800 mt-2 rounded-lg">
       <div className="flex justify-between">
@@ -260,9 +280,9 @@ function ChatComp(props: PropsWithChildren<BasicChatT | any>) {
           </div>
           <span className="text-neutral-50">{props.user.fullName}</span>
         </div>
-        <div className="flex gap-x-2">
+        {props.role == "viewer" ?  <div className="flex gap-x-2">
           <button
-            onClick={() => props.handleUpVoteChat(props.id)}
+            onClick={props.handleUpVoteChat}
             className="btn btn-success btn-outline btn-xs group transition-none"
           >
             <svg
@@ -275,7 +295,7 @@ function ChatComp(props: PropsWithChildren<BasicChatT | any>) {
             <span>{props.upVotes}</span>
           </button>
           <button
-            onClick={() => props.handleDownVoteChat(props.id)}
+            onClick={props.handleDownVoteChat}
             className="btn btn-warning btn-outline btn-xs group transition-none"
           >
             <svg
@@ -287,7 +307,15 @@ function ChatComp(props: PropsWithChildren<BasicChatT | any>) {
             </svg>
             <span>{props.downVotes}</span>
           </button>
-        </div>
+        </div>: props.role == "streamer" ? <div className="gap-x-2 flex items-center">
+          <span className="p-0.5 text-xs border border-green-500 rounded px-1.5">
+            {props.upVotes}
+          </span>
+          <span className="p-0.5 text-xs border border-amber-500 rounded px-1.5">
+            {props.downVotes}
+          </span>
+          <button onClick={props.handleMarkDone} className="btn btn-soft btn-success btn-xs">Mark read</button>
+        </div> : null}
       </div>
       <div className="divider my-1.5" />
       <div className="font-medium text-neutral-100">{props.message}</div>

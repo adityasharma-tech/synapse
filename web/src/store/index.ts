@@ -1,14 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { useDispatch, useSelector } from 'react-redux'
 import appReducer from './reducers/app.reducer'
-import dashStreamReducer from './reducers/dash-stream.reducer'
 import streamReducer from './reducers/stream.reducer'
 // ...
 
 export const store = configureStore({
   reducer: {
     app: appReducer,
-    dashStream: dashStreamReducer,
     stream: streamReducer
   }
 })
