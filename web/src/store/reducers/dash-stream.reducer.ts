@@ -35,6 +35,10 @@ interface UpdateBasicChatPayloadT {
   id: string;
   message: string;
 }
+interface TypingEventPayloadT {
+  userId: string;
+  fullName: string;
+}
 
 // Define a type for the slice state
 interface DashStreamReducer {
@@ -43,6 +47,7 @@ interface DashStreamReducer {
   basicChats: BasicChatT[];
   premiumChats: PremiumChatT[];
   stream: any;
+  typerNames: TypingEventPayloadT[];
 }
 
 // Define the initial state using that type
@@ -52,6 +57,7 @@ const initialState: DashStreamReducer = {
   basicChats: [],
   premiumChats: [],
   stream: {},
+  typerNames: [],
 };
 
 export const dashStreamSlice = createSlice({
@@ -140,17 +146,33 @@ export const dashStreamSlice = createSlice({
     // mark read done
     markDoneChat: (state, action: PayloadAction<MarkReadDoneChatT>) => {
       let updateBChat = state.basicChats.findIndex(
-        value=> value.id == action.payload.id
-      )
-      if(updateBChat <= -1) {
+        (value) => value.id == action.payload.id
+      );
+      if (updateBChat <= -1) {
         const updatePChat = state.premiumChats.findIndex(
-          value=> value.id  == action.payload.id
-        )
-        if(updateBChat >= 0) state.premiumChats[updatePChat].markRead = true;
+          (value) => value.id == action.payload.id
+        );
+        if (updateBChat >= 0) state.premiumChats[updatePChat].markRead = true;
       } else {
         state.basicChats[updateBChat].markRead = true;
       }
-    }
+    },
+
+    // if someone is typeing add their payload data
+    registerTypingEvent: (state, action: PayloadAction<TypingEventPayloadT>) => {
+      const typerIndex = state.typerNames.findIndex(
+        (value) => value.userId == action.payload.userId
+      );
+      if (typerIndex <= -1) state.typerNames.push(action.payload);
+    },
+
+    // remove their typing event from typers data
+    removeTypingEvent: (state, action: PayloadAction<TypingEventPayloadT>) => {
+      const typerIndex = state.typerNames.findIndex(
+        (value) => value.userId == action.payload.userId
+      );
+      if (typerIndex >= 0) state.typerNames.splice(typerIndex, 1);
+    },
   },
   // extra reducers for async thunks
   extraReducers: (builder) => {
@@ -170,6 +192,8 @@ export const {
   upVoteBasicChat,
   downVoteBasicChat,
   startStreaming,
+  registerTypingEvent,
+  removeTypingEvent
 } = dashStreamSlice.actions;
 
 export default dashStreamSlice.reducer;

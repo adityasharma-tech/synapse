@@ -60,6 +60,8 @@ interface ChatDeletePayloadT {
 interface ChatUpvotePaylaodT extends ChatDeletePayloadT {}
 interface ChatDownVotePaylaodT extends ChatDeletePayloadT {}
 
+interface ChatTypingEventT extends LeaveStreamHandlerPayloadT {}
+
 const db = establishDbConnection();
 
 // event handlers
@@ -81,19 +83,18 @@ async function chatCreateHandler(
   socket: Socket,
   payload: ChatCreateHandlerPayloadT
 ) {
-
   const [result] = await db
     .insert(ChatMessage)
     .values({
       streamUid: payload.streamId,
       userId: socket.user?.id,
       message: payload.message,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     })
     .returning()
-    .execute()
+    .execute();
 
-  if(result){
+  if (result) {
     io.to(String(payload.streamId)).emit(SocketEventEnum.CHAT_CREATE_EVENT, {
       ...payload,
       id: String(result.id),
@@ -110,19 +111,15 @@ async function chatCreateHandler(
       pinned: false,
     });
   }
-
 }
 
 // when user updates it's chat
 async function chatUpdateHandler(io: Server, payload: ChatUpdatePayloadT) {
-
   await db
     .update(ChatMessage)
-    .set({
-      message: payload.message
-    })
+    .set({ message: payload.message })
     .where(eq(ChatMessage.id, parseInt(payload.id)))
-    .execute()
+    .execute();
 
   io.to(payload.streamId).emit(SocketEventEnum.CHAT_UPDATE_EVENT, {
     ...payload,
@@ -132,12 +129,11 @@ async function chatUpdateHandler(io: Server, payload: ChatUpdatePayloadT) {
 
 // when user delete a chat
 async function chatDeleteHandler(io: Server, payload: ChatDeletePayloadT) {
-  
   await db
     .delete(ChatMessage)
     .where(eq(ChatMessage.id, parseInt(payload.id)))
-    .execute()
-  
+    .execute();
+
   io.to(payload.streamId).emit(SocketEventEnum.CHAT_UPDATE_EVENT, {
     ...payload,
     streamId: undefined,
@@ -146,56 +142,90 @@ async function chatDeleteHandler(io: Server, payload: ChatDeletePayloadT) {
 function paymentChatCreateHandler() {}
 
 // when a chat is being upvoted
-async function chatUpvoteHandler(io: Server,socket: Socket, payload: ChatUpvotePaylaodT) {
-  
+async function chatUpvoteHandler(
+  io: Server,
+  socket: Socket,
+  payload: ChatUpvotePaylaodT
+) {
   const [result] = await db
-    .select({
-      upVotes: ChatMessage.upVotes,
-    })
+    .select({ upVotes: ChatMessage.upVotes })
     .from(ChatMessage)
-    .where(eq(ChatMessage.id, parseInt(payload.id))) // problem here
+    .where(eq(ChatMessage.id, parseInt(payload.id))); // problem here
 
-  if(!result) return; // send socket error messages
-  if(result.upVotes.includes(socket.user?.id)) return;
+  if (!result) return; // send socket error messages
+  if (result.upVotes.includes(socket.user?.id)) {
+    await db
+      .update(ChatMessage)
+      .set({
+        upVotes: result.upVotes.filter((value) => value != socket.user?.id),
+      })
+      .where(eq(ChatMessage.id, parseInt(payload.id)))
+      .execute();
+    io.to(payload.streamId).emit(SocketEventEnum.CHAT_UPVOTE_DOWN_EVENT, {
+      ...payload,
+      streamId: undefined,
+    });
+  } else {
+    await db
+      .update(ChatMessage)
+      .set({ upVotes: [...result.upVotes, socket.user?.id] })
+      .where(eq(ChatMessage.id, parseInt(payload.id)))
+      .execute();
+
+    io.to(payload.streamId).emit(SocketEventEnum.CHAT_UPVOTE_EVENT, {
+      ...payload,
+      streamId: undefined,
+    });
+  }
+}
+
+// when a chat is being down voted
+async function chatDownVoteHandler(
+  io: Server,
+  socket: Socket,
+  payload: ChatDownVotePaylaodT
+) {
+  const [result] = await db
+    .select({ downVotes: ChatMessage.downVotes })
+    .from(ChatMessage)
+    .where(eq(ChatMessage.id, parseInt(payload.id))); // problem here
+
+  if (!result) return; // send socket error messages
+  if (result.downVotes.includes(socket.user?.id)) return;
 
   await db
     .update(ChatMessage)
-    .set({
-      upVotes: [...result.upVotes, socket.user?.id]
-    })
+    .set({ downVotes: [...result.downVotes, socket.user?.id] })
     .where(eq(ChatMessage.id, parseInt(payload.id)))
-    .execute()
+    .execute();
 
-  io.to(payload.streamId).emit(SocketEventEnum.CHAT_UPVOTE_EVENT, {
+  io.to(payload.streamId).emit(SocketEventEnum.CHAT_DOWNVOTE_EVENT, {
     ...payload,
     streamId: undefined,
   });
 }
 
-// when a chat is being down voted
-async function chatDownVoteHandler(io: Server, socket: Socket, payload: ChatDownVotePaylaodT) {
+// send typing event
+async function chatTypingEvent(
+  io: Server,
+  socket: Socket,
+  payload: ChatTypingEventT
+) {
+  io.to(payload.streamId).emit(SocketEventEnum.STREAM_TYPING_EVENT, {
+    fullName: `${socket.user?.firstName} ${socket.user?.lastName}`,
+    userId: socket.user?.id,
+  });
+}
 
-  const [result] = await db
-    .select({
-      downVotes: ChatMessage.downVotes
-    })
-    .from(ChatMessage)
-    .where(eq(ChatMessage.id, parseInt(payload.id))) // problem here
-
-  if(!result) return; // send socket error messages
-  if(result.downVotes.includes(socket.user?.id)) return;
-
-  await db
-    .update(ChatMessage)
-    .set({
-      downVotes: [...result.downVotes, socket.user?.id]
-    })
-    .where(eq(ChatMessage.id, parseInt(payload.id)))
-    .execute()
-
-  io.to(payload.streamId).emit(SocketEventEnum.CHAT_DOWNVOTE_EVENT, {
-    ...payload,
-    streamId: undefined,
+// send not typing event
+async function stopChatTypingEvent(
+  io: Server,
+  socket: Socket,
+  payload: ChatTypingEventT
+) {
+  io.to(payload.streamId).emit(SocketEventEnum.STREAM_STOP_TYPING_EVENT, {
+    fullName: `${socket.user?.firstName} ${socket.user?.lastName}`,
+    userId: socket.user?.id,
   });
 }
 
@@ -229,8 +259,18 @@ function socketHandler(io: Server, socket: Socket) {
       SocketEventEnum.PAYMENT_CHAT_CREATE_EVENT,
       paymentChatCreateHandler
     );
-    socket.on(SocketEventEnum.CHAT_UPVOTE_EVENT, (payload)=>chatUpvoteHandler(io, socket, payload));
-    socket.on(SocketEventEnum.CHAT_DOWNVOTE_EVENT, (payload)=>chatDownVoteHandler(io, socket, payload));
+    socket.on(SocketEventEnum.CHAT_UPVOTE_EVENT, (payload) =>
+      chatUpvoteHandler(io, socket, payload)
+    );
+    socket.on(SocketEventEnum.CHAT_DOWNVOTE_EVENT, (payload) =>
+      chatDownVoteHandler(io, socket, payload)
+    );
+    socket.on(SocketEventEnum.STREAM_TYPING_EVENT, (payload) =>
+      chatTypingEvent(io, socket, payload)
+    );
+    socket.on(SocketEventEnum.STREAM_STOP_TYPING_EVENT, (payload) =>
+      stopChatTypingEvent(io, socket, payload)
+    );
   } catch (error: any) {
     // Internal error handling & emit errors to client
     logger.error(`Internal sockets error: ${error.message}`);

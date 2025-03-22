@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from "react";
+import React, { PropsWithChildren, useRef } from "react";
 import Header from "../../components/header";
 import LoadingComp from "../../components/loading";
 
@@ -19,8 +19,11 @@ import {
   updateStreamId,
   updateBasicChat,
   upVoteBasicChat,
+  registerTypingEvent,
+  removeTypingEvent,
 } from "../../store/reducers/stream.reducer";
 import { setAllPreChats } from "../../store/actions/stream.actions";
+import { useDebounce, useThrottle } from "../../lib/utils";
 
 export default function Stream() {
   // hooks
@@ -36,18 +39,17 @@ export default function Stream() {
   // state hooks
   const streamState = useAppSelector((state) => state.stream);
 
+  const messageInputRef = useRef<HTMLInputElement | null>(null);
+
   // send message by admin
   const handleSendMessage: FormEventHandler<HTMLFormElement> = useCallback(
     (e) => {
       e.preventDefault();
       if (socket)
-        socket.emit(
-          SocketEventEnum.CHAT_CREATE_EVENT,
-          {
-            message,
-            streamId
-          },
-        );
+        socket.emit(SocketEventEnum.CHAT_CREATE_EVENT, {
+          message,
+          streamId,
+        });
       setMessage("");
     },
     [socket, SocketEventEnum, message, streamId, setMessage]
@@ -64,13 +66,16 @@ export default function Stream() {
     [socket, streamId, SocketEventEnum, streamState]
   );
 
-  const handleDownVoteChat = useCallback((messageId: string) => {
-    if (socket && streamId)
-      socket.emit(SocketEventEnum.CHAT_DOWNVOTE_EVENT, {
-        streamId: streamState.streamId,
-        id: messageId,
-      });
-  }, [socket, streamId, SocketEventEnum, streamState]);
+  const handleDownVoteChat = useCallback(
+    (messageId: string) => {
+      if (socket && streamId)
+        socket.emit(SocketEventEnum.CHAT_DOWNVOTE_EVENT, {
+          streamId: streamState.streamId,
+          id: messageId,
+        });
+    },
+    [socket, streamId, SocketEventEnum, streamState]
+  );
 
   // handler to register all the socket events/listeners
   const handleRegisterSocketEvents = useCallback(() => {
@@ -106,6 +111,16 @@ export default function Stream() {
       dispatch(downVoteBasicChat(chatObject))
     );
 
+    // if someone is typing listen events to them
+    socket.on(SocketEventEnum.STREAM_TYPING_EVENT, (chatObject) => {
+      dispatch(registerTypingEvent(chatObject));
+    });
+
+    // if someone stops typing listen events
+    socket.on(SocketEventEnum.STREAM_STOP_TYPING_EVENT, (chatObject) => {
+      dispatch(removeTypingEvent(chatObject));
+    });
+
     // error listener
     socket.on(SocketEventEnum.SOCKET_ERROR_EVENT, (error) => {
       console.error(`Error from socket server: `, error);
@@ -119,22 +134,44 @@ export default function Stream() {
     removeBasicChat,
     addPremiumChat,
     upVoteBasicChat,
+    removeTypingEvent,
     downVoteBasicChat,
+    registerTypingEvent,
   ]);
+
+  const handleStartTyping = useCallback(() => {
+    console.log("Start typing");
+    if (socket)
+      socket.emit(SocketEventEnum.STREAM_TYPING_EVENT, {
+        streamId: streamState.streamId,
+      });
+  }, [socket, SocketEventEnum, streamState.streamId]);
+
+  const handleStopTyping = useCallback(()=>{
+    console.log("Stop typing");
+    if (socket)
+      socket.emit(SocketEventEnum.STREAM_STOP_TYPING_EVENT, {
+        streamId: streamState.streamId,
+      });
+  },[socket, SocketEventEnum, streamState.streamId])
+
+  const throttle = useThrottle()
+
+  const debounce = useDebounce()
 
   React.useEffect(() => {
     if (streamId)
       (async () => {
         await requestHandler(getStreamById({ streamId }), setLoading);
         dispatch(updateStreamId(streamId));
-        dispatch(setAllPreChats({ streamId }))
+        dispatch(setAllPreChats({ streamId }));
       })();
   }, [streamId]);
 
   React.useEffect(() => {
     if (streamId) {
       if (socket && streamId && !streaming) {
-        socket.emit(SocketEventEnum.JOIN_STREAM_EVENT, {streamId});
+        socket.emit(SocketEventEnum.JOIN_STREAM_EVENT, { streamId });
         handleRegisterSocketEvents();
         setStreaming(true);
       }
@@ -147,7 +184,7 @@ export default function Stream() {
       <Header>
         <></>
       </Header>
-      <div className="h-[calc(93vh-2px)] flex p-2 gap-x-2">
+      <div className="h-[calc(93vh-2px)] overflow-hidden flex p-2 gap-x-2">
         <div className="h-full w-[40%] bg-neutral-900 rounded-lg p-2">
           <div className="grid grid-cols-2 gap-2">
             <div className="relative flex justify-center items-center min-h-36 bg-neutral-800 rounded-lg">
@@ -175,17 +212,35 @@ export default function Stream() {
               />
             ))}
           </div>
-          <form onSubmit={handleSendMessage} className="flex gap-x-4">
-            <input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Hello, World!"
-              className="input input-primary w-full"
-            />
-            <button type="submit" className="btn btn-primary">
-              Send
-            </button>
-          </form>
+          <div>
+            {streamState.typerNames.length > 0 ? (
+              <div className="flex items-center gap-x-2 text-sm font-medium">
+                <span className="loading loading-dots loading-lg" />
+                {streamState.typerNames.map((user) => (
+                  <span key={user.userId} className="animate-pulse">
+                    {user.fullName}
+                  </span>
+                ))}
+                <span>typing...</span>
+              </div>
+            ) : null}
+            <form onSubmit={handleSendMessage} className="flex gap-x-4 py-2">
+              <input
+                ref={messageInputRef}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                  throttle(handleStartTyping, 4000)
+                  debounce(handleStopTyping, 3000)
+                }}
+                value={message}
+                placeholder="Hello, World!"
+                className="input input-primary w-full"
+              />
+              <button type="submit" className="btn btn-primary">
+                Send
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </React.Fragment>
@@ -203,7 +258,7 @@ function ChatComp(props: PropsWithChildren<BasicChatT | any>) {
               className="rounded-full size-7"
             />
           </div>
-          <span className="font-medium">{props.user.fullName}</span>
+          <span className="text-neutral-50">{props.user.fullName}</span>
         </div>
         <div className="flex gap-x-2">
           <button
@@ -235,7 +290,7 @@ function ChatComp(props: PropsWithChildren<BasicChatT | any>) {
         </div>
       </div>
       <div className="divider my-1.5" />
-      <div className="font-medium">{props.message}</div>
+      <div className="font-medium text-neutral-100">{props.message}</div>
     </div>
   );
 }

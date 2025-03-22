@@ -9,7 +9,7 @@ export default function RootLayout() {
   const appLoading = useAppSelector(state => state.app.appLoading)
 
   return (
-    <main className="h-screen w-screen overflow-auto bg-neutral-950">
+    <main className="h-screen w-screen overflow-hidden bg-neutral-950">
       {appLoading ?
         <LoadingComp />
         :

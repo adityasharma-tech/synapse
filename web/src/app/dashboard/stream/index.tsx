@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import Header from "../../../components/header";
 import LoadingComp from "../../../components/loading";
 
@@ -26,6 +26,8 @@ import {
   upVoteBasicChat,
   startStreaming,
   stopStreaming,
+  registerTypingEvent,
+  removeTypingEvent,
 } from "../../../store/reducers/dash-stream.reducer";
 import { setAllPreChats } from "../../../store/actions/stream.actions";
 
@@ -38,6 +40,9 @@ export default function DashStream() {
   // local states
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // refrences
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   // state hooks
   const streamState = useAppSelector((state) => state.dashStream);
@@ -57,19 +62,25 @@ export default function DashStream() {
   );
 
   // handle mark done
-  const handleUpdateMarkDone = useCallback((messageId: string)=>{
-    if(socket && streamId)
-      socket.emit(SocketEventEnum.CHAT_MARK_DONE, { streamId, id: messageId })
-  }, [streamId, socket, SocketEventEnum.CHAT_MARK_DONE])
+  const handleUpdateMarkDone = useCallback(
+    (messageId: string) => {
+      if (socket && streamId)
+        socket.emit(SocketEventEnum.CHAT_MARK_DONE, {
+          streamId,
+          id: messageId,
+        });
+    },
+    [streamId, socket, SocketEventEnum.CHAT_MARK_DONE]
+  );
 
   // handler to register all the socket events/listeners
   const handleRegisterSocketEvents = useCallback(() => {
     if (!socket) return console.error(`Socket not registered yet!`);
 
     // create new chats handler
-    socket.on(SocketEventEnum.CHAT_CREATE_EVENT, (chatObject) =>
-      dispatch(addBasicChat(chatObject))
-    );
+    socket.on(SocketEventEnum.CHAT_CREATE_EVENT, (chatObject) => {
+      dispatch(addBasicChat(chatObject));
+    });
 
     // update chats handler
     socket.on(SocketEventEnum.CHAT_UPDATE_EVENT, (chatObject) =>
@@ -96,6 +107,16 @@ export default function DashStream() {
       dispatch(downVoteBasicChat(chatObject))
     );
 
+    // if someone is typing listen events to them
+    socket.on(SocketEventEnum.STREAM_TYPING_EVENT, (chatObject) => {
+      dispatch(registerTypingEvent(chatObject));
+    });
+
+    // if someone stops typing listen events
+    socket.on(SocketEventEnum.STREAM_STOP_TYPING_EVENT, (chatObject) => {
+      dispatch(removeTypingEvent(chatObject));
+    });
+
     // error listener
     socket.on(SocketEventEnum.SOCKET_ERROR_EVENT, (error) => {
       console.error(`Error from socket server: `, error);
@@ -109,6 +130,8 @@ export default function DashStream() {
     removeBasicChat,
     addPremiumChat,
     upVoteBasicChat,
+    removeTypingEvent,
+    registerTypingEvent,
     downVoteBasicChat,
   ]);
 
@@ -176,7 +199,7 @@ export default function DashStream() {
           </button>
         )}
       </Header>
-      <div className="h-[calc(93vh-2px)] flex p-2 gap-x-2">
+      <div className="h-[calc(93vh-4px)] flex p-2 gap-x-2">
         <div className="h-full w-[40%] bg-neutral-900 rounded-lg p-2">
           <div className="grid grid-cols-2 gap-2">
             <div className="relative flex justify-center items-center min-h-36 bg-neutral-800 rounded-lg">
@@ -194,22 +217,41 @@ export default function DashStream() {
           </div>
         </div>
         <div className="h-full w-[60%] bg-neutral-900 rounded-lg px-2 flex flex-col justify-between">
-          <div className="overflow-y-auto scroll-smooth">
+          <div
+            ref={scrollContainerRef}
+            className="overflow-y-auto scroll-smooth"
+          >
             {streamState.basicChats.map((chat, index) => (
-              <ChatComp handleMarkDone={()=>handleUpdateMarkDone(chat.id)} key={index} {...chat} />
+              <ChatComp
+                handleMarkDone={() => handleUpdateMarkDone(chat.id)}
+                key={index}
+                {...chat}
+              />
             ))}
           </div>
-          <form onSubmit={handleSendMessage} className="flex gap-x-4">
-            <input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Hello, World!"
-              className="input input-primary w-full"
-            />
-            <button type="submit" className="btn btn-primary">
-              Send
-            </button>
-          </form>
+          <div>
+            {streamState.typerNames.length > 0 ? (
+              <div className="flex items-center gap-x-2 text-sm font-medium">
+                <span className="loading loading-dots loading-lg" />
+                <span className="animate-pulse">Aditya Sharma,</span>
+                <span className="animate-pulse">Aditya Sharma,</span>
+                <span className="animate-pulse">Aditya Sharma,</span>
+                <span className="animate-pulse">Aditya Sharma,</span>
+                <span>are typing...</span>
+              </div>
+            ) : null}
+            <form onSubmit={handleSendMessage} className="flex gap-x-4">
+              <input
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Hello, World!"
+                className="input input-primary w-full"
+              />
+              <button type="submit" className="btn btn-primary">
+                Send
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </React.Fragment>
@@ -231,13 +273,19 @@ function ChatComp(props: PropsWithChildren<BasicChatT | any>) {
         </div>
         <div></div>
         <div className="gap-x-2 flex items-center">
-          <span className="p-0.5 text-xs border border-green-500 rounded px-1.5">{props.upVotes}</span>
-          <span className="p-0.5 text-xs border border-amber-500 rounded px-1.5">{props.downVotes}</span>
-        <button className="btn btn-soft btn-success btn-xs">Mark read</button>
+          <span className="p-0.5 text-xs border border-green-500 rounded px-1.5">
+            {props.upVotes}
+          </span>
+          <span className="p-0.5 text-xs border border-amber-500 rounded px-1.5">
+            {props.downVotes}
+          </span>
+          <button className="btn btn-soft btn-success btn-xs">Mark read</button>
         </div>
       </div>
       <div className="divider my-1.5" />
-      <div onClick={props.handleMarkDone} className="font-medium">{props.message}</div>
+      <div onClick={props.handleMarkDone} className="font-medium">
+        {props.message}
+      </div>
     </div>
   );
 }

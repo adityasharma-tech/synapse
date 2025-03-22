@@ -37,6 +37,11 @@ interface UpdateBasicChatPayloadT {
   message: string;
 }
 
+interface TypingEventPayloadT {
+  userId: number;
+  fullName: string;
+}
+
 // Define a type for the slice state
 interface DashStreamReducer {
   streamRunning: boolean;
@@ -44,6 +49,7 @@ interface DashStreamReducer {
   basicChats: BasicChatT[];
   premiumChats: PremiumChatT[];
   stream: any;
+  typerNames: TypingEventPayloadT[]
 }
 
 // Define the initial state using that type
@@ -53,6 +59,7 @@ const initialState: DashStreamReducer = {
   basicChats: [],
   premiumChats: [],
   stream: {},
+  typerNames: []
 };
 
 export const streamSlice = createSlice({
@@ -134,6 +141,17 @@ export const streamSlice = createSlice({
           post.upVotes - post.downVotes - (pre.upVotes - pre.downVotes)
       );
     },
+    // if someone is typeing add their payload data
+    registerTypingEvent: (state, action: PayloadAction<TypingEventPayloadT>)=> {
+      const typerIndex = state.typerNames.findIndex(value=>value.userId == action.payload.userId);
+      if(typerIndex <= -1) state.typerNames.push(action.payload);
+    },
+
+    // remove their typing event from typers data
+    removeTypingEvent: (state, action: PayloadAction<TypingEventPayloadT>)=> {
+      const typerIndex = state.typerNames.findIndex(value=>value.userId == action.payload.userId);
+      if(typerIndex >= 0) state.typerNames.splice(typerIndex, 1);
+    }
   },
 
   // extra reducers for async thunks
@@ -158,6 +176,8 @@ export const {
   removeBasicChat,
   upVoteBasicChat,
   downVoteBasicChat,
+  registerTypingEvent,
+  removeTypingEvent
 } = streamSlice.actions;
 
 export default streamSlice.reducer;
