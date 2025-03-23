@@ -56,7 +56,7 @@ export default function Stream() {
   const handleSendMessage: FormEventHandler<HTMLFormElement> = useCallback(
     (e) => {
       e.preventDefault();
-      if (socket)
+      if (socket && message.trim()!="")
         socket.emit(SocketEventEnum.CHAT_CREATE_EVENT, {
           message,
           streamId,

@@ -45,6 +45,7 @@
     "@types/morgan": "^1.9.9",
     "bcryptjs": "^3.0.2",
     "bufferutil": "^4.0.9",
+    "cashfree-pg": "^4.3.10",
     "cookie": "^1.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

@@ -32,11 +32,14 @@ const authMiddleware = asyncHandler(async (req, _, next) => {
     if (!user) throw new ApiError(401, "Unauthorized", ErrCodes.UNAUTHORIZED);
 
     req.user = {
-      ...user,
-      password: undefined,
-      profilePicture: undefined,
-      updatedAt: undefined,
-      createdAt: undefined,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      emailVerified: user.emailVerified,
+      id: user.id,
+      role: user.role ?? "viewer",
+      username: user.username,
+      profilePicture: user.profilePicture || undefined
     };
   } catch (error: any) {
     logger.error(`Error during accessing middleware: ${error.message}`);

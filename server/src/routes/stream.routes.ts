@@ -4,6 +4,7 @@ import {
   getAllChatsByStreamingId,
   getAllStreams,
   getStreamById,
+  makePremiumChat,
 } from "../controller/stream.controller";
 import {
   authMiddleware,
@@ -27,5 +28,7 @@ router
 router.route("/:id").get(getStreamById);
 
 router.route("/:streamId/chats").get(getAllChatsByStreamingId);
+
+router.route('/:streamId/premium-chat').post(makePremiumChat);
 
 export default router;

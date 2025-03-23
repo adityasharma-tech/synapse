@@ -97,7 +97,7 @@ const applyForStreamer = asyncHandler(async (req, res) => {
     city,
     state,
     postalCode,
-    userId: user.id,
+    userId: String(user.id),
     name: `${user.firstName} ${user.lastName}`,
   });
 

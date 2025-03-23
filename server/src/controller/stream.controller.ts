@@ -10,6 +10,8 @@ import { ApiError, ErrCodes } from "../lib/ApiError";
 import { logger } from "../lib/logger";
 import { ChatMessage } from "../schemas/chats.sql";
 import { User } from "../schemas/user.sql";
+import { createCfOrder } from "../services/payments.service";
+import { MiddlewareUserT } from "../lib/types";
 
 const createNewStream = asyncHandler(async (req, res) => {
   const { title } = req.body;
@@ -89,13 +91,15 @@ const getAllStreams = asyncHandler(async (req, res) => {
 
   res
     .status(200)
-    .json({
-      page: currentPage,
-      limit: currentLimit,
-      totalPages,
-      totalItems: countResult.totalItems,
-      data: results,
-    });
+    .json(
+      new ApiResponse(200, {
+        page: currentPage,
+        limit: currentLimit,
+        totalPages,
+        totalItems: countResult.totalItems,
+        data: results,
+      })
+    );
 });
 
 const getStreamById = asyncHandler(async (req, res) => {
@@ -157,9 +161,44 @@ const getAllChatsByStreamingId = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, { chats: results }));
 });
 
+const makePremiumChat = asyncHandler(async (req, res) => {
+  const { streamId } = req.params;
+  const { orderAmount } = req.query;
+  if (streamId.trim() == "") throw new ApiError(400, "Failed to get streamid.");
+
+  if (!orderAmount) throw new ApiError(400, "Failed to get order amount.");
+
+  const orderAmt = parseInt(orderAmount.toString());
+
+  if (Number.isNaN(orderAmt))
+    throw new ApiError(400, "Please enter a valid payment amount.");
+
+  const db = establishDbConnection();
+
+  const [stream] = await db
+    .select()
+    .from(Stream)
+    .where(eq(Stream.streamingUid, streamId))
+    .execute();
+
+  if (!stream)
+    throw new ApiError(400, "Failed to get the stream you wanna chat on.");
+
+  const paymentSessionId = await createCfOrder({
+    user: req.user as MiddlewareUserT,
+    orderAmount: orderAmt,
+  });
+
+  if (!paymentSessionId)
+    throw new ApiError(400, "Failed to create your order.");
+
+  res.status(201).json(new ApiResponse(201, { paymentSessionId }));
+});
+
 export {
   createNewStream,
   getAllStreams,
   getStreamById,
   getAllChatsByStreamingId,
+  makePremiumChat,
 };

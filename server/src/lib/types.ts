@@ -10,6 +10,7 @@ interface MUserT {
   role: Role;
   emailVerified: boolean;
   streamerToken?: string;
+  phoneNumber?: string;
 }
 
 type MiddlewareUserT = MUserT;
