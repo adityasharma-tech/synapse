@@ -25,7 +25,7 @@ const handleVerifyCfOrder = asyncHandler(async (req, res) => {
       String(xWebhookTimestamp)
     );
 
-    if (verified.type != "PAYMENT_SUCCESS_WEBHOOK")
+    if (payload.type != "PAYMENT_SUCCESS_WEBHOOK")
       throw new ApiError(404, "Not found!");
   } catch (error) {
     throw new ApiError(401, "Access Denied!");
