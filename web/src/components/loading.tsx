@@ -1,3 +1,6 @@
+/**
+ * React component for show loading screen with basic animation 
+ */
 export default function LoadingComp() {
   return (
     <div className="flex items-center justify-center h-full">

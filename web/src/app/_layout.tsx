@@ -1,23 +1,23 @@
 import { Outlet } from "react-router";
-import { Toaster } from "../components/ui/sooner"
+import { Toaster } from "../components/ui/sooner";
 import { useAppSelector } from "../store";
 import LoadingComp from "../components/loading";
 import React from "react";
 
 export default function RootLayout() {
-
-  const appLoading = useAppSelector(state => state.app.appLoading)
+  // app loading state from whole app context from redux state management to show a loading screen whenever a loading is going on
+  const appLoading = useAppSelector((state) => state.app.appLoading);
 
   return (
     <main className="h-screen w-screen overflow-hidden bg-neutral-950">
-      {appLoading ?
+      {appLoading ? (
         <LoadingComp />
-        :
+      ) : (
         <React.Fragment>
           <Outlet />
           <Toaster />
         </React.Fragment>
-      }
+      )}
     </main>
-  )
+  );
 }

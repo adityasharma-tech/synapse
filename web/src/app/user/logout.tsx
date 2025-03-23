@@ -3,13 +3,18 @@ import { useAppDispatch, useAppSelector } from "../../store"
 import { logout } from "../../store/actions/user.actions"
 import { useNavigate } from "react-router"
 
+/**
+ * @description Specificaly page to logout user, whenever user
+ * comes to this page it will logout the user by dispaching a request to sever by the async thunk we created;
+ */
 export default function LogoutPage() {
 
-    const dispath = useAppDispatch()
+    const dispath = useAppDispatch();
     const navigate = useNavigate();
     const loadingStatus = useAppSelector(state => state.app.loadingStatus)
 
     React.useEffect(() => {
+        // dispatch logout function
         dispath(logout())
     }, [])
 

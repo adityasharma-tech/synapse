@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import PrimaryButton from "./ui/button";
 import { PropsWithChildren } from "react";
 
+// This need to be updated whenever ui update is going on
 export default function Header({ children }: PropsWithChildren) {
   return (
     <header className="px-5 flex justify-between py-4">
