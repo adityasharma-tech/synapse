@@ -33,7 +33,7 @@ const useThrottle = () => {
 
   const throttleFunction = useRef((func: Function, delay=200) => {
     if (!throttleSeed.current) {
-      // Call the callback immediately for the first time
+      // Call the callback immediately for the first time only
       func();
       throttleSeed.current = setTimeout(() => {
         throttleSeed.current = null;

@@ -10,18 +10,24 @@ import {
   VerifyEmailPayloadT,
 } from "./intefaces";
 
+// backend host
 const baseHost = import.meta.env.VITE_BACKEND_HOST;
 
+// axios configuration specifically for our backend
 const axiosConfig: CreateAxiosDefaults = {
   baseURL: `${baseHost}/api/v1`,
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true,
+  withCredentials: true, // adding this will also send/recieve secure cookies from server
 };
 
+// ...
 const apiClient = axios.create(axiosConfig);
 
+// interceptors in axios is like middleware
+// here I am using response middlware which will run after making a request but 
+// before returning the reponse data
 apiClient.interceptors.response.use(
   (response) => Promise.resolve(response),
   async (error) => {
@@ -41,14 +47,22 @@ apiClient.interceptors.response.use(
   }
 );
 
+// get user info
 function getUser() {
   return apiClient.get("/user");
 }
 
+// logout user
 function logoutUser() {
   return apiClient.get("/user/logout");
 }
 
+/**
+ * @description makes an api request with email & password as payload and 
+ * login user by setting accessToken & refreshToken
+ * @param {LoginUserPayloadT} payload - take email/password as payload
+ * @returns {Promise} - promise with some data
+ */
 function loginUser(payload: LoginUserPayloadT) {
   return apiClient.post("/auth/login", payload);
 }

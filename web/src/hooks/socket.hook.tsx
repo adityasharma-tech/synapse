@@ -21,16 +21,21 @@ const SocketProvider = ({ children }: PropsWithChildren) => {
     // socket state var
     const [socket, setSocket] = useState<Socket | null>(null);
     
+    /**
+     * @description handler to make connection to socket and setting socket to the current state
+     * to access all over inside the wrapper
+     */
     const handleConnectSocket = useCallback(()=>{
         const socketClient = io(backendURL, {
-            withCredentials: true,
+            withCredentials: true, // by setting true it will send secure cookies from the client to the server
             // transports: ["websockets"],
-            autoConnect: true
+            autoConnect: true // debug code (default it is true) which will try to connect which no need to call socketClient.connect(), it will call as soon as this will run
         })
         setSocket(socketClient);
-    }, [io, setSocket])
+    }, [io, setSocket, backendURL])
 
     
+    // run as soon as page load trigger
     React.useEffect(()=>{
         handleConnectSocket()
     }, [user])
@@ -46,6 +51,10 @@ const SocketProvider = ({ children }: PropsWithChildren) => {
 const useSocket = () => {
     const socketClient = useContext(SocketContext);
     if (!socketClient)
+        /**
+         * Will throw an error if forget to wrap your app inside SocketProvider
+         * or typing to use if outside the wrapper 
+         */
         throw new Error("It seems you forgot to wrap your app inside SocketProvider!")
 
     return socketClient;

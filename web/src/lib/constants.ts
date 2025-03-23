@@ -1,6 +1,10 @@
+// constant declaration for msg91 configuration
 const msgWidgetId = import.meta.env.VITE_WIDGET_ID!;
 const msgAuthToken = import.meta.env.VITE_TOKEN_AUTH!;
 
+// socket events both on server side and client side, I also need to fix that so that 
+// we can only need to update one time thte SocketEventEnum 
+// so that it will sync to the server and client side both.
 const SocketEventEnum = Object.freeze({
   CONNECTED_EVENT: "connected",
   DISCONNECT_EVENT: "disconnected",
