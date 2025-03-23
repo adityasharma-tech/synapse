@@ -6,17 +6,21 @@ import { Cashfree } from "cashfree-pg";
 import { ApiError } from "../lib/ApiError";
 import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
-
+import { logger } from "../lib/logger";
 
 Cashfree.XClientId = process.env.CF_PAYMENT_CLIENT_ID!;
 Cashfree.XClientSecret = process.env.CF_PAYMENT_CLIENT_SECRET!;
-Cashfree.XEnvironment = process.env.CF_PAYMENT_MODE == "sandbox" ? Cashfree.Environment.SANDBOX : Cashfree.Environment.PRODUCTION;
+Cashfree.XEnvironment =
+  process.env.CF_PAYMENT_MODE == "sandbox"
+    ? Cashfree.Environment.SANDBOX
+    : Cashfree.Environment.PRODUCTION;
 
 const handleVerifyCfOrder = asyncHandler(async (req, res) => {
   const payload = req.body;
   const headers = req.headers;
   let xWebhookSignature = headers["x-webhook-signature"];
   let xWebhookTimestamp = headers["x-webhook-timestamp"];
+  logger.info(`payload: x-webhook-cf: ${JSON.stringify(payload)}`)
   let verified;
   try {
     verified = Cashfree.PGVerifyWebhookSignature(
@@ -24,6 +28,8 @@ const handleVerifyCfOrder = asyncHandler(async (req, res) => {
       payload,
       String(xWebhookTimestamp)
     );
+
+    logger.info(JSON.stringify(verified))
 
     if (payload.type != "PAYMENT_SUCCESS_WEBHOOK")
       throw new ApiError(404, "Not found!");
