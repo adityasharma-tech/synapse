@@ -1,14 +1,15 @@
 import establishDbConnection from "../db";
 
+import crypto from "crypto";
 import { eq } from "drizzle-orm";
 import { Order } from "../schemas/order.sql";
+import { logger } from "../lib/logger";
+import { Request } from "express";
 import { Cashfree } from "cashfree-pg";
 import { ApiError } from "../lib/ApiError";
 import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
-import { logger } from "../lib/logger";
-import { Request } from "express";
-import crypto from "crypto";
+import 'dotenv/config'
 
 Cashfree.XClientId = process.env.CF_PAYMENT_CLIENT_ID!;
 Cashfree.XClientSecret = process.env.CF_PAYMENT_CLIENT_SECRET!;
@@ -20,6 +21,9 @@ Cashfree.XEnvironment =
 function verify(request: Request) {
   const timestamp = request.headers["x-webhook-timestamp"];
   const body = JSON.stringify(request.body);
+  
+  logger.info(body)
+
   const data = timestamp + body;
   const secretKey = process.env.CF_PAYMENT_CLIENT_SECRET!;
   let generatedSignature = crypto
@@ -39,7 +43,7 @@ const handleVerifyCfOrder = asyncHandler(async (req, res) => {
   const payload = req.body;
   let verified;
   try {
-    verified = verify(req);
+    verified = Cashfree.PGVerifyWebhookSignature(String(req.headers["x-webhook-signature"]), JSON.stringify(req.body), String(req.headers["x-webhook-timestamp"]))
 
     logger.info(`Verfified something${JSON.stringify(verified)}`);
 
