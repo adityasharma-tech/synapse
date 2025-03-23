@@ -29,6 +29,6 @@ router.route("/:id").get(getStreamById);
 
 router.route("/:streamId/chats").get(getAllChatsByStreamingId);
 
-router.route('/:streamId/premium-chat').post(makePremiumChat);
+router.route("/:streamId/premium-chat").post(makePremiumChat);
 
 export default router;

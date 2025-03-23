@@ -8,6 +8,9 @@ import { TokenTable } from "../schemas/tokenTable.sql";
 import { asyncHandler } from "../lib/asyncHandler";
 import { ApiError, ErrCodes } from "../lib/ApiError";
 
+/**
+ * authentication middleware to use the protected/secured routes to the authorized user only
+ */
 const authMiddleware = asyncHandler(async (req, _, next) => {
   const cookies = req.cookies;
 
@@ -39,7 +42,7 @@ const authMiddleware = asyncHandler(async (req, _, next) => {
       id: user.id,
       role: user.role ?? "viewer",
       username: user.username,
-      profilePicture: user.profilePicture || undefined
+      profilePicture: user.profilePicture || undefined,
     };
   } catch (error: any) {
     logger.error(`Error during accessing middleware: ${error.message}`);
@@ -52,9 +55,13 @@ const authMiddleware = asyncHandler(async (req, _, next) => {
   next();
 });
 
+/**
+ * specific middleware to verify streamer protected routes
+ */
 const streamerAuthMiddeware = asyncHandler(async (req, _, next) => {
   if (!req.user) throw new ApiError(401, "Unauthorized");
 
+  // checking the role which must be streamer
   if (req.user.role != "streamer")
     throw new ApiError(401, "You are not authorized streamer.");
 
@@ -81,6 +88,7 @@ const streamerAuthMiddeware = asyncHandler(async (req, _, next) => {
     // req.streamer = JSON.parse(JSON.stringify(streamerPayload));
   } catch (error: any) {
     logger.error(`Error during accessing middleware: ${error.message}`);
+    // Error handling, makes sure (TokenExpiration, JSONWebTokenErr or other type of errors)
     if (error instanceof jwt.TokenExpiredError)
       throw new ApiError(401, "Unauthorized", ErrCodes.STREAMER_TOKEN_EXPIRED);
     else if (error instanceof jwt.JsonWebTokenError)

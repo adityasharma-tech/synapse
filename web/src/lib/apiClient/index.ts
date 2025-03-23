@@ -4,6 +4,7 @@ import {
   GetAllStreamsPayloadT,
   GetStreamByIdPayloadT,
   LoginUserPayloadT,
+  MakePremiumChatOrderPayloadT,
   ResendEmailVerificationPayloadT,
   SignupUserPayloadT,
   StartNewStreamPayloadT,
@@ -104,6 +105,10 @@ function getAllChatByStreamId(payload: GetStreamByIdPayloadT){
   return apiClient.get(`streams/${payload.streamId}/chats`)
 }
 
+function createPremiumChatOrder(payload: MakePremiumChatOrderPayloadT){
+  return apiClient.post(`streams/${payload.streamId}/premium-chat`, payload)
+}
+
 export {
   getUser,
   logoutUser,
@@ -116,5 +121,6 @@ export {
   applyForStreamer,
   apiClient,
   getStreamById,
-  getAllChatByStreamId
+  getAllChatByStreamId,
+  createPremiumChatOrder
 };

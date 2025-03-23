@@ -1,23 +1,28 @@
-import { ApiError } from "../lib/ApiError";
-import { logger } from "../lib/logger";
 import crypto from "crypto";
-import { signStreamerVerficationToken } from "../lib/utils";
-import { MiddlewareUserT } from "../lib/types";
-import { v4 as uuidv4 } from "uuid";
-import { Cashfree, CreateOrderRequest } from "cashfree-pg";
 import establishDbConnection from "../db";
-import { Order } from "../schemas/order.sql";
+
 import { eq } from "drizzle-orm";
+import { Order } from "../schemas/order.sql";
+import { logger } from "../lib/logger";
+import { ApiError } from "../lib/ApiError";
+import { v4 as uuidv4 } from "uuid";
+import { MiddlewareUserT } from "../lib/types";
+import { Cashfree, CreateOrderRequest } from "cashfree-pg";
+import { signStreamerVerficationToken } from "../lib/utils";
 
 const cashfreeClientHeaders = new Headers();
-cashfreeClientHeaders.set("x-api-version", process.env.CF_XAPI_VERSION!);
-cashfreeClientHeaders.set("x-client-id", process.env.CF_CLIENT_ID!);
-cashfreeClientHeaders.set("x-client-secret", process.env.CF_CLIENT_SECRET!);
+cashfreeClientHeaders.set("x-api-version", process.env.CF_PAYOUT_XAPI_VERSION!);
+cashfreeClientHeaders.set("x-client-id", process.env.CF_PAYOUT_CLIENT_ID!);
+cashfreeClientHeaders.set(
+  "x-client-secret",
+  process.env.CF_PAYOUT_CLIENT_SECRET!
+);
 cashfreeClientHeaders.set("Content-Type", "application/json");
 
-Cashfree.XClientId = process.env.CF_CLIENT_ID!;
-Cashfree.XClientSecret = process.env.CF_CLIENT_SECRET!;
-Cashfree.XEnvironment = Cashfree.Environment.SANDBOX;
+// specifically for cashfree-pg
+Cashfree.XClientId = process.env.CF_PAYMENT_CLIENT_ID!;
+Cashfree.XClientSecret = process.env.CF_PAYMENT_CLIENT_SECRET!;
+Cashfree.XEnvironment = process.env.CF_PAYMENT_MODE == "sandbox" ? Cashfree.Environment.SANDBOX : Cashfree.Environment.PRODUCTION
 
 interface CreateBeneficiaryPropT {
   userId: string;
@@ -72,7 +77,6 @@ const createBeneficiary: (p: CreateBeneficiaryPropT) => Promise<string> =
           options
         );
         const response = await result.json();
-        console.log("response,. ", response);
         if (response["beneficiary_status"] != "VERIFIED")
           throw new ApiError(400, "Failed to create new beneficiary.");
 
@@ -91,19 +95,24 @@ const createBeneficiary: (p: CreateBeneficiaryPropT) => Promise<string> =
     });
   };
 
-// {"type":"invalid_request_error","code":"beneficiary_contact_details.beneficiary_country_code_invalid","message":"beneficiary_contact_details.beneficiary_country_code : invalid value provided. Value received: in"}
-// {"beneficiary_id":"test_beneficiary","beneficiary_name":"Aditya Sharma","beneficiary_instrument_details":{"bank_account_number":"0112345678","bank_ifsc":"INDB0000007","vpa":"s2t@upi"},"beneficiary_contact_details":{"beneficiary_phone":"1234567890","beneficiary_country_code":"+91","beneficiary_email":"aditya@adityasharma.live","beneficiary_address":"Some street address","beneficiary_city":"Some city","beneficiary_state":"Bihar","beneficiary_postal_code":"822121"},"beneficiary_status":"VERIFIED","added_on":"2025-03-16T16:34:10"}
-
+/**
+ * this function inserts a new order first in the db and then make
+ * a new order in the cashfree to get the paymentSessionId in return which will be required in the frontend
+ * to start a payment session by cashfree to make premium chats
+ * @param {CreateOrderPropT} props
+ * @returns {Promise<string | undefined>} - a promise which will return a paymentSessionId as a result
+ */
 const createCfOrder: (p: CreateOrderPropT) => Promise<string | undefined> =
   async function (props) {
     const user = props.user;
     const orderId = uuidv4().toString();
 
+    // configuration for the cashfree to create a new payment gateway session id
     const payload: CreateOrderRequest = {
       order_id: orderId,
       customer_details: {
         customer_id: String(user.id),
-        customer_phone: user.phoneNumber ?? "",
+        customer_phone: user.phoneNumber ?? "1234567890",
         customer_email: user.email,
         customer_name: `${user.firstName} ${user.lastName}`,
       },
@@ -112,10 +121,12 @@ const createCfOrder: (p: CreateOrderPropT) => Promise<string | undefined> =
       order_meta: {
         return_url: `https://test.cashfree.com/pgappsdemos/return.php?order_id=${orderId}`,
       },
-      order_expiry_time: new Date(1000 * 60 * 20).toISOString(),
       order_note: "",
     };
+
     const db = establishDbConnection();
+
+    // creates an order in the Order table of postgress db using drizzle-orm
     const [dbOrder] = await db
       .insert(Order)
       .values({
@@ -132,12 +143,21 @@ const createCfOrder: (p: CreateOrderPropT) => Promise<string | undefined> =
       .execute();
 
     if (!dbOrder) throw new ApiError(400, "Failed to create order;");
-    const order = await Cashfree.PGCreateOrder(
-      process.env.CF_XAPI_VERSION!,
-      payload
-    );
+    let order;
+    try {
+      // using cashfree-pg this will make an api request to create an order on cashfree service for paymentSessionId
+      order = await Cashfree.PGCreateOrder(
+        process.env.CF_PAYMENT_XAPI_VERSION!, // x-api-version: cashfree api version
+        payload
+      );
+    } catch (err) {
+      // For now deleting previous order may be fine.
+      await db.delete(Order).where(eq(Order.id, dbOrder.id)).execute();
+      throw new ApiError(400, "Something went wrong with cf order creation.");
+    }
     const paymentSessionId = order.data.payment_session_id;
 
+    // updating the order table row
     await db
       .update(Order)
       .set({

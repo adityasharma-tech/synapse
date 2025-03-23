@@ -1,3 +1,4 @@
+// imports
 import http from "http";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -6,13 +7,15 @@ import helmet from "helmet";
 import express from "express";
 import cookieParser from "cookie-parser";
 
+
 import { rateLimit } from "express-rate-limit";
-import { corsOrigins, SocketEventEnum } from "./lib/constants";
 import { ApiResponse } from "./lib/ApiResponse";
 import { redisClient } from "./services/redis.service";
+import { socketHandler } from "./services/socket.service";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { Server as SocketIO } from "socket.io";
 import { socketAuthMiddleware } from "./middleware/socket.middleware";
+import { corsOrigins, SocketEventEnum } from "./lib/constants";
 
 /*
  * Env support configs
@@ -83,6 +86,7 @@ import defaultRouter from "./routes/default.routes";
 import authRouter from "./routes/auth.routes";
 import userRouter from "./routes/user.routes";
 import streamRouter from "./routes/stream.routes";
+import webhookRouter from "./routes/webhook.routes";
 
 /**
  * Router handlers
@@ -91,13 +95,12 @@ app.use(defaultRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/streams", streamRouter);
+app.use("/api/v1/webhook", webhookRouter);
 
 /**
- * Error handler
+ * express error handler
  */
 import errorHandler from "./lib/errorHandler";
-import { logger } from "./lib/logger";
-import { socketHandler } from "./services/socket.service";
 app.use(errorHandler);
 
 export default server;

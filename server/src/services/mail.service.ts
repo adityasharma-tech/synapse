@@ -2,6 +2,7 @@ import { logger } from "../lib/logger";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
 import nodemailer, { SendMailOptions } from "nodemailer";
 
+// transport configuration of the smtp server which handles the mail transportation
 const transportOptions: SMTPTransport.Options = {
   host: process.env.SMTP_HOST!,
   port: +process.env.SMTP_PORT!,
@@ -10,6 +11,12 @@ const transportOptions: SMTPTransport.Options = {
 };
 const transporter = nodemailer.createTransport(transportOptions);
 
+/**
+ * confirmation mail sending handler to send confirmation mail to the specified email with the verificationToken
+ * @param {string} email - email where you have to send the confirmation link
+ * @param {string} verificationToken
+ * @returns the result obtained from nodemailer transporter after succesfully making the mail request
+ */
 const sendConfirmationMail = async function (
   email: string,
   verificationToken: string
@@ -32,6 +39,12 @@ const sendConfirmationMail = async function (
   }
 };
 
+/**
+ * reset password mail sending handler, which send mail to the specified email with the verificationToken
+ * @param email - email where you have to send the reset password link
+ * @param verificationToken - email where you have to send the reset password link
+ * @returns the result obtained from nodemailer transporter after succesfully making the mail request
+ */
 const sendResetPasswordMail = async function (
   email: string,
   verificationToken: string
@@ -54,4 +67,5 @@ const sendResetPasswordMail = async function (
   }
 };
 
+/// ...
 export { sendConfirmationMail, sendResetPasswordMail };

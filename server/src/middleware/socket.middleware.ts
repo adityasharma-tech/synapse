@@ -15,7 +15,7 @@ import { TokenTable } from "../schemas/tokenTable.sql";
  * @param {(import "socket.io").Socket} socket
  * @param {ApiError} error The ApiError to send error in specific format
  */
-function disconnectSocketWithError(socket: Socket, error: ApiError) {
+export function disconnectSocketWithError(socket: Socket, error: ApiError) {
   socket.emit(SocketEventEnum.SOCKET_ERROR_EVENT, error);
   socket.disconnect();
 }

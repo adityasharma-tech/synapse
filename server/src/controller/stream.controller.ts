@@ -163,12 +163,12 @@ const getAllChatsByStreamingId = asyncHandler(async (req, res) => {
 
 const makePremiumChat = asyncHandler(async (req, res) => {
   const { streamId } = req.params;
-  const { orderAmount } = req.query;
+  const { paymentAmount } = req.body;
   if (streamId.trim() == "") throw new ApiError(400, "Failed to get streamid.");
 
-  if (!orderAmount) throw new ApiError(400, "Failed to get order amount.");
+  if (!paymentAmount) throw new ApiError(400, "Failed to get order amount.");
 
-  const orderAmt = parseInt(orderAmount.toString());
+  const orderAmt = parseInt(paymentAmount.toString());
 
   if (Number.isNaN(orderAmt))
     throw new ApiError(400, "Please enter a valid payment amount.");

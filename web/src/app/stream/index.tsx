@@ -1,10 +1,11 @@
 import React from "react";
 import Header from "../../components/header";
 import LoadingComp from "../../components/loading";
+import { load as loadCashfree } from "@cashfreepayments/cashfree-js";
 
 import { useParams } from "react-router";
 import { useSocket } from "../../hooks/socket.hook";
-import { getStreamById } from "../../lib/apiClient";
+import { createPremiumChatOrder, getStreamById } from "../../lib/apiClient";
 import { requestHandler } from "../../lib/requestHandler";
 import { SocketEventEnum } from "../../lib/constants";
 import { useAppDispatch, useAppSelector } from "../../store";
@@ -31,6 +32,7 @@ import {
 } from "../../store/reducers/stream.reducer";
 import { setAllPreChats } from "../../store/actions/stream.actions";
 import { useDebounce, useThrottle } from "../../lib/utils";
+import { toast } from "sonner";
 
 export default function Stream() {
   // hooks
@@ -44,7 +46,20 @@ export default function Stream() {
   // local states
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [paymentLoding, setPaymentLoading] = useState(false);
   const [streaming, setStreaming] = useState(false); // TODO: need to update this one (remove)
+  const [dialogPayOpen, setPayDialogOpen] = useState(false);
+  const [premiumChatForm, setPremiumChatForm] = useState<{
+    paymentAmount: number;
+    message: string;
+  }>({
+    paymentAmount: 20,
+    message: "Thank you!",
+  });
+  const [paymentSessionId, setPaymentSessionId] = useState<string | null>(null);
+
+  // cashfree states
+  const [cashfree, setCashfree] = useState<any>(null)
 
   // state hooks
   const streamState = useAppSelector((state) => state.stream);
@@ -56,7 +71,7 @@ export default function Stream() {
   const handleSendMessage: FormEventHandler<HTMLFormElement> = useCallback(
     (e) => {
       e.preventDefault();
-      if (socket && message.trim()!="")
+      if (socket && message.trim() != "")
         socket.emit(SocketEventEnum.CHAT_CREATE_EVENT, {
           message,
           streamId,
@@ -105,6 +120,82 @@ export default function Stream() {
       );
     },
     [streamId, socket, SocketEventEnum.CHAT_MARK_DONE, dispatch, markDoneChat]
+  );
+
+
+  /**
+   * Payment handling
+   */
+
+  const handleInitializeCashfree = useCallback(async()=>{
+    const lCashfree = await loadCashfree({
+      mode: "sandbox",
+    });
+    setCashfree(lCashfree)
+  }, [setCashfree, loadCashfree])
+
+
+  /**
+   * handling checkout
+   */
+  const handleCheckout = useCallback(async (paymentSessionId: string) => {
+    if(!paymentSessionId || !cashfree) return toast("Session id not found.");
+    let checkoutOptions = {
+      paymentSessionId,
+      redirectTarget: "_modal",
+    };
+    cashfree.checkout(checkoutOptions).then((result: any) => {
+      if (result.error) {
+        // This will be true whenever user clicks on close icon inside the modal or any error happens during the payment
+        console.log("User has closed the popup or there is some payment error, Check for Payment Status");
+        console.log(result.error);
+        toast(result.error.message);
+      }
+      if (result.redirect) {
+        // This will be true when the payment redirection page couldnt be opened in the same window
+        // This is an exceptional case only when the page is opened inside an inAppBrowser
+        // In this case the customer will be redirected to return url once payment is completed
+        console.log("Payment will be redirected");
+      }
+      if (result.paymentDetails) {
+        // This will be called whenever the payment is completed irrespective of transaction status
+        console.log("Payment has been completed, Check for Payment Status");
+        toast(result.paymentDetails.paymentMessage);
+        setPayDialogOpen(false)
+      }
+    });
+  }, [cashfree, paymentSessionId, toast, setPayDialogOpen]);
+
+  // ...
+  const handleMakePayment: FormEventHandler<HTMLFormElement> = useCallback(
+    async (e) => {
+      e.preventDefault();
+      if (streamState.streamId)
+        await requestHandler(
+          createPremiumChatOrder({
+            streamId: streamState.streamId,
+            ...premiumChatForm,
+          }),
+          setPaymentLoading,
+          async (data) => {
+            const sessionId = data.data.paymentSessionId;
+            console.log("payment", data);
+            if (!sessionId) toast("Failed to create order.");
+            setPaymentSessionId(sessionId);
+            await handleCheckout(sessionId)
+          }
+        );
+    },
+    [
+      streamState.streamId,
+      requestHandler,
+      createPremiumChatOrder,
+      premiumChatForm,
+      setPaymentLoading,
+      setPaymentSessionId,
+      toast,
+      handleCheckout
+    ]
   );
 
   // handler to register all the socket events/listeners
@@ -192,7 +283,13 @@ export default function Stream() {
   React.useEffect(() => {
     if (streamId)
       (async () => {
-        await requestHandler(getStreamById({ streamId }), setLoading);
+        await requestHandler(
+          getStreamById({ streamId }),
+          setLoading,
+          undefined,
+          undefined,
+          false
+        );
         dispatch(updateStreamId(streamId));
         dispatch(setAllPreChats({ streamId }));
       })();
@@ -208,12 +305,77 @@ export default function Stream() {
     }
   }, [streamId, socket, streaming]);
 
+  React.useEffect(()=>{
+    handleInitializeCashfree()
+  },[])
+
   if (loading) return <LoadingComp />;
   return (
     <React.Fragment>
       <Header>
         <></>
       </Header>
+      {/* payment dialog model*/}
+      {dialogPayOpen ? (
+        <div className="fixed inset-0 z-5 flex justify-center items-center">
+          <span className="inset-0 absolute z-10 bg-black/50" />
+          <div className="relative z-20 bg-neutral-900 rounded-lg px-4 py-4 flex flex-col gap-y-3 min-h-46 min-w-md border border-neutral-800">
+            <div className="flex justify-between">
+              <span className="font-medium text-lg">Make premium chat</span>
+              <button
+                className="btn btn-square btn-xs btn-soft"
+                type="button"
+                onClick={() => setPayDialogOpen(!dialogPayOpen)}
+              >
+                <svg
+                  className="size-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M6.99486 7.00636C6.60433 7.39689 6.60433 8.03005 6.99486 8.42058L10.58 12.0057L6.99486 15.5909C6.60433 15.9814 6.60433 16.6146 6.99486 17.0051C7.38538 17.3956 8.01855 17.3956 8.40907 17.0051L11.9942 13.4199L15.5794 17.0051C15.9699 17.3956 16.6031 17.3956 16.9936 17.0051C17.3841 16.6146 17.3841 15.9814 16.9936 15.5909L13.4084 12.0057L16.9936 8.42059C17.3841 8.03007 17.3841 7.3969 16.9936 7.00638C16.603 6.61585 15.9699 6.61585 15.5794 7.00638L11.9942 10.5915L8.40907 7.00636C8.01855 6.61584 7.38538 6.61584 6.99486 7.00636Z"
+                    fill="#fefefe"
+                  />
+                </svg>
+              </button>
+            </div>
+            <form onSubmit={handleMakePayment} className="flex flex-col gap-4 ">
+              <input
+                required
+                type="number"
+                className="input input-accent w-full"
+                placeholder="20 INR"
+                value={premiumChatForm.paymentAmount}
+                onChange={(e) =>
+                  setPremiumChatForm({
+                    ...premiumChatForm,
+                    paymentAmount: parseInt(e.target.value),
+                  })
+                }
+              />
+              <textarea
+                required
+                className="textarea textarea-info w-full"
+                placeholder="message here"
+                value={premiumChatForm.message}
+                onChange={(e) =>
+                  setPremiumChatForm({
+                    ...premiumChatForm,
+                    message: e.target.value,
+                  })
+                }
+              />
+              <button type="submit" className="btn btn-soft btn-info ml-auto">
+                {paymentLoding ? (
+                  <span className="loading loading-spinner loading-sm"></span>
+                ) : null}
+                Make payment
+              </button>
+            </form>
+          </div>
+        </div>
+      ) : null}
       <div className="h-[calc(93vh-2px)] overflow-hidden flex p-2 gap-x-2">
         <div className="h-full w-[40%] bg-neutral-900 rounded-lg p-2">
           <div className="grid grid-cols-2 gap-2">
@@ -268,9 +430,18 @@ export default function Stream() {
                 placeholder="Hello, World!"
                 className="input input-primary w-full"
               />
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary btn-soft">
                 Send
               </button>
+              {user?.role == "viewer" ? (
+                <button
+                  onClick={() => setPayDialogOpen(!dialogPayOpen)}
+                  type="button"
+                  className="btn btn-secondary btn-soft"
+                >
+                  Premium
+                </button>
+              ) : null}
             </form>
           </div>
         </div>
