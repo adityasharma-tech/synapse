@@ -7,7 +7,6 @@ import helmet from "helmet";
 import express from "express";
 import cookieParser from "cookie-parser";
 
-
 import { rateLimit } from "express-rate-limit";
 import { ApiResponse } from "./lib/ApiResponse";
 import { redisClient } from "./services/redis.service";
@@ -48,6 +47,9 @@ io.engine.use(helmet());
 // Authentication middleware for socket.io to let in authenticated users only and streamer verification
 io.use(socketAuthMiddleware);
 
+// setting variable in express for the socketio
+global.io = io;
+
 // socket connection handlers
 io.on(SocketEventEnum.CONNECTED_EVENT, (socket) => socketHandler(io, socket));
 
@@ -78,7 +80,7 @@ app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(helmet());
 app.use(limiter);
-app.set('trust proxy', true);
+app.set("trust proxy", true);
 
 /**
  * Router imports

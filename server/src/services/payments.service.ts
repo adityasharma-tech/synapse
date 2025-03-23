@@ -9,6 +9,8 @@ import { v4 as uuidv4 } from "uuid";
 import { MiddlewareUserT } from "../lib/types";
 import { Cashfree, CreateOrderRequest } from "cashfree-pg";
 import { signStreamerVerficationToken } from "../lib/utils";
+import 'dotenv/config'
+import OrderId from "order-id";
 
 const cashfreeClientHeaders = new Headers();
 cashfreeClientHeaders.set("x-api-version", process.env.CF_PAYOUT_XAPI_VERSION!);
@@ -22,7 +24,10 @@ cashfreeClientHeaders.set("Content-Type", "application/json");
 // specifically for cashfree-pg
 Cashfree.XClientId = process.env.CF_PAYMENT_CLIENT_ID!;
 Cashfree.XClientSecret = process.env.CF_PAYMENT_CLIENT_SECRET!;
-Cashfree.XEnvironment = process.env.CF_PAYMENT_MODE == "sandbox" ? Cashfree.Environment.SANDBOX : Cashfree.Environment.PRODUCTION
+Cashfree.XEnvironment =
+  process.env.CF_PAYMENT_MODE == "sandbox"
+    ? Cashfree.Environment.SANDBOX
+    : Cashfree.Environment.PRODUCTION;
 
 interface CreateBeneficiaryPropT {
   userId: string;
@@ -105,7 +110,7 @@ const createBeneficiary: (p: CreateBeneficiaryPropT) => Promise<string> =
 const createCfOrder: (p: CreateOrderPropT) => Promise<string | undefined> =
   async function (props) {
     const user = props.user;
-    const orderId = uuidv4().toString();
+    const orderId = OrderId().generate().replace('-', '');
 
     // configuration for the cashfree to create a new payment gateway session id
     const payload: CreateOrderRequest = {
@@ -120,6 +125,7 @@ const createCfOrder: (p: CreateOrderPropT) => Promise<string | undefined> =
       order_currency: "INR",
       order_meta: {
         return_url: `https://test.cashfree.com/pgappsdemos/return.php?order_id=${orderId}`,
+        // notify_url: `https://synapse-api-local.adityasharma.live/api/v1/webhook/notify`
       },
       order_note: "",
     };
