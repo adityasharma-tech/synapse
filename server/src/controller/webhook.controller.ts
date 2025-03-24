@@ -84,6 +84,8 @@ const handleVerifyCfOrder = asyncHandler(async (req, res) => {
           downVotes: 0,
           user,
           pinned: false,
+          orderId: orderUpdate.cfOrderId,
+          paymentAmount: orderUpdate.orderAmount
         })
       }
   }
