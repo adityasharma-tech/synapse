@@ -115,7 +115,7 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
 
   const generatedSignature = crypto
     .createHmac("sha256", process.env.RAZORPAY_WEBHOOK_SECRET!)
-    .update(body)
+    .update(JSON.stringify(body))
     .digest("hex");
 
   if (generatedSignature !== razorpaySignature) {
