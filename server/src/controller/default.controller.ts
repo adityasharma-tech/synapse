@@ -2,6 +2,11 @@ import { asyncHandler } from "../lib/asyncHandler";
 import { ApiResponse } from "../lib/ApiResponse";
 
 const healthCheck = asyncHandler((_, res) => {
+  const headers = new Headers();
+
+  headers.set("Access-Control-Allow-Origin", "*");
+  res.setHeaders(headers);
+
   res.status(200).json(new ApiResponse(200, null, "Server is healthy."));
 });
 
