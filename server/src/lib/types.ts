@@ -1,6 +1,6 @@
 import { Role } from "./utils";
 
-interface MUserT {
+interface MiddlewareUserT {
   id: number;
   firstName: string;
   lastName: string;
@@ -12,7 +12,5 @@ interface MUserT {
   streamerToken?: string;
   phoneNumber?: string;
 }
-
-type MiddlewareUserT = MUserT;
 
 export type { MiddlewareUserT };

@@ -29,6 +29,8 @@ import {
   registerTypingEvent,
   removeTypingEvent,
   markDoneChat,
+  upVoteDownBasicChat,
+  downVoteDownBasicChat,
 } from "../../store/reducers/stream.reducer";
 import { setAllPreChats } from "../../store/actions/stream.actions";
 import { useDebounce, useThrottle } from "../../lib/utils";
@@ -59,7 +61,7 @@ export default function Stream() {
   const [paymentSessionId, setPaymentSessionId] = useState<string | null>(null);
 
   // cashfree states
-  const [cashfree, setCashfree] = useState<any>(null)
+  const [cashfree, setCashfree] = useState<any>(null);
 
   // state hooks
   const streamState = useAppSelector((state) => state.stream);
@@ -122,49 +124,52 @@ export default function Stream() {
     [streamId, socket, SocketEventEnum.CHAT_MARK_DONE, dispatch, markDoneChat]
   );
 
-
   /**
    * Payment handling
    */
 
-  const handleInitializeCashfree = useCallback(async()=>{
+  const handleInitializeCashfree = useCallback(async () => {
     const lCashfree = await loadCashfree({
       mode: "sandbox",
     });
-    setCashfree(lCashfree)
-  }, [setCashfree, loadCashfree])
-
+    setCashfree(lCashfree);
+  }, [setCashfree, loadCashfree]);
 
   /**
    * handling checkout
    */
-  const handleCheckout = useCallback(async (paymentSessionId: string) => {
-    if(!paymentSessionId || !cashfree) return toast("Session id not found.");
-    let checkoutOptions = {
-      paymentSessionId,
-      redirectTarget: "_modal",
-    };
-    cashfree.checkout(checkoutOptions).then((result: any) => {
-      if (result.error) {
-        // This will be true whenever user clicks on close icon inside the modal or any error happens during the payment
-        console.log("User has closed the popup or there is some payment error, Check for Payment Status");
-        console.log(result.error);
-        toast(result.error.message);
-      }
-      if (result.redirect) {
-        // This will be true when the payment redirection page couldnt be opened in the same window
-        // This is an exceptional case only when the page is opened inside an inAppBrowser
-        // In this case the customer will be redirected to return url once payment is completed
-        console.log("Payment will be redirected");
-      }
-      if (result.paymentDetails) {
-        // This will be called whenever the payment is completed irrespective of transaction status
-        console.log("Payment has been completed, Check for Payment Status");
-        toast(result.paymentDetails.paymentMessage);
-        setPayDialogOpen(false)
-      }
-    });
-  }, [cashfree, paymentSessionId, toast, setPayDialogOpen]);
+  const handleCheckout = useCallback(
+    async (paymentSessionId: string) => {
+      if (!paymentSessionId || !cashfree) return toast("Session id not found.");
+      let checkoutOptions = {
+        paymentSessionId,
+        redirectTarget: "_modal",
+      };
+      cashfree.checkout(checkoutOptions).then((result: any) => {
+        if (result.error) {
+          // This will be true whenever user clicks on close icon inside the modal or any error happens during the payment
+          console.log(
+            "User has closed the popup or there is some payment error, Check for Payment Status"
+          );
+          console.log(result.error);
+          toast(result.error.message);
+        }
+        if (result.redirect) {
+          // This will be true when the payment redirection page couldnt be opened in the same window
+          // This is an exceptional case only when the page is opened inside an inAppBrowser
+          // In this case the customer will be redirected to return url once payment is completed
+          console.log("Payment will be redirected");
+        }
+        if (result.paymentDetails) {
+          // This will be called whenever the payment is completed irrespective of transaction status
+          console.log("Payment has been completed, Check for Payment Status");
+          toast(result.paymentDetails.paymentMessage);
+          setPayDialogOpen(false);
+        }
+      });
+    },
+    [cashfree, paymentSessionId, toast, setPayDialogOpen]
+  );
 
   // ...
   const handleMakePayment: FormEventHandler<HTMLFormElement> = useCallback(
@@ -182,7 +187,7 @@ export default function Stream() {
             console.log("payment", data);
             if (!sessionId) toast("Failed to create order.");
             setPaymentSessionId(sessionId);
-            await handleCheckout(sessionId)
+            await handleCheckout(sessionId);
           }
         );
     },
@@ -194,7 +199,7 @@ export default function Stream() {
       setPaymentLoading,
       setPaymentSessionId,
       toast,
-      handleCheckout
+      handleCheckout,
     ]
   );
 
@@ -242,6 +247,16 @@ export default function Stream() {
       dispatch(removeTypingEvent(chatObject));
     });
 
+    // trigger when someone wants to remove hhis upvotes for a specific chat
+    socket.on(SocketEventEnum.CHAT_UPVOTE_DOWN_EVENT, (chatObject) => {
+      dispatch(upVoteDownBasicChat(chatObject));
+    });
+
+    // trigger when someone wants to remove hhis downvotes for a specific chat
+    socket.on(SocketEventEnum.CHAT_DOWNVOTE_DOWN_EVENT, (chatObject) => {
+      dispatch(downVoteDownBasicChat(chatObject));
+    });
+
     socket.onAny(() => {
       if (lastMessageRef.current)
         lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
@@ -263,6 +278,8 @@ export default function Stream() {
     removeTypingEvent,
     downVoteBasicChat,
     lastMessageRef,
+    upVoteDownBasicChat,
+    downVoteDownBasicChat,
     registerTypingEvent,
   ]);
 
@@ -305,9 +322,9 @@ export default function Stream() {
     }
   }, [streamId, socket, streaming]);
 
-  React.useEffect(()=>{
-    handleInitializeCashfree()
-  },[])
+  React.useEffect(() => {
+    handleInitializeCashfree();
+  }, []);
 
   if (loading) return <LoadingComp />;
   return (

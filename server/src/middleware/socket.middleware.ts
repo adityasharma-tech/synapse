@@ -73,6 +73,8 @@ const socketAuthMiddleware = async (
       .where(eq(User.id, decodedUser.userId))
       .execute();
 
+    //
+
     socket.user = {
       firstName: user.firstName,
       lastName: user.lastName,

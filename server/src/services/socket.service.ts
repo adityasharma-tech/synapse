@@ -161,30 +161,34 @@ async function chatUpvoteHandler(
     .from(ChatMessage)
     .where(eq(ChatMessage.id, parseInt(payload.id))); // problem here
 
-  if (!result) return; // send socket error messages
+  if (!result) return; // TODO: send socket error messages
+  logger.info(
+    `chatUpvoteHandler: ${socket.user.id} ${JSON.stringify(result.upVotes)}`
+  );
   if (result.upVotes.includes(socket.user?.id)) {
-    await db
-      .update(ChatMessage)
+    db.update(ChatMessage)
       .set({
         upVotes: result.upVotes.filter((value) => value != socket.user?.id),
       })
       .where(eq(ChatMessage.id, parseInt(payload.id)))
-      .execute();
-    io.to(payload.streamId).emit(SocketEventEnum.CHAT_UPVOTE_DOWN_EVENT, {
-      ...payload,
-      streamId: undefined,
-    });
+      .execute()
+      .then(() => {
+        io.to(payload.streamId).emit(SocketEventEnum.CHAT_UPVOTE_DOWN_EVENT, {
+          ...payload,
+          streamId: undefined,
+        });
+      });
   } else {
-    await db
-      .update(ChatMessage)
+    db.update(ChatMessage)
       .set({ upVotes: [...result.upVotes, socket.user?.id] })
       .where(eq(ChatMessage.id, parseInt(payload.id)))
-      .execute();
-
-    io.to(payload.streamId).emit(SocketEventEnum.CHAT_UPVOTE_EVENT, {
-      ...payload,
-      streamId: undefined,
-    });
+      .execute()
+      .then(() => {
+        io.to(payload.streamId).emit(SocketEventEnum.CHAT_UPVOTE_EVENT, {
+          ...payload,
+          streamId: undefined,
+        });
+      });
   }
 }
 
@@ -297,11 +301,11 @@ function socketHandler(io: Server, socket: Socket) {
       SocketEventEnum.PAYMENT_CHAT_CREATE_EVENT,
       paymentChatCreateHandler
     );
-    socket.on(SocketEventEnum.CHAT_UPVOTE_EVENT, (payload) =>
-      chatUpvoteHandler(io, socket, payload)
+    socket.on(SocketEventEnum.CHAT_UPVOTE_EVENT, async (payload) =>
+      await chatUpvoteHandler(io, socket, payload)
     );
-    socket.on(SocketEventEnum.CHAT_DOWNVOTE_EVENT, (payload) =>
-      chatDownVoteHandler(io, socket, payload)
+    socket.on(SocketEventEnum.CHAT_DOWNVOTE_EVENT, async (payload) =>
+      await chatDownVoteHandler(io, socket, payload)
     );
     socket.on(SocketEventEnum.STREAM_TYPING_EVENT, (payload) =>
       chatTypingEvent(io, socket, payload)
@@ -309,8 +313,8 @@ function socketHandler(io: Server, socket: Socket) {
     socket.on(SocketEventEnum.STREAM_STOP_TYPING_EVENT, (payload) =>
       stopChatTypingEvent(io, socket, payload)
     );
-    socket.on(SocketEventEnum.CHAT_MARK_DONE, (payload) => {
-      markChatDone(io, socket, payload);
+    socket.on(SocketEventEnum.CHAT_MARK_DONE, async (payload) => {
+      await markChatDone(io, socket, payload);
     });
   } catch (error: any) {
     // Internal error handling & emit errors to client

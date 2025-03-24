@@ -4,7 +4,7 @@ import { useAppSelector } from "../../store";
 import React from "react";
 
 export default function SocketLayout() {
-  const user = useAppSelector((state) => state.app.user);
+  const user = useAppSelector((state) => state.app?.user);
   const navigate = useNavigate();
 
   React.useEffect(() => {

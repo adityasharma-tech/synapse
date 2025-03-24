@@ -111,7 +111,7 @@ export const streamSlice = createSlice({
       };
     },
 
-    // upvoting a basic chat
+    // increasing the upvoting of a basic chat
     upVoteBasicChat: (state, action: PayloadAction<UpVoteBasicChatT>) => {
       const updateIndex = state.basicChats.findIndex(
         (value) => value.id == action.payload.id
@@ -120,6 +120,21 @@ export const streamSlice = createSlice({
         return console.error(`Cann't find message to be updated.`);
 
       state.basicChats[updateIndex].upVotes++;
+      state.basicChats = state.basicChats.sort(
+        (pre, post) =>
+          post.upVotes - post.downVotes - (pre.upVotes - pre.downVotes)
+      );
+    },
+
+    // removing the upvotings of the basic chat
+    upVoteDownBasicChat: (state, action: PayloadAction<UpVoteBasicChatT>) => {
+      const updateIndex = state.basicChats.findIndex(
+        (value) => value.id == action.payload.id
+      );
+      if (updateIndex <= -1)
+        return console.error(`Cann't find message to be updated.`);
+
+      state.basicChats[updateIndex].upVotes--;
       state.basicChats = state.basicChats.sort(
         (pre, post) =>
           post.upVotes - post.downVotes - (pre.upVotes - pre.downVotes)
@@ -135,6 +150,21 @@ export const streamSlice = createSlice({
         return console.error(`Cann't find message to be updated.`);
 
       state.basicChats[updateIndex].downVotes++;
+      state.basicChats = state.basicChats.sort(
+        (pre, post) =>
+          post.upVotes - post.downVotes - (pre.upVotes - pre.downVotes)
+      );
+    },
+
+    // removing the down voted basic chat
+    downVoteDownBasicChat: (state, action: PayloadAction<DownVoteBasicChatT>) => {
+      const updateIndex = state.basicChats.findIndex(
+        (value) => value.id == action.payload.id
+      );
+      if (updateIndex <= -1)
+        return console.error(`Cann't find message to be updated.`);
+
+      state.basicChats[updateIndex].downVotes--;
       state.basicChats = state.basicChats.sort(
         (pre, post) =>
           post.upVotes - post.downVotes - (pre.upVotes - pre.downVotes)
@@ -200,7 +230,9 @@ export const {
   downVoteBasicChat,
   registerTypingEvent,
   removeTypingEvent,
-  markDoneChat
+  markDoneChat,
+  upVoteDownBasicChat,
+  downVoteDownBasicChat
 } = streamSlice.actions;
 
 export default streamSlice.reducer;
