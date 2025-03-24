@@ -19,7 +19,7 @@ Cashfree.XEnvironment = Cashfree.Environment.SANDBOX;
 const handleVerifyCfOrder = asyncHandler(async (req, res) => {
   const payload = req.body;
   try {
-    // verified = Cashfree.PGVerifyWebhookSignature(String(req.headers["x-webhook-signature"]), JSON.stringify(req.body), String(req.headers["x-webhook-timestamp"]))
+    // const verified = Cashfree.PGVerifyWebhookSignature(String(req.headers["x-webhook-signature"]), JSON.stringify(req.body), String(req.headers["x-webhook-timestamp"]))
     if (payload.type == "WEBHOOK")
       return res.status(200).json(new ApiResponse(200, "Success"));
 
