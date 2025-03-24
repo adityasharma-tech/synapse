@@ -12,6 +12,7 @@ import { ChatMessage } from "../schemas/chats.sql";
 import { User } from "../schemas/user.sql";
 import { createCfOrder } from "../services/payments.service";
 import { MiddlewareUserT } from "../lib/types";
+import { Order } from "../schemas/order.sql";
 
 const createNewStream = asyncHandler(async (req, res) => {
   const { title } = req.body;
@@ -138,6 +139,9 @@ const getAllChatsByStreamingId = asyncHandler(async (req, res) => {
       pinned: ChatMessage.pinned,
       createdAt: ChatMessage.createdAt,
       updatedAt: ChatMessage.updatedAt,
+      orderId: ChatMessage.cfOrderId,
+      paymentAmount: Order.orderAmount,
+      paymentCurrency: Order.orderCurrency
     })
     .from(ChatMessage)
     .groupBy(
@@ -150,9 +154,12 @@ const getAllChatsByStreamingId = asyncHandler(async (req, res) => {
       ChatMessage.markRead,
       ChatMessage.pinned,
       ChatMessage.createdAt,
-      ChatMessage.updatedAt
+      ChatMessage.updatedAt,
+      Order.orderCurrency,
+      Order.orderAmount
     )
     .leftJoin(User, eq(ChatMessage.userId, User.id))
+    .leftJoin(Order, eq(ChatMessage.cfOrderId, Order.cfOrderId))
     .where(
       and(
         eq(ChatMessage.streamUid, String(streamId)),

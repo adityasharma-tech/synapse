@@ -77,12 +77,15 @@ const handleVerifyCfOrder = asyncHandler(async (req, res) => {
       if(chatMessage.streamUid){
         const io = global.io as Server;
         io.to(chatMessage.streamUid).emit(SocketEventEnum.PAYMENT_CHAT_CREATE_EVENT, {
-          message: chatMessage,
+          message: chatMessage.message,
           id: String(chatMessage.id),
           markRead: false,
           upVotes: 0,
           downVotes: 0,
-          user,
+          user: {
+            ...user,
+            role: "viewer"
+          },
           pinned: false,
           orderId: orderUpdate.cfOrderId,
           paymentAmount: orderUpdate.orderAmount

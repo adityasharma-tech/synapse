@@ -19,8 +19,9 @@ export interface BasicChatT {
 }
 
 export interface PremiumChatT extends BasicChatT {
-  amount: string;
-  paymentStatus?: string;
+  orderId?: string;
+  paymentAmount?: number;
+  paymentCurrency?: string;
 }
 
 interface RemoveBasicChatT {
