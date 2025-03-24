@@ -49,6 +49,15 @@ const handleVerifyCfOrder = asyncHandler(async (req, res) => {
     .execute();
 
   if (order.data.order_status === "PAID") {
+    const [preChatMessage] = await db
+      .select({ paymentStatus: ChatMessage.paymentStatus })
+      .from(ChatMessage)
+      .where(eq(ChatMessage.cfOrderId, orderUpdate.cfOrderId))
+      .execute();
+
+    if (preChatMessage.paymentStatus === "PAID")
+      return res.status(200).json(new ApiResponse(200, "Webhook success"));
+
     const [chatMessage] = await db
       .update(ChatMessage)
       .set({ paymentStatus: "PAID" })
@@ -56,41 +65,42 @@ const handleVerifyCfOrder = asyncHandler(async (req, res) => {
       .returning()
       .execute();
 
-      const [user] = await db
-        .select({
-          fullName: sql`${User.firstName} || ' ' || ${User.lastName}`,
-          username: User.username,
-          profilePicture: User.profilePicture
-        })
-        .from(User)
-        .groupBy(
-          User.firstName,
-          User.lastName,
-          User.username,
-          User.profilePicture
-        )
-        .where(eq(User.id, chatMessage.userId))
-        .execute()
+    const [user] = await db
+      .select({
+        fullName: sql`${User.firstName} || ' ' || ${User.lastName}`,
+        username: User.username,
+        profilePicture: User.profilePicture,
+      })
+      .from(User)
+      .groupBy(
+        User.firstName,
+        User.lastName,
+        User.username,
+        User.profilePicture
+      )
+      .where(eq(User.id, chatMessage.userId))
+      .execute();
 
-      if(!chatMessage || !user) throw new ApiError(400, "Failed to get user or chatMessage");
+    if (!chatMessage || !user)
+      throw new ApiError(400, "Failed to get user or chatMessage");
 
-      if(chatMessage.streamUid){
-        const io = global.io as Server;
-        io.to(chatMessage.streamUid).emit(SocketEventEnum.PAYMENT_CHAT_CREATE_EVENT, {
+    if (chatMessage.streamUid) {
+      const io = global.io as Server;
+      io.to(chatMessage.streamUid).emit(
+        SocketEventEnum.PAYMENT_CHAT_CREATE_EVENT,
+        {
           message: chatMessage.message,
           id: String(chatMessage.id),
           markRead: false,
           upVotes: 0,
           downVotes: 0,
-          user: {
-            ...user,
-            role: "viewer"
-          },
+          user: { ...user, role: "viewer" },
           pinned: false,
           orderId: orderUpdate.cfOrderId,
-          paymentAmount: orderUpdate.orderAmount
-        })
-      }
+          paymentAmount: orderUpdate.orderAmount,
+        }
+      );
+    }
   }
 
   if (!orderUpdate) throw new ApiError(400, "Failed to update order");
