@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import establishDbConnection from "../db";
 
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { Order } from "../schemas/order.sql";
 import { logger } from "../lib/logger";
 import { ApiError } from "../lib/ApiError";
@@ -9,8 +9,10 @@ import { v4 as uuidv4 } from "uuid";
 import { MiddlewareUserT } from "../lib/types";
 import { Cashfree, CreateOrderRequest } from "cashfree-pg";
 import { signStreamerVerficationToken } from "../lib/utils";
-import 'dotenv/config'
+import "dotenv/config";
 import OrderId from "order-id";
+import Razorpay from "razorpay";
+import { Orders } from "razorpay/dist/types/orders";
 
 const cashfreeClientHeaders = new Headers();
 cashfreeClientHeaders.set("x-api-version", process.env.CF_PAYOUT_XAPI_VERSION!);
@@ -107,77 +109,142 @@ const createBeneficiary: (p: CreateBeneficiaryPropT) => Promise<string> =
  * @param {CreateOrderPropT} props
  * @returns {Promise<string | undefined>} - a promise which will return a paymentSessionId as a result
  */
-const createCfOrder: (p: CreateOrderPropT) => Promise<{
-  orderId: string;
-  paymentStatus: string;
-  paymentSessionId: string;
-} | undefined> =
-  async function (props) {
-    const user = props.user;
-    const orderId = OrderId().generate().replace('-', '');
+const createCfOrder: (
+  p: CreateOrderPropT
+) => Promise<
+  | { orderId: string; paymentStatus: string; paymentSessionId: string }
+  | undefined
+> = async function (props) {
+  const user = props.user;
+  const orderId = OrderId().generate().replace("-", "");
 
-    // configuration for the cashfree to create a new payment gateway session id
-    const payload: CreateOrderRequest = {
-      order_id: orderId,
-      customer_details: {
-        customer_id: String(user.id),
-        customer_phone: user.phoneNumber ?? "1234567890",
-        customer_email: user.email,
-        customer_name: `${user.firstName} ${user.lastName}`,
+  // configuration for the cashfree to create a new payment gateway session id
+  const payload: CreateOrderRequest = {
+    order_id: orderId,
+    customer_details: {
+      customer_id: String(user.id),
+      customer_phone: user.phoneNumber ?? "1234567890",
+      customer_email: user.email,
+      customer_name: `${user.firstName} ${user.lastName}`,
+    },
+    order_amount: props.orderAmount,
+    order_currency: "INR",
+    order_meta: {
+      return_url: `https://test.cashfree.com/pgappsdemos/return.php?order_id=${orderId}`,
+      // notify_url: `https://synapse-api-local.adityasharma.live/api/v1/webhook/notify`
+    },
+    order_note: "",
+  };
+
+  const db = establishDbConnection();
+
+  // creates an order in the Order table of postgress db using drizzle-orm
+  const [dbOrder] = await db
+    .insert(Order)
+    .values({
+      cfOrderId: orderId,
+      orderAmount: payload.order_amount,
+      orderExpiryTime: String(payload.order_expiry_time),
+      userId: Number(props.user.id),
+      orderCurrency: "INR",
+      orderStatus: "PENDING",
+      paymentSessionId: "",
+      orderNote: "",
+    })
+    .returning()
+    .execute();
+
+  if (!dbOrder) throw new ApiError(400, "Failed to create order;");
+  let order;
+  try {
+    // using cashfree-pg this will make an api request to create an order on cashfree service for paymentSessionId
+    order = await Cashfree.PGCreateOrder(
+      process.env.CF_PAYMENT_XAPI_VERSION!, // x-api-version: cashfree api version
+      payload
+    );
+  } catch (err) {
+    // For now deleting previous order may be fine.
+    await db.delete(Order).where(eq(Order.id, dbOrder.id)).execute();
+    throw new ApiError(400, "Something went wrong with cf order creation.");
+  }
+  const paymentSessionId = order.data.payment_session_id;
+
+  // updating the order table row
+  await db
+    .update(Order)
+    .set({
+      orderStatus: order.data.order_status ?? "PENDING",
+      paymentSessionId,
+    })
+    .where(eq(Order.id, dbOrder.id))
+    .execute();
+
+  return {
+    orderId,
+    paymentSessionId: String(paymentSessionId),
+    paymentStatus: String(order.data.order_status),
+  };
+};
+
+const createRazorpayOrder: (
+  p: CreateOrderPropT
+) => Promise<
+  | { orderId: string; paymentStatus: "created" | "attempted" | "paid"; paymentSessionId: string }
+  | undefined
+> = async function (props) {
+  const user = props.user;
+
+  const orderOptions: Orders.RazorpayOrderCreateRequestBody = {
+    amount: props.orderAmount * 100, // because we are taking from frontend in ruppes
+    currency: "INR",
+    receipt: `reciept#${Date.now()}`,
+    customer_details: {
+      contact: String(user.phoneNumber),
+      email: user.email,
+      billing_address: {
+        contact: String(user.phoneNumber),
+        country: "IN",
+        name: String(user.firstName + " " + user.lastName),
       },
-      order_amount: props.orderAmount,
-      order_currency: "INR",
-      order_meta: {
-        return_url: `https://test.cashfree.com/pgappsdemos/return.php?order_id=${orderId}`,
-        // notify_url: `https://synapse-api-local.adityasharma.live/api/v1/webhook/notify`
-      },
-      order_note: "",
-    };
+      name: `${user.firstName} ${user.lastName}`,
+      shipping_address: {},
+    },
+  };
 
-    const db = establishDbConnection();
+  const db = establishDbConnection();
+  try {
+    // using razorpay, this will make an api request to create an order on razorpay payment service for paymentSessionId
+    const instance = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID!,
+      key_secret: process.env.RAZORPAY_SECRET_KEY!,
+    });
 
-    // creates an order in the Order table of postgress db using drizzle-orm
+    const order = await instance.orders.create(orderOptions);
+
+    // updating the order table row
     const [dbOrder] = await db
       .insert(Order)
       .values({
-        cfOrderId: orderId,
-        orderAmount: payload.order_amount,
-        orderExpiryTime: String(payload.order_expiry_time),
-        userId: Number(props.user.id),
-        orderCurrency: "INR",
-        orderStatus: "PENDING",
-        paymentSessionId: "",
-        orderNote: "",
+        cfOrderId: order.id,
+        orderAmount: +order.amount,
+        orderExpiryTime: (new Date(1000 * 14 * 60)).toUTCString(),
+        userId: user.id,
+        orderCurrency: order.currency,
+        orderStatus: order.status,
+        paymentSessionId: null
       })
       .returning()
-      .execute();
+      .execute()
 
-    if (!dbOrder) throw new ApiError(400, "Failed to create order;");
-    let order;
-    try {
-      // using cashfree-pg this will make an api request to create an order on cashfree service for paymentSessionId
-      order = await Cashfree.PGCreateOrder(
-        process.env.CF_PAYMENT_XAPI_VERSION!, // x-api-version: cashfree api version
-        payload
-      );
-    } catch (err) {
-      // For now deleting previous order may be fine.
-      await db.delete(Order).where(eq(Order.id, dbOrder.id)).execute();
-      throw new ApiError(400, "Something went wrong with cf order creation.");
-    }
-    const paymentSessionId = order.data.payment_session_id;
+    return {
+      orderId: String(dbOrder.cfOrderId),
+      paymentSessionId: "",
+      paymentStatus: order.status,
+    };
+  } catch (err) {
+    console.error(err);
+    throw new ApiError(400, "Something went wrong with cf order creation.");
+  }
+};
 
-    // updating the order table row
-    await db
-      .update(Order)
-      .set({
-        orderStatus: order.data.order_status ?? "PENDING",
-        paymentSessionId,
-      })
-      .where(eq(Order.id, dbOrder.id))
-      .execute();
-
-    return {orderId, paymentSessionId: String(paymentSessionId), paymentStatus: String(order.data.order_status)};
-  };
-
-export { createBeneficiary, createCfOrder };
+export { createBeneficiary, createCfOrder, createRazorpayOrder };

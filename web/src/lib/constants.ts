@@ -2,6 +2,9 @@
 const msgWidgetId = import.meta.env.VITE_WIDGET_ID!;
 const msgAuthToken = import.meta.env.VITE_TOKEN_AUTH!;
 
+// razorpay key id import only
+const razorpayKeyId = import.meta.env.VITE_RAZORPAY_KEY_ID!;
+
 // socket events both on server side and client side, I also need to fix that so that 
 // we can only need to update one time thte SocketEventEnum 
 // so that it will sync to the server and client side both.
@@ -24,4 +27,4 @@ const SocketEventEnum = Object.freeze({
   CHAT_DOWNVOTE_DOWN_EVENT: "stream:chat:downvote-down",
 });
 
-export { msgAuthToken, msgWidgetId, SocketEventEnum };
+export { msgAuthToken, msgWidgetId, SocketEventEnum, razorpayKeyId };

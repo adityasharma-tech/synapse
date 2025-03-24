@@ -7,7 +7,7 @@ import { useParams } from "react-router";
 import { useSocket } from "../../hooks/socket.hook";
 import { createPremiumChatOrder, getStreamById } from "../../lib/apiClient";
 import { requestHandler } from "../../lib/requestHandler";
-import { SocketEventEnum } from "../../lib/constants";
+import { razorpayKeyId, SocketEventEnum } from "../../lib/constants";
 import { useAppDispatch, useAppSelector } from "../../store";
 import {
   FormEventHandler,
@@ -34,7 +34,7 @@ import {
   PremiumChatT,
 } from "../../store/reducers/stream.reducer";
 import { setAllPreChats } from "../../store/actions/stream.actions";
-import { useDebounce, useThrottle } from "../../lib/utils";
+import { loadScript, useDebounce, useThrottle } from "../../lib/utils";
 import { toast } from "sonner";
 
 export default function Stream() {
@@ -172,6 +172,33 @@ export default function Stream() {
     [cashfree, paymentSessionId, toast, setPayDialogOpen]
   );
 
+  const handleRazorpayPayment = useCallback(
+    async (orderId: string) => {
+      const options = {
+        key: razorpayKeyId,
+        amount: 3000, // 30 rupay
+        currency: "INR",
+        name: "Acme Corp",
+        description: "Test Transaction",
+        image: "https://example.com/your_logo",
+        order_id: orderId,
+        prefill: {
+          name: "Piyush Garg",
+          email: "youremail@example.com",
+          contact: "9999999999",
+        },
+        theme: {
+          color: "#3399cc",
+        },
+      };
+
+      // @ts-ignore
+      const rzpay = new window.Razorpay(options);
+      rzpay.open();
+    },
+    []
+  );
+
   // ...
   const handleMakePayment: FormEventHandler<HTMLFormElement> = useCallback(
     async (e) => {
@@ -184,11 +211,8 @@ export default function Stream() {
           }),
           setPaymentLoading,
           async (data) => {
-            const sessionId = data.data.paymentSessionId;
-            console.log("payment", data);
-            if (!sessionId) toast("Failed to create order.");
-            setPaymentSessionId(sessionId);
-            await handleCheckout(sessionId);
+            const orderId = data.data.orderId;
+            await handleRazorpayPayment(orderId);
           }
         );
     },
@@ -324,7 +348,11 @@ export default function Stream() {
   }, [streamId, socket, streaming]);
 
   React.useEffect(() => {
-    handleInitializeCashfree();
+    // handleInitializeCashfree();
+    (async () => {
+      const res = await loadScript("https://checkout.razorpay.com/v1/checkout.js");
+      if(!res) alert("Failed to load razorpay api.");
+    })();
   }, []);
 
   if (loading) return <LoadingComp />;
@@ -413,11 +441,13 @@ export default function Stream() {
         </div>
         <div className="h-full w-[60%] bg-neutral-900 rounded-lg px-2 flex flex-col justify-between">
           <div className="overflow-y-auto scroll-smooth">
-            {
-              streamState.premiumChats.map((chat, index)=>(
-                <PremiumChatComp key={index} {...chat} handleMarkDone={()=>handleUpdateMarkDone(chat.id)}/>
-              ))
-            }
+            {streamState.premiumChats.map((chat, index) => (
+              <PremiumChatComp
+                key={index}
+                {...chat}
+                handleMarkDone={() => handleUpdateMarkDone(chat.id)}
+              />
+            ))}
             {streamState.basicChats.map((chat, index) => (
               <ChatComp
                 key={index}
@@ -555,7 +585,6 @@ interface PremiumChatCompPropT extends PremiumChatT {
   role?: "streamer" | "viewer";
 }
 
-
 function PremiumChatComp(props: PropsWithChildren<PremiumChatCompPropT>) {
   return (
     <div className="p-3 bg-rose-800 mt-2 rounded-lg">
@@ -567,29 +596,27 @@ function PremiumChatComp(props: PropsWithChildren<PremiumChatCompPropT>) {
               className="rounded-full size-7"
             />
           </div>
-          <span className="font-medium">
-            {props.user.fullName}
-          </span>
+          <span className="font-medium">{props.user.fullName}</span>
         </div>
         <div className="flex gap-x-4 items-center">
           {/* Parse amount in a valid currecy before displaying */}
           <span className="font-semibold text-lg">₹{props.paymentAmount}</span>
           {props.role == "streamer" ? (
-          <div className="gap-x-2 flex items-center">
-            <span className="p-0.5 text-xs border border-green-500 rounded px-1.5">
-              {props.upVotes}
-            </span>
-            <span className="p-0.5 text-xs border border-amber-500 rounded px-1.5">
-              {props.downVotes}
-            </span>
-            <button
-              onClick={props.handleMarkDone}
-              className="btn btn-soft btn-success btn-xs"
-            >
-              Mark read
-            </button>
-          </div>
-        ) : null}
+            <div className="gap-x-2 flex items-center">
+              <span className="p-0.5 text-xs border border-green-500 rounded px-1.5">
+                {props.upVotes}
+              </span>
+              <span className="p-0.5 text-xs border border-amber-500 rounded px-1.5">
+                {props.downVotes}
+              </span>
+              <button
+                onClick={props.handleMarkDone}
+                className="btn btn-soft btn-success btn-xs"
+              >
+                Mark read
+              </button>
+            </div>
+          ) : null}
         </div>
       </div>
       <div className="divider my-1.5" />

@@ -10,7 +10,7 @@ import { ApiError, ErrCodes } from "../lib/ApiError";
 import { logger } from "../lib/logger";
 import { ChatMessage } from "../schemas/chats.sql";
 import { User } from "../schemas/user.sql";
-import { createCfOrder } from "../services/payments.service";
+import { createCfOrder, createRazorpayOrder } from "../services/payments.service";
 import { MiddlewareUserT } from "../lib/types";
 import { Order } from "../schemas/order.sql";
 
@@ -198,10 +198,12 @@ const makePremiumChat = asyncHandler(async (req, res) => {
   if (!stream)
     throw new ApiError(400, "Failed to get the stream you wanna chat on.");
 
-  const orderResult = await createCfOrder({
+  const orderResult = await createRazorpayOrder({
     user: req.user as MiddlewareUserT,
     orderAmount: orderAmt,
   });
+
+  console.log(orderResult);
 
   if (!orderResult)
     throw new ApiError(
@@ -226,10 +228,7 @@ const makePremiumChat = asyncHandler(async (req, res) => {
 
   if (!newChat) throw new ApiError(400, "failed to insert new chat.");
 
-  if (!paymentSessionId)
-    throw new ApiError(400, "Failed to create your order.");
-
-  res.status(201).json(new ApiResponse(201, { paymentSessionId }));
+  res.status(201).json(new ApiResponse(201, { paymentSessionId, orderId: newOrderId }));
 });
 
 export {

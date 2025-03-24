@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { handleVerifyCfOrder } from "../controller/webhook.controller";
+import { handleVerfiyRazorpayOrder, handleVerifyCfOrder } from "../controller/webhook.controller";
 
 const router = Router();
 
@@ -9,5 +9,6 @@ router.use((_, res, next)=>{
 })
 
 router.route("/cf").post(handleVerifyCfOrder);
+router.route('/razorpay').post(handleVerfiyRazorpayOrder)
 
 export default router;

@@ -27,11 +27,10 @@ const useDebounce = () => {
   return debounceFunction.current;
 };
 
-
 const useThrottle = () => {
   const throttleSeed = useRef<any>(null);
 
-  const throttleFunction = useRef((func: Function, delay=200) => {
+  const throttleFunction = useRef((func: Function, delay = 200) => {
     if (!throttleSeed.current) {
       // Call the callback immediately for the first time only
       func();
@@ -44,7 +43,18 @@ const useThrottle = () => {
   return throttleFunction.current;
 };
 
-export {
-  useThrottle,
-  useDebounce
+function loadScript(src: string) {
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = src;
+    script.onload = () => {
+      resolve(true);
+    };
+    script.onerror = () => {
+      resolve(false);
+    };
+    document.body.appendChild(script);
+  });
 }
+
+export { useThrottle, useDebounce, loadScript };
