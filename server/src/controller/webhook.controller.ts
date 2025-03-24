@@ -122,23 +122,21 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Invalid signature");
   }
 
-  const event = await JSON.parse(body);
+  const event = body;
 
-  switch (event.event) {
-    case "order.paid":
+  console.log("event", event)
+
+  if(event.event === "order.paid"){
       const instance = new Razorpay({
         key_id: process.env.RAZORPAY_KEY_ID!,
         key_secret: process.env.RAZORPAY_SECRET_KEY!,
       });
-      const orderId = event['payload']['order']['entity']['id']
-      const order = await instance.orders.fetch(orderId)
+      const orderId = event["payload"]["order"]["entity"]["id"];
+      const order = await instance.orders.fetch(orderId);
       const db = establishDbConnection();
       const [orderUpdate] = await db
         .update(Order)
-        .set({
-          orderAmount: order.amount_paid,
-          orderStatus: order.status,
-        })
+        .set({ orderAmount: order.amount_paid, orderStatus: order.status })
         .where(eq(Order.cfOrderId, String(orderId)))
         .returning()
         .execute();
@@ -197,10 +195,10 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
           );
         }
       }
-
-    default:
+    } else {
       throw new ApiError(404, "Event not found.");
-  }
+    }
+    return res.status(200).json(new ApiResponse(200, "Sucess"))
 });
 
 export { handleVerifyCfOrder, handleVerfiyRazorpayOrder };
