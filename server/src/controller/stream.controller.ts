@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import establishDbConnection from "../db";
 
 import { Stream } from "../schemas/stream.sql";
-import { count, eq, sql } from "drizzle-orm";
+import { and, count, eq, or, sql } from "drizzle-orm";
 import { ApiResponse } from "../lib/ApiResponse";
 import { v4 as uuidv4 } from "uuid";
 import { asyncHandler } from "../lib/asyncHandler";
@@ -136,7 +136,6 @@ const getAllChatsByStreamingId = asyncHandler(async (req, res) => {
       upVotes: sql`COALESCE(array_length(${ChatMessage.upVotes}, 1), 0)`,
       downVotes: sql`COALESCE(array_length(${ChatMessage.downVotes}, 1), 0)`,
       pinned: ChatMessage.pinned,
-      orderId: ChatMessage.orderId,
       createdAt: ChatMessage.createdAt,
       updatedAt: ChatMessage.updatedAt,
     })
@@ -150,20 +149,28 @@ const getAllChatsByStreamingId = asyncHandler(async (req, res) => {
       User.profilePicture,
       ChatMessage.markRead,
       ChatMessage.pinned,
-      ChatMessage.orderId,
       ChatMessage.createdAt,
       ChatMessage.updatedAt
     )
     .leftJoin(User, eq(ChatMessage.userId, User.id))
-    .where(eq(ChatMessage.streamUid, String(streamId)))
+    .where(
+      and(
+        eq(ChatMessage.streamUid, String(streamId)),
+        or(
+          eq(ChatMessage.paymentStatus, "IDLE"),
+          eq(ChatMessage.paymentStatus, "PAID")
+        )
+      )
+    )
     .execute();
 
   res.status(200).json(new ApiResponse(200, { chats: results }));
 });
 
 const makePremiumChat = asyncHandler(async (req, res) => {
+  const user = req.user;
   const { streamId } = req.params;
-  const { paymentAmount } = req.body;
+  const { paymentAmount, message } = req.body;
   if (streamId.trim() == "") throw new ApiError(400, "Failed to get streamid.");
 
   if (!paymentAmount) throw new ApiError(400, "Failed to get order amount.");
@@ -184,10 +191,33 @@ const makePremiumChat = asyncHandler(async (req, res) => {
   if (!stream)
     throw new ApiError(400, "Failed to get the stream you wanna chat on.");
 
-  const paymentSessionId = await createCfOrder({
+  const orderResult = await createCfOrder({
     user: req.user as MiddlewareUserT,
     orderAmount: orderAmt,
   });
+
+  if (!orderResult)
+    throw new ApiError(
+      400,
+      "Failed to create payment order for your premium chat."
+    );
+
+  const { orderId: newOrderId, paymentSessionId, paymentStatus } = orderResult;
+
+  const [newChat] = await db
+    .insert(ChatMessage)
+    .values({
+      message: String(message),
+      userId: user.id,
+      cfOrderId: newOrderId,
+      paymentStatus,
+      streamUid: streamId.toString(),
+      updatedAt: new Date(),
+    })
+    .returning()
+    .execute();
+
+  if (!newChat) throw new ApiError(400, "failed to insert new chat.");
 
   if (!paymentSessionId)
     throw new ApiError(400, "Failed to create your order.");

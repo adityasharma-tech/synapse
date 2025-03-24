@@ -107,7 +107,11 @@ const createBeneficiary: (p: CreateBeneficiaryPropT) => Promise<string> =
  * @param {CreateOrderPropT} props
  * @returns {Promise<string | undefined>} - a promise which will return a paymentSessionId as a result
  */
-const createCfOrder: (p: CreateOrderPropT) => Promise<string | undefined> =
+const createCfOrder: (p: CreateOrderPropT) => Promise<{
+  orderId: string;
+  paymentStatus: string;
+  paymentSessionId: string;
+} | undefined> =
   async function (props) {
     const user = props.user;
     const orderId = OrderId().generate().replace('-', '');
@@ -173,7 +177,7 @@ const createCfOrder: (p: CreateOrderPropT) => Promise<string | undefined> =
       .where(eq(Order.id, dbOrder.id))
       .execute();
 
-    return paymentSessionId;
+    return {orderId, paymentSessionId: String(paymentSessionId), paymentStatus: String(order.data.order_status)};
   };
 
 export { createBeneficiary, createCfOrder };

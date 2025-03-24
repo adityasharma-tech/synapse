@@ -162,9 +162,6 @@ async function chatUpvoteHandler(
     .where(eq(ChatMessage.id, parseInt(payload.id))); // problem here
 
   if (!result) return; // TODO: send socket error messages
-  logger.info(
-    `chatUpvoteHandler: ${socket.user.id} ${JSON.stringify(result.upVotes)}`
-  );
   if (result.upVotes.includes(socket.user?.id)) {
     db.update(ChatMessage)
       .set({

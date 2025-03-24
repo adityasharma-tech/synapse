@@ -10,7 +10,7 @@ const ChatMessage = t.pgTable("chats", {
     .integer()
     .references(() => User.id)
     .notNull(),
-  orderId: t.integer().references(() => Order.id),
+  cfOrderId: t.varchar(),
   message: t.varchar().notNull(),
   markRead: t.boolean().default(false).notNull(),
   upVotes: t
@@ -26,6 +26,7 @@ const ChatMessage = t.pgTable("chats", {
     .default([])
     .notNull(),
   pinned: t.boolean().default(false).notNull(),
+  paymentStatus: t.varchar().default("IDLE").notNull(),
   ...timestamps,
 });
 
