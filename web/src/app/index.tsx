@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useNavigate } from "react-router";
 
 export default function Home() {
@@ -41,6 +42,13 @@ export default function Home() {
       "premium": false
     },
   ]
+
+  const handleToogleDarkMode = useCallback(()=>{
+    const root = window.document.querySelector('body')
+    if(!root) return;
+    if(root.classList.contains('dark')) root.classList.remove('dark')
+      else root.classList.add('dark');
+  },[])
   
   return (
     <div className="overflow-y-scroll h-screen">
@@ -59,7 +67,7 @@ export default function Home() {
           <button className="button btn-ghost">Privacy Policy</button>
         </div>
         <div className="flex gap-x-3">
-          <button className="button mr-4 hover:bg-neutral-800 px-2.5 rounded-full">
+          <button onClick={handleToogleDarkMode} className="button mr-4 hover:bg-neutral-800 px-2.5 rounded-full">
             <svg width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none">
               <path
                 d="M7.285 10.333a5 5 0 103.049-3.049M12 2v2M12 20v2M4 12H2M22 12h-2M19.778 4.223l-2.222 2.031M4.222 4.223l2.222 2.031M6.444 17.556l-2.222 2.222M19.778 19.777l-2.222-2.222"

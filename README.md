@@ -75,3 +75,28 @@
 - Redis service
 - Server - onrender
 - Vite - vercel
+
+
+<!-- /**
+ * Beneficiary ID
+ * Account Name
+ * Account email
+ * Dashboard Access - Boolean
+ * Allow customer refunds - boolean
+ * 
+ * IFSC Code
+ * Account No
+ * Re-Enter account number
+ * Beneficiary Name
+ */
+
+/**
+ * email    - string
+ * phone    - integer
+ * legal_business_name  - string
+ * business_type    - string
+ * refrence_id  - string        // id of the user in the app db
+ * profile  - 
+ *      - subcategory
+ *      - category 
+ */ -->
