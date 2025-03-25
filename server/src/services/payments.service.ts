@@ -51,6 +51,13 @@ interface CreateOrderPropT {
   user: MiddlewareUserT;
 }
 
+const getRazorpayInstance = function(){
+  return new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID!,
+    key_secret: process.env.RAZORPAY_SECRET_KEY!
+  })
+}
+
 const createBeneficiary: (p: CreateBeneficiaryPropT) => Promise<string> =
   function (props) {
     const payload = {
@@ -214,10 +221,7 @@ const createRazorpayOrder: (
   const db = establishDbConnection();
   try {
     // using razorpay, this will make an api request to create an order on razorpay payment service for paymentSessionId
-    const instance = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID!,
-      key_secret: process.env.RAZORPAY_SECRET_KEY!,
-    });
+    const instance = getRazorpayInstance();
 
     const order = await instance.orders.create(orderOptions);
 
@@ -247,4 +251,4 @@ const createRazorpayOrder: (
   }
 };
 
-export { createBeneficiary, createCfOrder, createRazorpayOrder };
+export { createBeneficiary, createCfOrder, createRazorpayOrder, getRazorpayInstance };

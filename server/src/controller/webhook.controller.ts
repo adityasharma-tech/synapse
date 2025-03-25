@@ -13,6 +13,7 @@ import { ChatMessage } from "../schemas/chats.sql";
 import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
 import { SocketEventEnum } from "../lib/constants";
+import { getRazorpayInstance } from "../services/payments.service";
 
 Cashfree.XClientId = process.env.CF_PAYMENT_CLIENT_ID!;
 Cashfree.XClientSecret = process.env.CF_PAYMENT_CLIENT_SECRET!;
@@ -127,10 +128,7 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
   console.log("event", event)
 
   if(event.event === "order.paid"){
-      const instance = new Razorpay({
-        key_id: process.env.RAZORPAY_KEY_ID!,
-        key_secret: process.env.RAZORPAY_SECRET_KEY!,
-      });
+      const instance = getRazorpayInstance();
       const orderId = event["payload"]["order"]["entity"]["id"];
       const order = await instance.orders.fetch(orderId);
       const db = establishDbConnection();
