@@ -1,7 +1,6 @@
-import React from "react";
-import Header from "../../components/header";
+import React, { MouseEventHandler } from "react";
 import LoadingComp from "../../components/loading";
-import { load as loadCashfree } from "@cashfreepayments/cashfree-js";
+// import { load as loadCashfree } from "@cashfreepayments/cashfree-js";
 
 import { useParams } from "react-router";
 import { useSocket } from "../../hooks/socket.hook";
@@ -19,7 +18,6 @@ import {
 import {
   addBasicChat,
   addPremiumChat,
-  BasicChatT,
   downVoteBasicChat,
   // PremiumChatT,
   removeBasicChat,
@@ -62,7 +60,7 @@ export default function Stream() {
   const [paymentSessionId, setPaymentSessionId] = useState<string | null>(null);
 
   // cashfree states
-  const [cashfree, setCashfree] = useState<any>(null);
+  const [cashfree] = useState<any>(null);
 
   // state hooks
   const streamState = useAppSelector((state) => state.stream);
@@ -71,7 +69,7 @@ export default function Stream() {
   const lastMessageRef = useRef<HTMLDivElement | null>(null);
 
   // send message by admin TODO: handle permission on server side, check if he is admin or not and add a check mark and highlight
-  const handleSendMessage: FormEventHandler<HTMLFormElement> = useCallback(
+  const handleSendMessage: MouseEventHandler<HTMLButtonElement> = useCallback(
     (e) => {
       e.preventDefault();
       if (socket && message.trim() != "")
@@ -126,15 +124,15 @@ export default function Stream() {
   );
 
   /**
-   * Payment handling
-   */
-
+   * Cashfree Payment handling
+  
   const handleInitializeCashfree = useCallback(async () => {
     const lCashfree = await loadCashfree({
       mode: "sandbox",
     });
     setCashfree(lCashfree);
   }, [setCashfree, loadCashfree]);
+  */
 
   /**
    * handling checkout
@@ -172,32 +170,29 @@ export default function Stream() {
     [cashfree, paymentSessionId, toast, setPayDialogOpen]
   );
 
-  const handleRazorpayPayment = useCallback(
-    async (orderId: string) => {
-      const options = {
-        key: razorpayKeyId,
-        amount: 3000, // 30 rupay
-        currency: "INR",
-        name: "Acme Corp",
-        description: "Test Transaction",
-        image: "https://example.com/your_logo",
-        order_id: orderId,
-        prefill: {
-          name: "Piyush Garg",
-          email: "youremail@example.com",
-          contact: "9999999999",
-        },
-        theme: {
-          color: "#3399cc",
-        },
-      };
+  const handleRazorpayPayment = useCallback(async (orderId: string) => {
+    const options = {
+      key: razorpayKeyId,
+      amount: 3000, // 30 rupay
+      currency: "INR",
+      name: "Acme Corp",
+      description: "Test Transaction",
+      image: "https://example.com/your_logo",
+      order_id: orderId,
+      prefill: {
+        name: "Piyush Garg",
+        email: "youremail@example.com",
+        contact: "9999999999",
+      },
+      theme: {
+        color: "#3399cc",
+      },
+    };
 
-      // @ts-ignore
-      const rzpay = new window.Razorpay(options);
-      rzpay.open();
-    },
-    []
-  );
+    // @ts-ignore
+    const rzpay = new window.Razorpay(options);
+    rzpay.open();
+  }, []);
 
   // ...
   const handleMakePayment: FormEventHandler<HTMLFormElement> = useCallback(
@@ -350,18 +345,17 @@ export default function Stream() {
   React.useEffect(() => {
     // handleInitializeCashfree();
     (async () => {
-      const res = await loadScript("https://checkout.razorpay.com/v1/checkout.js");
-      if(!res) alert("Failed to load razorpay api.");
+      const res = await loadScript(
+        "https://checkout.razorpay.com/v1/checkout.js"
+      );
+      if (!res) alert("Failed to load razorpay api.");
     })();
   }, []);
 
   if (loading) return <LoadingComp />;
+
   return (
     <React.Fragment>
-      <Header>
-        <></>
-      </Header>
-      {/* payment dialog model*/}
       {dialogPayOpen ? (
         <div className="fixed inset-0 z-5 flex justify-center items-center">
           <span className="inset-0 absolute z-10 bg-black/50" />
@@ -369,7 +363,7 @@ export default function Stream() {
             <div className="flex justify-between">
               <span className="font-medium text-lg">Make premium chat</span>
               <button
-                className="btn btn-square btn-xs btn-soft"
+                className="button btn-square btn-xs btn-soft"
                 type="button"
                 onClick={() => setPayDialogOpen(!dialogPayOpen)}
               >
@@ -412,7 +406,10 @@ export default function Stream() {
                   })
                 }
               />
-              <button type="submit" className="btn btn-soft btn-info ml-auto">
+              <button
+                type="submit"
+                className="button btn-soft btn-info ml-auto"
+              >
                 {paymentLoding ? (
                   <span className="loading loading-spinner loading-sm"></span>
                 ) : null}
@@ -422,35 +419,93 @@ export default function Stream() {
           </div>
         </div>
       ) : null}
-      <div className="h-[calc(93vh-2px)] overflow-hidden flex p-2 gap-x-2">
-        <div className="h-full w-[40%] bg-neutral-900 rounded-lg p-2">
-          <div className="grid grid-cols-2 gap-2">
-            <div className="relative flex justify-center items-center min-h-36 bg-neutral-800 rounded-lg">
-              <span className="absolute top-1 left-2 text-xs">
-                Total Payment Recieved
-              </span>
-              <span className="text-4xl">500$</span>
+      <header className="justify-between w-full flex py-5 px-6 items-center">
+        <div>
+          <img className="h-8 w-auto dark:hidden" src="/assets/T&B@2x.png" />
+          <img
+            className="h-8 w-auto not-dark:hidden"
+            src="/assets/T&W@2x.png"
+          />
+        </div>
+        <div className="flex gap-x-3">
+          <div className="bg-[#222] rounded-lg py-1 text-sm flex items-center gap-x-3 px-3">
+            <span className="text-neutral-100">
+              {window.location.toString()}
+            </span>
+            <button
+              onClick={() => {
+                window.navigator.clipboard.writeText(
+                  window.location.toString()
+                );
+              }}
+              className="size-8 rounded-full bg-neutral-900 flex items-center justify-center cursor-pointer"
+            >
+              <svg width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none">
+                <path
+                  fillRule="evenodd"
+                  clipRule="evenodd"
+                  d="M21 8a3 3 0 00-3-3h-8a3 3 0 00-3 3v12a3 3 0 003 3h8a3 3 0 003-3V8zm-2 0a1 1 0 00-1-1h-8a1 1 0 00-1 1v12a1 1 0 001 1h8a1 1 0 001-1V8z"
+                  fill="#fefefe"
+                />
+                <path
+                  d="M6 3h10a1 1 0 100-2H6a3 3 0 00-3 3v14a1 1 0 102 0V4a1 1 0 011-1z"
+                  fill="#fefefe"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </header>
+      <main className="grid grid-cols-2 w-full h-[calc(100vh-82px)] px-5">
+        <div className="h-full">
+          <iframe
+            width="890"
+            height="500"
+            src="https://www.youtube.com/embed/5W3niGQWM10?si=xscm8h-BRJmNC0_r&amp;autoplay=1&amp;mute=1"
+            title="YouTube video player"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+            className="rounded-lg overflow-hidden"
+          ></iframe>
+          <div className="grid grid-cols-3 gap-3 p-4">
+            <div className="bg-neutral-950 rounded-lg py-4 flex items-center justify-between px-5">
+              <svg
+                height="1em"
+                width="1em"
+                id="prefix___x32_"
+                viewBox="0 0 512 512"
+                xmlSpace="preserve"
+              >
+                <style>{".prefix__st0{fill:#fff}"}</style>
+                <path
+                  className="prefix__st0"
+                  d="M458.159 404.216c-18.93-33.65-49.934-71.764-100.409-93.431-28.868 20.196-63.938 32.087-101.745 32.087-37.828 0-72.898-11.89-101.767-32.087-50.474 21.667-81.479 59.782-100.398 93.431C28.731 448.848 48.417 512 91.842 512h328.317c43.424 0 63.11-63.152 38-107.784zM256.005 300.641c74.144 0 134.231-60.108 134.231-134.242v-32.158C390.236 60.108 330.149 0 256.005 0 181.85 0 121.753 60.108 121.753 134.242V166.4c0 74.133 60.098 134.241 134.252 134.241z"
+                />
+              </svg>
+              251 Watching
             </div>
-            <div className="relative flex justify-center items-center min-h-36 bg-neutral-800 rounded-lg">
-              <span className="absolute top-1 left-2 text-xs">
-                Total Payment Recieved
-              </span>
-              <span className="text-4xl">500$</span>
+            <div className="bg-neutral-950 rounded-lg py-4 flex items-center justify-between px-5">
+              500 Questions
             </div>
           </div>
         </div>
-        <div className="h-full w-[60%] bg-neutral-900 rounded-lg px-2 flex flex-col justify-between">
-          <div className="overflow-y-auto scroll-smooth">
-            {streamState.premiumChats.map((chat, index) => (
-              <PremiumChatComp
-                key={index}
+        <div className="h-[calc(100vh-210px)]">
+          <div className="h-full overflow-y-scroll">
+            {streamState.premiumChats.map((chat, idx) => (
+              <BasicChatComp
+                key={idx}
                 {...chat}
+                role={user?.role ?? "viewer"}
                 handleMarkDone={() => handleUpdateMarkDone(chat.id)}
+                handleUpVoteChat={() => handleUpVoteChat(chat.id)}
+                handleDownVoteChat={() => handleDownVoteChat(chat.id)}
               />
             ))}
-            {streamState.basicChats.map((chat, index) => (
-              <ChatComp
-                key={index}
+            {streamState.basicChats.map((chat, idx) => (
+              <BasicChatComp
+                key={idx}
                 {...chat}
                 role={user?.role ?? "viewer"}
                 handleMarkDone={() => handleUpdateMarkDone(chat.id)}
@@ -460,9 +515,9 @@ export default function Stream() {
             ))}
             <div ref={lastMessageRef}></div>
           </div>
-          <div>
+          <div className="relative">
             {streamState.typerNames.length > 0 ? (
-              <div className="flex items-center gap-x-2 text-sm font-medium">
+              <div className="flex items-center gap-x-2 text-sm font-medium absolute -top-10 bg-black left-0 right-0">
                 <span className="loading loading-dots loading-lg" />
                 {streamState.typerNames.map((user) => (
                   <span key={user.userId} className="animate-pulse">
@@ -472,92 +527,99 @@ export default function Stream() {
                 <span>typing...</span>
               </div>
             ) : null}
-            <form onSubmit={handleSendMessage} className="flex gap-x-4 py-2">
-              <input
+            <div className="w-full flex gap-x-2 px-4 py-4 bg-[#222] rounded-lg focus-within:border-neutral-200 border border-transparent">
+              <textarea
                 onChange={(e) => {
                   setMessage(e.target.value);
                   throttle(handleStartTyping, 4000);
                   debounce(handleStopTyping, 3000);
                 }}
-                value={message}
-                placeholder="Hello, World!"
-                className="input input-primary w-full"
+                placeholder="Enter message here..."
+                className="w-full focus:outline-none"
               />
-              <button type="submit" className="btn btn-primary btn-soft">
-                Send
-              </button>
-              {user?.role == "viewer" ? (
-                <button
-                  onClick={() => setPayDialogOpen(!dialogPayOpen)}
-                  type="button"
-                  className="btn btn-secondary btn-soft"
-                >
-                  Premium
+              <div>
+                {user?.role == "viewer" ? (
+                  <button
+                    onClick={() => setPayDialogOpen(!dialogPayOpen)}
+                    className="button btn-outline"
+                  >
+                    Premium
+                  </button>
+                ) : null}
+
+                <button onClick={handleSendMessage} className="button btn-solid w-full justify-center mt-1">
+                  Basic
                 </button>
-              ) : null}
-            </form>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
     </React.Fragment>
   );
 }
 
-interface BasicChatCompPropT extends BasicChatT {
+interface BasicChatCompPropT extends PremiumChatT {
   handleDownVoteChat: () => void;
   handleUpVoteChat: () => void;
   handleMarkDone: () => void;
   role?: "streamer" | "viewer";
 }
 
-function ChatComp(props: PropsWithChildren<BasicChatCompPropT>) {
+function BasicChatComp(props: PropsWithChildren<BasicChatCompPropT>) {
   return (
     <div
-      style={{
-        opacity: props.markRead ? 0.5 : 1,
-      }}
-      className="p-3 bg-neutral-800 mt-2 rounded-lg"
+      data-premium={props.orderId ? true : false}
+      className="px-3 py-3 first:mt-0 mt-3 bg-neutral-100 dark:bg-[#222] rounded-xl data-[premium=true]:border data-[premium=true]:border-amber-300 data-[premium=true]:bg-amber-50 dark:data-[premium=true]:border-amber-300 dark:data-[premium=true]:bg-amber-300/5"
     >
-      <div className="flex justify-between">
-        <div className="flex gap-x-3 items-center">
-          <div>
-            <img
-              src={props.user.profilePicture ?? "https://placehold.co/34"}
-              className="rounded-full size-7"
-            />
-          </div>
-          <span className="text-neutral-50">{props.user.fullName}</span>
+      <div className="flex w-full justify-between">
+        <div className="flex gap-x-3 items-center dark:text-neutral-50 text-neutral-800 font-medium">
+          <img
+            className="size-8 rounded-full"
+            src={`https://avatar.iran.liara.run/public?id=${props.user.id}`}
+          />
+          <span className="font-medium">{props.user.fullName}</span>
+          {props.paymentAmount ? (
+            <span className="font-semibold text-emerald-600">
+              ${Math.floor(props.paymentAmount / 100)}
+            </span>
+          ) : null}
         </div>
         {props.role == "viewer" ? (
-          <div className="flex gap-x-2">
+          <div className="flex gap-x-3 items-center">
             <button
               onClick={props.handleUpVoteChat}
-              className="btn btn-success btn-outline btn-xs group transition-none"
+              className="button border text-sm pl-2 text-green-600 bg-green-50 active:ring-green-400 ring-transparent px-1 py-0.5 rounded-md border-green-600 ring"
             >
-              <svg
-                className="size-3 fill-emerald-500 group-hover:fill-neutral-800"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M21,21H3L12,3Z" />
-              </svg>
               <span>{props.upVotes}</span>
+              <svg width="1em" height="1em" viewBox="0 0 20 20" fill="none">
+                <path
+                  d="M11.272 5.205l5 8A1.5 1.5 0 0115 15.5H5a1.5 1.5 0 01-1.272-2.295l5-8a1.5 1.5 0 012.544 0z"
+                  className="fill-green-600"
+                />
+              </svg>
             </button>
+
             <button
               onClick={props.handleDownVoteChat}
-              className="btn btn-warning btn-outline btn-xs group transition-none"
+              className="button border text-sm pl-2 text-amber-600 bg-amber-50 active:ring-amber-400 ring-transparent px-1 py-0.5 rounded-md border-amber-600 ring"
             >
-              <svg
-                className="rotate-180 size-3 fill-amber-400 group-hover:fill-neutral-800"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M21,21H3L12,3Z" />
-              </svg>
               <span>{props.downVotes}</span>
+              <svg
+                width="1em"
+                height="1em"
+                viewBox="0 0 20 20"
+                fill="none"
+                className="rotate-180"
+              >
+                <path
+                  d="M11.272 5.205l5 8A1.5 1.5 0 0115 15.5H5a1.5 1.5 0 01-1.272-2.295l5-8a1.5 1.5 0 012.544 0z"
+                  className="fill-amber-600"
+                />
+              </svg>
             </button>
           </div>
-        ) : props.role == "streamer" ? (
+        ) : props.role === "streamer" ? (
           <div className="gap-x-2 flex items-center">
             <span className="p-0.5 text-xs border border-green-500 rounded px-1.5">
               {props.upVotes}
@@ -567,77 +629,17 @@ function ChatComp(props: PropsWithChildren<BasicChatCompPropT>) {
             </span>
             <button
               onClick={props.handleMarkDone}
-              className="btn btn-soft btn-success btn-xs"
+              className="button btn-soft btn-success btn-xs"
             >
               Mark read
             </button>
           </div>
         ) : null}
       </div>
-      <div className="divider my-1.5" />
-      <div className="font-medium text-neutral-100">{props.message}</div>
-    </div>
-  );
-}
-
-interface PremiumChatCompPropT extends PremiumChatT {
-  handleMarkDone: () => void;
-  role?: "streamer" | "viewer";
-}
-
-function PremiumChatComp(props: PropsWithChildren<PremiumChatCompPropT>) {
-  return (
-    <div className="p-3 bg-rose-800 mt-2 rounded-lg">
-      <div className="flex justify-between">
-        <div className="flex gap-x-3 items-center">
-          <div>
-            <img
-              src={props.user.profilePicture ?? "https://placehold.co/34"}
-              className="rounded-full size-7"
-            />
-          </div>
-          <span className="font-medium">{props.user.fullName}</span>
-        </div>
-        <div className="flex gap-x-4 items-center">
-          {/* Parse amount in a valid currecy before displaying */}
-          <span className="font-semibold text-lg">₹{props.paymentAmount}</span>
-          {props.role == "streamer" ? (
-            <div className="gap-x-2 flex items-center">
-              <span className="p-0.5 text-xs border border-green-500 rounded px-1.5">
-                {props.upVotes}
-              </span>
-              <span className="p-0.5 text-xs border border-amber-500 rounded px-1.5">
-                {props.downVotes}
-              </span>
-              <button
-                onClick={props.handleMarkDone}
-                className="btn btn-soft btn-success btn-xs"
-              >
-                Mark read
-              </button>
-            </div>
-          ) : null}
-        </div>
-      </div>
-      <div className="divider my-1.5" />
-      <div className="flex gap-x-3">
-        <div className="font-medium">{props.message}</div>
-        <div>
-          <button className="btn btn-ghost btn-sm">
-            <svg
-              width="15px"
-              height="15px"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M19.1835 7.80516L16.2188 4.83755C14.1921 2.8089 13.1788 1.79457 12.0904 2.03468C11.0021 2.2748 10.5086 3.62155 9.5217 6.31506L8.85373 8.1381C8.59063 8.85617 8.45908 9.2152 8.22239 9.49292C8.11619 9.61754 7.99536 9.72887 7.86251 9.82451C7.56644 10.0377 7.19811 10.1392 6.46145 10.3423C4.80107 10.8 3.97088 11.0289 3.65804 11.5721C3.5228 11.8069 3.45242 12.0735 3.45413 12.3446C3.45809 12.9715 4.06698 13.581 5.28476 14.8L6.69935 16.2163L2.22345 20.6964C1.92552 20.9946 1.92552 21.4782 2.22345 21.7764C2.52138 22.0746 3.00443 22.0746 3.30236 21.7764L7.77841 17.2961L9.24441 18.7635C10.4699 19.9902 11.0827 20.6036 11.7134 20.6045C11.9792 20.6049 12.2404 20.5358 12.4713 20.4041C13.0192 20.0914 13.2493 19.2551 13.7095 17.5825C13.9119 16.8472 14.013 16.4795 14.2254 16.1835C14.3184 16.054 14.4262 15.9358 14.5468 15.8314C14.8221 15.593 15.1788 15.459 15.8922 15.191L17.7362 14.4981C20.4 13.4973 21.7319 12.9969 21.9667 11.9115C22.2014 10.826 21.1954 9.81905 19.1835 7.80516Z"
-                fill="#fefefe"
-              />
-            </svg>
-          </button>
-        </div>
+      <div className="pt-4">
+        <span className="text-neutral-800 text-[15px] dark:text-neutral-50 antialiased">
+          {props.message}
+        </span>
       </div>
     </div>
   );
