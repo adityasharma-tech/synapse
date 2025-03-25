@@ -13,7 +13,9 @@ const backendURL = import.meta.env.VITE_BACKEND_HOST;
 
 
 // socket provider to wrap the app to get the socket
-const SocketProvider = ({ children }: PropsWithChildren) => {
+const SocketProvider = ({ children, streamId }: PropsWithChildren<{
+    streamId: string
+}>) => {
 
     // fetch the user from the server
     const user = useAppSelector(state=>state.app.user);
@@ -29,10 +31,13 @@ const SocketProvider = ({ children }: PropsWithChildren) => {
         const socketClient = io(backendURL, {
             withCredentials: true, // by setting true it will send secure cookies from the client to the server
             // transports: ["websockets"],
-            autoConnect: true // debug code (default it is true) which will try to connect which no need to call socketClient.connect(), it will call as soon as this will run
+            autoConnect: true, // debug code (default it is true) which will try to connect which no need to call socketClient.connect(), it will call as soon as this will run
+            query: {
+                streamId
+            }
         })
         setSocket(socketClient);
-    }, [io, setSocket, backendURL])
+    }, [io, setSocket, backendURL, streamId]);
 
     
     // run as soon as page load trigger

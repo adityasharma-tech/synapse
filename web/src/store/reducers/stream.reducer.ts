@@ -50,6 +50,7 @@ interface DashStreamReducer {
   premiumChats: PremiumChatT[];
   stream: any;
   typerNames: TypingEventPayloadT[];
+  userRole: "streamer" | "viewer"
 }
 
 // Define the initial state using that type
@@ -60,6 +61,7 @@ const initialState: DashStreamReducer = {
   premiumChats: [],
   stream: {},
   typerNames: [],
+  userRole: "viewer"
 };
 
 export const streamSlice = createSlice({
@@ -71,6 +73,11 @@ export const streamSlice = createSlice({
       if (state.streamId || state.streamRunning)
         return console.error(`You can't update stream id after setting.`);
       state.streamId = action.payload;
+    },
+
+    // update role
+    updateUserRole: (state, action: PayloadAction<"viewer" | "streamer">) => {
+      state.userRole = action.payload
     },
 
     // add basic chat
@@ -233,7 +240,8 @@ export const {
   removeTypingEvent,
   markDoneChat,
   upVoteDownBasicChat,
-  downVoteDownBasicChat
+  downVoteDownBasicChat,
+  updateUserRole
 } = streamSlice.actions;
 
 export default streamSlice.reducer;

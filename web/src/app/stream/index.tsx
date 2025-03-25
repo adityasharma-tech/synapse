@@ -30,6 +30,7 @@ import {
   upVoteDownBasicChat,
   downVoteDownBasicChat,
   PremiumChatT,
+  updateUserRole,
 } from "../../store/reducers/stream.reducer";
 import { setAllPreChats } from "../../store/actions/stream.actions";
 import { loadScript, useDebounce, useThrottle } from "../../lib/utils";
@@ -323,7 +324,9 @@ export default function Stream() {
         await requestHandler(
           getStreamById({ streamId }),
           setLoading,
-          undefined,
+          (result)=>{
+            dispatch(updateUserRole(result.data.userRole))
+          },
           undefined,
           false
         );
@@ -351,6 +354,12 @@ export default function Stream() {
       if (!res) alert("Failed to load razorpay api.");
     })();
   }, []);
+
+  React.useEffect(()=>{
+    (()=>{
+      
+    })()
+  }, [])
 
   if (loading) return <LoadingComp />;
 

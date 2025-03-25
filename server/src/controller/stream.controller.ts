@@ -106,18 +106,23 @@ const getAllStreams = asyncHandler(async (req, res) => {
 const getStreamById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
+  const { role } = req.user;
+
   logger.info(`Id of stream: ${id}`);
   const db = establishDbConnection();
 
   const [stream] = await db
-    .select()
+    .select({
+      streamTitle: Stream.streamTitle,
+      streamUid: Stream.streamingUid
+    })
     .from(Stream)
     .where(eq(Stream.streamingUid, id))
     .execute();
 
   if (!stream) throw new ApiError(400, "Stream not found.");
 
-  res.status(200).json({ stream });
+  res.status(200).json({ stream, userRole: role });
 });
 
 const getAllChatsByStreamingId = asyncHandler(async (req, res) => {

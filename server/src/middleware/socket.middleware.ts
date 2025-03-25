@@ -6,9 +6,10 @@ import { ApiError, ErrCodes } from "../lib/ApiError";
 import { ExtendedError, Socket } from "socket.io";
 import { parse } from "cookie";
 import { User } from "../schemas/user.sql";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { SocketEventEnum } from "../lib/constants";
 import { TokenTable } from "../schemas/tokenTable.sql";
+import { Stream } from "../schemas/stream.sql";
 
 /**
  * @description A function to emit the socket event also disconnecting it so that user can't make any socket request.
@@ -35,15 +36,27 @@ const socketAuthMiddleware = async (
     const cookies = parse(socket.handshake.headers.cookie ?? "");
     const accessToken =
       cookies?.accessToken || socket.handshake.headers?.accessToken;
+    const streamId = socket.handshake.query.streamId as string;
 
     if (!accessToken)
       throw new ApiError(401, "Unauthorized", ErrCodes.UNAUTHORIZED);
 
+    
     const decodedUser: any = jwt.verify(
       String(accessToken),
       process.env.ACCESS_SECRET_KEY!
     );
     const db = establishDbConnection();
+
+    const [stream] = await db
+      .select({
+        streamingUid: Stream.streamingUid
+      })
+      .from(Stream)
+      .where(eq(Stream.streamingUid, streamId))
+      .execute();
+
+    if(!stream) throw new ApiError(400, "Stream not found");
 
     const [user] = await db
       .select({
@@ -55,25 +68,19 @@ const socketAuthMiddleware = async (
         profilePicture: User.profilePicture,
         role: User.role,
         emailVerified: User.emailVerified,
-        streamerToken: TokenTable.streamerVerificationToken,
       })
       .from(User)
-      .innerJoin(TokenTable, eq(TokenTable.userId, TokenTable.userId))
-      .groupBy(
-        User.id,
-        User.firstName,
-        User.lastName,
-        User.username,
-        User.email,
-        User.profilePicture,
-        User.role,
-        User.emailVerified,
-        TokenTable.streamerVerificationToken
-      )
-      .where(eq(User.id, decodedUser.userId))
+      .where(eq(User.id, decodedUser.urseId))
       .execute();
 
-    //
+    const [streamer] = await db
+      .select({
+        streamerId: Stream.streamerId,
+        streamingUid: Stream.streamingUid
+      })
+      .from(Stream)
+      .where(and(eq(Stream.streamerId, user.id), eq(Stream.streamingUid, streamId)))
+      .execute()
 
     socket.user = {
       firstName: user.firstName,
@@ -81,11 +88,14 @@ const socketAuthMiddleware = async (
       email: user.email,
       emailVerified: user.emailVerified,
       id: user.id,
-      role: user.role ?? "viewer",
+      role: "viewer",
       username: user.username,
       profilePicture: user.profilePicture || undefined,
-      streamerToken: user.streamerToken || undefined,
     };
+
+    if(streamer){
+      socket.user.role = "streamer";
+    }
     next();
   } catch (error: any) {
     logger.error(`Error during accessing middleware: ${error.message}`);

@@ -1,11 +1,14 @@
-import { Outlet, useNavigate } from "react-router";
+import { Outlet, useNavigate, useSearchParams } from "react-router";
 import { SocketProvider } from "../../hooks/socket.hook";
 import { useAppSelector } from "../../store";
-import React from "react";
+import React, { useState } from "react";
+import LoadingComp from "../../components/loading";
 
 export default function SocketLayout() {
   const user = useAppSelector((state) => state.app?.user);
   const navigate = useNavigate();
+
+  const [streamId, setStreamId] = useState<null | string>(null);
 
   React.useEffect(() => {
     if (!user) {
@@ -15,10 +18,19 @@ export default function SocketLayout() {
     }
   }, [user]);
 
+  const [searchParams] = useSearchParams();
+
+  React.useEffect(()=>{
+    const id = searchParams.get('streamId')
+    setStreamId(id);
+  }, [user])
+
+  if(!streamId) return <LoadingComp/>;
+
   if (!user) return;
 
   return (
-    <SocketProvider>
+    <SocketProvider streamId={streamId}>
       <Outlet />
     </SocketProvider>
   );
