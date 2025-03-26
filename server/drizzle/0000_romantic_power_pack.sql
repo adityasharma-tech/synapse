@@ -1,6 +1,8 @@
 CREATE SCHEMA "upgrade";
 --> statement-breakpoint
-CREATE TYPE "upgrade"."roles" AS ENUM('streamer', 'viewer');--> statement-breakpoint
+CREATE TYPE "upgrade"."business_type" AS ENUM('llp', 'ngo', 'individual', 'partnership', 'proprietorship', 'public_limited', 'private_limited', 'trust', 'society', 'not_yet_registered', 'educational_institutes');--> statement-breakpoint
+CREATE TYPE "upgrade"."request_status" AS ENUM('pending', 'processing', 'accepted', 'done');--> statement-breakpoint
+CREATE TYPE "upgrade"."roles" AS ENUM('streamer', 'viewer', 'admin');--> statement-breakpoint
 CREATE TABLE "upgrade"."chats" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "upgrade"."chats_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"stream_uid" varchar,
@@ -56,15 +58,35 @@ CREATE TABLE "upgrade"."streams" (
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "upgrade"."streamer_request" (
+	"user_id" integer NOT NULL,
+	"account_name" varchar NOT NULL,
+	"account_email" varchar NOT NULL,
+	"dashboard_access" varchar DEFAULT '0' NOT NULL,
+	"customer_refunds" varchar DEFAULT '1' NOT NULL,
+	"business_name" varchar NOT NULL,
+	"business_type" "upgrade"."business_type" DEFAULT 'individual' NOT NULL,
+	"request_status" "upgrade"."request_status" DEFAULT 'pending' NOT NULL,
+	"bank_ifsc_code" varchar NOT NULL,
+	"bank_account_number" varchar NOT NULL,
+	"phone_number" varchar NOT NULL,
+	"street_address" varchar NOT NULL,
+	"city" varchar NOT NULL,
+	"state" varchar NOT NULL,
+	"postal_code" varchar NOT NULL,
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "upgrade"."token_table" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "upgrade"."token_table_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"user_id" integer NOT NULL,
 	"user_refresh_token" varchar,
 	"streamer_verification_token" varchar,
 	"reset_password_token" varchar,
-	"reset_password_token_expiry" timestamp DEFAULT '2025-03-26 11:37:53.785',
+	"reset_password_token_expiry" timestamp DEFAULT '2025-03-26 14:42:12.245',
 	"email_verification_token" varchar,
-	"email_verification_token_expiry" timestamp DEFAULT '2025-03-26 11:37:53.785',
+	"email_verification_token_expiry" timestamp DEFAULT '2025-03-26 14:42:12.245',
 	"updated_at" timestamp,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
@@ -90,4 +112,5 @@ ALTER TABLE "upgrade"."chats" ADD CONSTRAINT "chats_user_id_users_id_fk" FOREIGN
 ALTER TABLE "upgrade"."orders" ADD CONSTRAINT "orders_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "upgrade"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "upgrade"."payouts" ADD CONSTRAINT "payouts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "upgrade"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "upgrade"."streams" ADD CONSTRAINT "streams_streamer_id_users_id_fk" FOREIGN KEY ("streamer_id") REFERENCES "upgrade"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "upgrade"."streamer_request" ADD CONSTRAINT "streamer_request_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "upgrade"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "upgrade"."token_table" ADD CONSTRAINT "token_table_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "upgrade"."users"("id") ON DELETE no action ON UPDATE no action;

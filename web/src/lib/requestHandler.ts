@@ -41,10 +41,9 @@ async function requestHandler<T extends ServerResT | any = ServerResT>(
 
     // check if response is fromt he server or from the client;
     if (error.response) {
-
         // showing toast error message
       showToast && toast &&
-        toast(error.response.message, {
+        toast(error.response.data.message, {
           style: {
             backgroundColor: "#82181a",
             borderColor: "oklch(0.505 0.213 27.518)",

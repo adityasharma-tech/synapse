@@ -65,7 +65,10 @@ export default function ApplyForStreamer() {
               youtubeChannelName: formData.youtubeChannelName,
               authToken: data.message,
             }),
-            setLoading
+            setLoading,
+            ()=>{
+              navigate("/dashboard");
+            }
           );
         },
         failure: (error: any) => {
@@ -78,7 +81,6 @@ export default function ApplyForStreamer() {
 
       // @ts-expect-error
       window.initSendOTP(configuration);
-      // navigate("/dashboard");
     },
     [
       formData,

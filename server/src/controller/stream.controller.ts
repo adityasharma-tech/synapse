@@ -10,7 +10,7 @@ import { ApiError, ErrCodes } from "../lib/ApiError";
 import { logger } from "../lib/logger";
 import { ChatMessage } from "../schemas/chats.sql";
 import { User } from "../schemas/user.sql";
-import { createCfOrder, createRazorpayOrder } from "../services/payments.service";
+import { createRazorpayOrder } from "../services/payments.service";
 import { MiddlewareUserT } from "../lib/types";
 import { Order } from "../schemas/order.sql";
 

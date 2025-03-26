@@ -1,7 +1,7 @@
 import * as t from "drizzle-orm/pg-core";
 import { schema, timestamps } from "./helpers.sql";
 
-export const userRolesEnum = schema.enum("roles", ["streamer", "viewer"]);
+export const userRolesEnum = schema.enum("roles", ["streamer", "viewer", "admin"]);
 
 const User = schema.table("users", {
   id: t.integer().primaryKey().generatedAlwaysAsIdentity(),

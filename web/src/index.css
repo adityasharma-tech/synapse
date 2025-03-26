@@ -5,6 +5,7 @@
 :root {
   font-family: "Poppins", sans-serif;
   font-style: normal;
+  @apply text-neutral-900
 }
 
 .button {

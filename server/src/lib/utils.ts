@@ -70,6 +70,17 @@ export type Role = keyof typeof ROLES;
 type Permission = (typeof ROLES)[Role][number];
 
 const ROLES = {
+  admin: [
+    "chat:create",
+    "chat:delete",
+    "chat:message:own-update",
+    "chat:mark-read",
+    "chat:view",
+    "stream:create",
+    "stream:update",
+    "stream:view",
+    "stream:user:block"
+  ],
   streamer: [
     "chat:create",
     "chat:delete",

@@ -2,8 +2,8 @@ import * as t from "drizzle-orm/pg-core";
 import { User } from "./user.sql";
 import { schema, timestamps } from "./helpers.sql";
 
-const businessTypeEnum = schema.enum('business_type', ['llp', 'ngo', 'individual', 'partnership', 'proprietorship', 'public_limited', 'private_limited', 'trust', 'society', 'not_yet_registered', 'educational_institutes'])
-const requestStatusEnum = schema.enum('request_status', ['pending', 'processing' ,'accepted', 'done'])
+export const businessTypeEnum = schema.enum('business_type', ['llp', 'ngo', 'individual', 'partnership', 'proprietorship', 'public_limited', 'private_limited', 'trust', 'society', 'not_yet_registered', 'educational_institutes'])
+export const requestStatusEnum = schema.enum('request_status', ['pending', 'processing' ,'accepted', 'done'])
 
 const StreamerRequest = schema.table("streamer_request", {
   userId: t.integer().references(() => User.id).notNull(),

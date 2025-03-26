@@ -1,22 +1,22 @@
 import { eq } from "drizzle-orm";
-import establishDbConnection from "../db";
 import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
 import { User } from "../schemas/user.sql";
 import { ApiError, ErrCodes } from "../lib/ApiError";
 import {
   createBeneficiary,
-  getRazorpayInstance,
 } from "../services/payments.service";
 import { TokenTable } from "../schemas/tokenTable.sql";
 import StreamerRequest from "../schemas/streamerRequest.sql";
 import { msg91AuthKey } from "../lib/constants";
 
 const logoutHandler = asyncHandler(async (_, res) => {
-  res.cookie("accessToken", "", { maxAge: 0 });
+  res.cookie("accessToken", "", { maxAge: 0, sameSite: "none", httpOnly: true, secure: true });
+  res.cookie("refreshToken", "", { maxAge: 0, sameSite: "none", httpOnly: true, secure: true });
 
-  res.cookie("refreshToken", "", { maxAge: 0 });
-
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
   res.status(200).json(new ApiResponse(200, null, "Logout success."));
 });
 
@@ -134,7 +134,7 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
     state,
     postalCode,
     youtubeChannelName,
-    authToken
+    authToken,
   } = req.body;
 
   if (
@@ -147,7 +147,7 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
       state,
       postalCode,
       youtubeChannelName,
-      authToken
+      authToken,
     ].some((value) => (value ? value.trim() == "" : true))
   ) {
     throw new ApiError(400, "Validation error", ErrCodes.VALIDATION_ERR);
@@ -161,12 +161,13 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
     Accept: "application/json",
   };
 
-  let body = {
-    authkey: msg91AuthKey,
-    "access-token": authToken,
-  };
-  const response = await fetch(url, { method: "POST", headers: headers, body: JSON.stringify(body) });
-  const result = await response.json()
+  let body = { authkey: msg91AuthKey, "access-token": authToken };
+  const response = await fetch(url, {
+    method: "POST",
+    headers: headers,
+    body: JSON.stringify(body),
+  });
+  const result = await response.json();
 
   console.log(result);
 
@@ -179,7 +180,7 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
     .where(eq(StreamerRequest.userId, user.id))
     .execute();
 
-  if (preRequest.requestStatus == "done")
+  if (preRequest && preRequest.requestStatus == "done")
     throw new ApiError(400, "You application is already fulfilled.");
 
   if (preRequest)

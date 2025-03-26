@@ -1,5 +1,5 @@
 {
-  "id": "60ca18ad-52eb-4f43-be6b-aee95a784de8",
+  "id": "b87f037f-854f-4d65-8650-61ebc46709a8",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -429,6 +429,143 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "upgrade.streamer_request": {
+      "name": "streamer_request",
+      "schema": "upgrade",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_name": {
+          "name": "account_name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_email": {
+          "name": "account_email",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "dashboard_access": {
+          "name": "dashboard_access",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
+        },
+        "customer_refunds": {
+          "name": "customer_refunds",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'1'"
+        },
+        "business_name": {
+          "name": "business_name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "business_type": {
+          "name": "business_type",
+          "type": "business_type",
+          "typeSchema": "upgrade",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'individual'"
+        },
+        "request_status": {
+          "name": "request_status",
+          "type": "request_status",
+          "typeSchema": "upgrade",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "bank_ifsc_code": {
+          "name": "bank_ifsc_code",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bank_account_number": {
+          "name": "bank_account_number",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone_number": {
+          "name": "phone_number",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "street_address": {
+          "name": "street_address",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "city": {
+          "name": "city",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "state": {
+          "name": "state",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "postal_code": {
+          "name": "postal_code",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "streamer_request_user_id_users_id_fk": {
+          "name": "streamer_request_user_id_users_id_fk",
+          "tableFrom": "streamer_request",
+          "tableTo": "users",
+          "schemaTo": "upgrade",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "upgrade.token_table": {
       "name": "token_table",
       "schema": "upgrade",
@@ -479,7 +616,7 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
-          "default": "'2025-03-26 11:37:53.785'"
+          "default": "'2025-03-26 14:42:12.245'"
         },
         "email_verification_token": {
           "name": "email_verification_token",
@@ -492,7 +629,7 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
-          "default": "'2025-03-26 11:37:53.785'"
+          "default": "'2025-03-26 14:42:12.245'"
         },
         "updated_at": {
           "name": "updated_at",
@@ -648,12 +785,40 @@
     }
   },
   "enums": {
+    "upgrade.business_type": {
+      "name": "business_type",
+      "schema": "upgrade",
+      "values": [
+        "llp",
+        "ngo",
+        "individual",
+        "partnership",
+        "proprietorship",
+        "public_limited",
+        "private_limited",
+        "trust",
+        "society",
+        "not_yet_registered",
+        "educational_institutes"
+      ]
+    },
+    "upgrade.request_status": {
+      "name": "request_status",
+      "schema": "upgrade",
+      "values": [
+        "pending",
+        "processing",
+        "accepted",
+        "done"
+      ]
+    },
     "upgrade.roles": {
       "name": "roles",
       "schema": "upgrade",
       "values": [
         "streamer",
-        "viewer"
+        "viewer",
+        "admin"
       ]
     }
   },
