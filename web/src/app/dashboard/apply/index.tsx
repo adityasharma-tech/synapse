@@ -17,19 +17,17 @@ export default function ApplyForStreamer() {
 
   const [formData, setFormData] = useState<{
     phoneNumber: string;
-    upiId: string;
     otpVerified: boolean;
     otp: string;
     bankAccountNumber: string;
     bankIfsc: string;
-    payoutType: "upi" | "bank";
     address: string;
     city: string;
     state: string;
     pinCode: string;
+    youtubeChannelName: string;
   }>({
     phoneNumber: user?.phoneNumber ?? "",
-    upiId: "",
     otpVerified: false,
     otp: "",
     city: "",
@@ -37,8 +35,8 @@ export default function ApplyForStreamer() {
     pinCode: "",
     address: "",
     bankIfsc: "",
-    payoutType: "upi",
     bankAccountNumber: "",
+    youtubeChannelName: ""
   });
 
   const handleStreamer: FormEventHandler<HTMLFormElement> = useCallback(
@@ -49,16 +47,14 @@ export default function ApplyForStreamer() {
 
       await requestHandler(
         applyForStreamer({
+          bankAccountNumber: formData.bankAccountNumber,
+          bankIfsc: formData.bankIfsc,
           city: formData.city,
-          state: formData.state,
-          postalCode: formData.pinCode,
-          vpa: formData.payoutType == "upi" ? formData.upiId : "",
-          bankAccountNumber:
-            formData.payoutType == "bank" ? formData.bankAccountNumber : "",
-          bankIfsc: formData.payoutType == "bank" ? formData.bankIfsc : "",
           phoneNumber: formData.phoneNumber,
-          countryCode: "+91",
+          postalCode: formData.pinCode,
+          state: formData.state,
           streetAddress: formData.address,
+          youtubeChannelName: formData.youtubeChannelName
         }),
         setLoading
       );
@@ -100,11 +96,11 @@ export default function ApplyForStreamer() {
                 label="Phone number"
                 disabled={loading}
                 required
-                placeholder="12312 12312 (country code not included)"
+                placeholder="+91xxxxxxxxxx"
                 type="tel"
                 value={formData.phoneNumber}
                 onChange={(e) => {
-                  setFormData({ ...formData, phoneNumber: e.target.value });
+                  setFormData({ ...formData, phoneNumber: e.target.value.trim().replace(' ', '') });
                 }}
               />
               <div className="flex justify-end pt-2">
@@ -183,58 +179,13 @@ export default function ApplyForStreamer() {
 
             <div className="min-w-xs mt-4">
               <div>
-                <span>Select your payout option.</span>
+                <span>Bank details</span>
               </div>
-              <div className="flex gap-x-2 py-3">
-                <div
-                  onClick={() =>
-                    setFormData({ ...formData, payoutType: "upi" })
-                  }
-                  role="button"
-                  tabIndex={0}
-                  aria-selected={
-                    formData.payoutType == "upi" ? "true" : "false"
-                  }
-                  className="flex cursor-pointer flex-col border border-transparent transition-all aria-selected:border-sky-300 aria-selected:bg-sky-300/10 gap-y-3 px-3 py-2 pb-4 bg-neutral-700/40 rounded-lg"
-                >
-                  <span className="text-lg font-semibold">UPI ID</span>
-                  <span className="text-xs max-w-36">
-                    directly though your upi id
-                  </span>
-                </div>
-                <div
-                  onClick={() =>
-                    setFormData({ ...formData, payoutType: "bank" })
-                  }
-                  role="button"
-                  tabIndex={0}
-                  aria-selected={
-                    formData.payoutType == "bank" ? "true" : "false"
-                  }
-                  className="flex cursor-pointer flex-col border border-transparent transition-all aria-selected:border-sky-300 aria-selected:bg-sky-300/10 gap-y-3 px-3 py-2 pb-4 bg-neutral-700/40 rounded-lg"
-                >
-                  <span className="text-lg font-semibold">Bank Account</span>
-                  <span className="text-xs max-w-36">
-                    through your bank account
-                  </span>
-                </div>
-              </div>
-              {formData.payoutType == "upi" ? (
-                <TextInput
-                  required={formData.payoutType == "upi"}
-                  label="UPI"
-                  type="email"
-                  onChange={(e) =>
-                    setFormData({ ...formData, upiId: e.target.value })
-                  }
-                  placeholder={"123456@upi"}
-                  value={formData.upiId}
-                />
-              ) : (
+
                 <React.Fragment>
                   <TextInput
                     label="Bank account number"
-                    required={formData.payoutType == "bank"}
+                    required
                     type="text"
                     placeholder="**************"
                     onChange={(e) =>
@@ -249,7 +200,7 @@ export default function ApplyForStreamer() {
                   />
                   <TextInput
                     label="IFSC Code"
-                    required={formData.payoutType == "bank"}
+                    required
                     placeholder="**********"
                     type="text"
                     onChange={(e) =>
@@ -261,7 +212,6 @@ export default function ApplyForStreamer() {
                     value={formData.bankIfsc}
                   />
                 </React.Fragment>
-              )}
             </div>
           </div>
           <div className="pt-10 text-center">
@@ -269,10 +219,8 @@ export default function ApplyForStreamer() {
               disabled={
                 loading ||
                 formData.phoneNumber.trim() == "" ||
-                (formData.payoutType == "upi"
-                  ? formData.upiId.trim() == ""
-                  : formData.bankAccountNumber.trim() == "" ||
-                    formData.bankIfsc.trim() == "") ||
+                formData.bankAccountNumber.trim() == "" ||
+                formData.bankIfsc.trim() == "" ||
                 formData.address.trim() == "" ||
                 formData.city.trim() == "" ||
                 formData.pinCode.trim() == "" ||

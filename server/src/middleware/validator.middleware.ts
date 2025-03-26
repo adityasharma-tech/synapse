@@ -183,7 +183,7 @@ const userRouteValidators = {
       .trim()
       .toLowerCase(),
 
-    body("phoneNumber").notEmpty().isNumeric().isLength({ min: 10, max: 20 }),
+    body("phoneNumber").notEmpty().isLength({ min: 10, max: 20 }),
 
     // body("countryCode")
     //   .notEmpty()

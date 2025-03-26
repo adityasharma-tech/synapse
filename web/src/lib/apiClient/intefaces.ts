@@ -33,12 +33,11 @@ interface ApplyForStreamerPayloadT {
   city: string;
   state: string;
   postalCode: string;
-  vpa?: string;
-  bankAccountNumber?: string;
-  bankIfsc?: string;
+  bankAccountNumber: string;
+  bankIfsc: string;
   phoneNumber: string;
-  countryCode: string;
   streetAddress: string;
+  youtubeChannelName: string;
 }
 
 interface GetStreamByIdPayloadT {
