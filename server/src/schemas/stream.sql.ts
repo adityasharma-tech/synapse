@@ -1,8 +1,8 @@
 import * as t from "drizzle-orm/pg-core";
-import { timestamps } from "./helpers.sql";
+import { schema, timestamps } from "./helpers.sql";
 import { User } from "./user.sql";
 
-const Stream = t.pgTable("streams", {
+const Stream = schema.table("streams", {
   id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
   streamingUid: t.varchar().notNull(),
   streamTitle: t.varchar().notNull(),

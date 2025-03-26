@@ -1,8 +1,10 @@
-import { timestamp } from "drizzle-orm/pg-core";
+import { pgSchema, timestamp } from "drizzle-orm/pg-core";
+
+const schema = pgSchema('upgrade');
 
 const timestamps = {
   updatedAt: timestamp(),
   createdAt: timestamp().defaultNow().notNull(),
 };
 
-export { timestamps };
+export { timestamps, schema };

@@ -31,6 +31,7 @@ function getSigningTokens(payload: any) {
     httpOnly: true,
     secure: true,
     maxAge: 60 * 60 * 24 * 4 * 1000,
+    sameSite: "none"
   };
 
   return { refreshToken, accessToken, cookieOptions };

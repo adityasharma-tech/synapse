@@ -15,7 +15,6 @@ import {
 import crpyto from "crypto";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import establishDbConnection from "../db";
 
 const loginHandler = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;

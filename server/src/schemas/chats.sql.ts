@@ -1,8 +1,8 @@
 import * as t from "drizzle-orm/pg-core";
 import { User } from "./user.sql";
-import { timestamps } from "./helpers.sql";
+import { schema, timestamps } from "./helpers.sql";
 
-const ChatMessage = t.pgTable("chats", {
+const ChatMessage = schema.table("chats", {
   id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
   streamUid: t.varchar(),
   userId: t

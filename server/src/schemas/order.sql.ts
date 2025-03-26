@@ -1,8 +1,8 @@
 import * as t from "drizzle-orm/pg-core";
-import { timestamps } from "./helpers.sql";
+import { schema, timestamps } from "./helpers.sql";
 import { User } from "./user.sql";
 
-const Order = t.pgTable("orders", {
+const Order = schema.table("orders", {
   id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
   paymentSessionId: t.varchar(),
   orderStatus: t.varchar().notNull().default("PENDING"),

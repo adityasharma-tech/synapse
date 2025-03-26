@@ -1,8 +1,8 @@
 import * as t from "drizzle-orm/pg-core";
-import { timestamps } from "./helpers.sql";
+import { schema, timestamps } from "./helpers.sql";
 import { User } from "./user.sql";
 
-const Payout = t.pgTable("payouts", {
+const Payout = schema.table("payouts", {
   id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
   userId: t.integer().references(() => User.id),
   transferId: t.varchar().notNull(),

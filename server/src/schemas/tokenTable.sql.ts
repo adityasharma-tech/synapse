@@ -1,8 +1,8 @@
 import * as t from "drizzle-orm/pg-core";
-import { timestamps } from "./helpers.sql";
+import { schema, timestamps } from "./helpers.sql";
 import { User } from "./user.sql";
 
-const TokenTable = t.pgTable("token_table", {
+const TokenTable = schema.table("token_table", {
   id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
   userId: t
     .integer()

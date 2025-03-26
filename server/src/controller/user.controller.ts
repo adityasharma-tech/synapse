@@ -4,9 +4,13 @@ import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
 import { User } from "../schemas/user.sql";
 import { ApiError, ErrCodes } from "../lib/ApiError";
-import { createBeneficiary, getRazorpayInstance } from "../services/payments.service";
+import {
+  createBeneficiary,
+  getRazorpayInstance,
+} from "../services/payments.service";
 import { TokenTable } from "../schemas/tokenTable.sql";
 import StreamerRequest from "../schemas/streamerRequest.sql";
+import { msg91AuthKey } from "../lib/constants";
 
 const logoutHandler = asyncHandler(async (_, res) => {
   res.cookie("accessToken", "", { maxAge: 0 });
@@ -25,8 +29,6 @@ const updateUserHandler = asyncHandler(async (req, res) => {
   const user = req.user;
 
   const updateData = req.body;
-
-   ;
 
   const [dbUser] = await db
     .select()
@@ -70,8 +72,6 @@ const applyForStreamer = asyncHandler(async (req, res) => {
       "Please provide required fields.",
       ErrCodes.VALIDATION_ERR
     );
-
-   ;
 
   const tokens = await db
     .select()
@@ -133,25 +133,57 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
     city,
     state,
     postalCode,
-    youtubeChannelName
+    youtubeChannelName,
+    authToken
   } = req.body;
 
-  if([bankAccountNumber, bankIfsc, phoneNumber, streetAddress, city, state, postalCode, youtubeChannelName].some((value)=>value ? value.trim() =="" : true)){
-    throw new ApiError(400, "Validation error", ErrCodes.VALIDATION_ERR)
+  if (
+    [
+      bankAccountNumber,
+      bankIfsc,
+      phoneNumber,
+      streetAddress,
+      city,
+      state,
+      postalCode,
+      youtubeChannelName,
+      authToken
+    ].some((value) => (value ? value.trim() == "" : true))
+  ) {
+    throw new ApiError(400, "Validation error", ErrCodes.VALIDATION_ERR);
   }
+
+  const url = new URL(
+    "https://control.msg91.com/api/v5/widget/verifyAccessToken"
+  );
+  let headers = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  };
+
+  let body = {
+    authkey: msg91AuthKey,
+    "access-token": authToken,
+  };
+  const response = await fetch(url, { method: "POST", headers: headers, body: JSON.stringify(body) });
+  const result = await response.json()
+
+  console.log(result);
 
   const [preRequest] = await db
     .select({
       requestStatus: StreamerRequest.requestStatus,
-      userId: StreamerRequest.userId
+      userId: StreamerRequest.userId,
     })
     .from(StreamerRequest)
     .where(eq(StreamerRequest.userId, user.id))
-    .execute()
-  
-  if(preRequest.requestStatus == "done") throw new ApiError(400, "You application is already fulfilled.");
+    .execute();
 
-  if(preRequest) throw new ApiError(400, "You already applied for streamer request.");
+  if (preRequest.requestStatus == "done")
+    throw new ApiError(400, "You application is already fulfilled.");
+
+  if (preRequest)
+    throw new ApiError(400, "You already applied for streamer request.");
 
   const [request] = await db
     .insert(StreamerRequest)
@@ -166,14 +198,22 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
       phoneNumber,
       postalCode,
       state,
-      streetAddress
+      streetAddress,
     })
     .returning()
-    .execute()
-      
-  if(!request) throw new ApiError(400, 'Failed to submit your application');
+    .execute();
 
-  res.status(201).json(new ApiResponse(201, 'Your application is submitted succesfully.'));
+  if (!request) throw new ApiError(400, "Failed to submit your application");
+
+  res
+    .status(201)
+    .json(new ApiResponse(201, "Your application is submitted succesfully."));
 });
 
-export { logoutHandler, getUserHandler, updateUserHandler, applyForStreamer, applyForStreamerV2 };
+export {
+  logoutHandler,
+  getUserHandler,
+  updateUserHandler,
+  applyForStreamer,
+  applyForStreamerV2,
+};

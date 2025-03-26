@@ -8,6 +8,8 @@ import { useAppSelector } from "../../../store";
 import { requestHandler } from "../../../lib/requestHandler";
 import { applyForStreamer } from "../../../lib/apiClient";
 import { FormEventHandler, useCallback, useState } from "react";
+import { loadScript } from "../../../lib/utils";
+import { msgAuthToken, msgWidgetId } from "../../../lib/constants";
 
 export default function ApplyForStreamer() {
   const navigate = useNavigate();
@@ -36,32 +38,68 @@ export default function ApplyForStreamer() {
     address: "",
     bankIfsc: "",
     bankAccountNumber: "",
-    youtubeChannelName: ""
+    youtubeChannelName: "",
   });
 
   const handleStreamer: FormEventHandler<HTMLFormElement> = useCallback(
     async (e) => {
       e.preventDefault();
-      if (formData.phoneNumber.includes("+"))
-        return toast("Please don't include country code in phone number");
+      if(!formData.phoneNumber.includes('+')) return toast('Please include country code with phone number');
+      setLoading(true);
+      const configuration = {
+        widgetId: msgWidgetId,
+        tokenAuth: msgAuthToken,
+        identifier: formData.phoneNumber,
+        exposeMethods: "false", // When true will expose the methods for OTP verification. Refer 'How it works?' for more details
+        success: async (data: any) => {
+          // get verified token in response
+          await requestHandler(
+            applyForStreamer({
+              bankAccountNumber: formData.bankAccountNumber,
+              bankIfsc: formData.bankIfsc,
+              city: formData.city,
+              phoneNumber: formData.phoneNumber,
+              postalCode: formData.pinCode,
+              state: formData.state,
+              streetAddress: formData.address,
+              youtubeChannelName: formData.youtubeChannelName,
+              authToken: data.message,
+            }),
+            setLoading
+          );
+        },
+        failure: (error: any) => {
+          // handle error
+          console.log("failure reason", error);
+          toast("Faild to verify your phone number");
+          setLoading(false);
+        },
+      };
 
-      await requestHandler(
-        applyForStreamer({
-          bankAccountNumber: formData.bankAccountNumber,
-          bankIfsc: formData.bankIfsc,
-          city: formData.city,
-          phoneNumber: formData.phoneNumber,
-          postalCode: formData.pinCode,
-          state: formData.state,
-          streetAddress: formData.address,
-          youtubeChannelName: formData.youtubeChannelName
-        }),
-        setLoading
-      );
-      navigate("/dashboard");
+      // @ts-expect-error
+      window.initSendOTP(configuration);
+      // navigate("/dashboard");
     },
-    [formData, toast, requestHandler, applyForStreamer, setLoading, navigate]
+    [
+      formData,
+      toast,
+      requestHandler,
+      applyForStreamer,
+      setLoading,
+      navigate,
+      msgAuthToken,
+      msgWidgetId,
+    ]
   );
+
+  React.useEffect(() => {
+    (async () => {
+      const res = await loadScript(
+        "https://control.msg91.com/app/assets/otp-provider/otp-provider.js"
+      );
+      if (!res) throw Error("Failed to load msg91 script.");
+    })();
+  }, []);
 
   return (
     <React.Fragment>
@@ -100,21 +138,12 @@ export default function ApplyForStreamer() {
                 type="tel"
                 value={formData.phoneNumber}
                 onChange={(e) => {
-                  setFormData({ ...formData, phoneNumber: e.target.value.trim().replace(' ', '') });
+                  setFormData({
+                    ...formData,
+                    phoneNumber: e.target.value.trim().replace(" ", ""),
+                  });
                 }}
               />
-              <div className="flex justify-end pt-2">
-                <span className="text-xs">
-                  We are facing issues with msg91 otp verification.*
-                </span>
-                <button type="button" disabled className="btn btn-soft">
-                  <span
-                    hidden
-                    className="loading loading-xs loading-spinner"
-                  ></span>
-                  Send otp
-                </button>
-              </div>
               <TextArea
                 required
                 label="Address"
@@ -161,57 +190,54 @@ export default function ApplyForStreamer() {
                   setFormData({ ...formData, state: e.target.value })
                 }
               />
-
-              <div id="captcha-renderer"></div>
-              {false ? (
-                <TextInput
-                  label="Otp input"
-                  disabled={!formData.otpVerified}
-                  placeholder="******"
-                  type="text"
-                  value={formData.otp}
-                  onChange={(e) =>
-                    setFormData({ ...formData, otp: e.target.value })
-                  }
-                />
-              ) : null}
             </div>
 
             <div className="min-w-xs mt-4">
               <div>
-                <span>Bank details</span>
+                <span>Legal details</span>
               </div>
 
-                <React.Fragment>
-                  <TextInput
-                    label="Bank account number"
-                    required
-                    type="text"
-                    placeholder="**************"
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        bankAccountNumber: e.target.value
-                          .trim()
-                          .replace(" ", ""),
-                      })
-                    }
-                    value={formData.bankAccountNumber}
-                  />
-                  <TextInput
-                    label="IFSC Code"
-                    required
-                    placeholder="**********"
-                    type="text"
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        bankIfsc: e.target.value.trim().replace(" ", ""),
-                      })
-                    }
-                    value={formData.bankIfsc}
-                  />
-                </React.Fragment>
+              <React.Fragment>
+                <TextInput
+                  label="Channel name"
+                  required
+                  type="text"
+                  placeholder="Chai Aur Code"
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      youtubeChannelName: e.target.value,
+                    })
+                  }
+                  value={formData.youtubeChannelName}
+                />
+                <TextInput
+                  label="Bank account number"
+                  required
+                  type="text"
+                  placeholder="**************"
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      bankAccountNumber: e.target.value.trim().replace(" ", ""),
+                    })
+                  }
+                  value={formData.bankAccountNumber}
+                />
+                <TextInput
+                  label="IFSC Code"
+                  required
+                  placeholder="**********"
+                  type="text"
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      bankIfsc: e.target.value.trim().replace(" ", ""),
+                    })
+                  }
+                  value={formData.bankIfsc}
+                />
+              </React.Fragment>
             </div>
           </div>
           <div className="pt-10 text-center">

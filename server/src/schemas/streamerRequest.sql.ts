@@ -1,19 +1,19 @@
 import * as t from "drizzle-orm/pg-core";
 import { User } from "./user.sql";
-import { timestamps } from "./helpers.sql";
+import { schema, timestamps } from "./helpers.sql";
 
-const businessType = t.pgEnum('businessType', ['llp', 'ngo', 'individual', 'partnership', 'proprietorship', 'public_limited', 'private_limited', 'trust', 'society', 'not_yet_registered', 'educational_institutes'])
-const requestStatus = t.pgEnum('requestStatus', ['pending', 'processing' ,'accepted', 'done'])
+const businessTypeEnum = schema.enum('business_type', ['llp', 'ngo', 'individual', 'partnership', 'proprietorship', 'public_limited', 'private_limited', 'trust', 'society', 'not_yet_registered', 'educational_institutes'])
+const requestStatusEnum = schema.enum('request_status', ['pending', 'processing' ,'accepted', 'done'])
 
-const StreamerRequest = t.pgTable("streamer_request", {
+const StreamerRequest = schema.table("streamer_request", {
   userId: t.integer().references(() => User.id).notNull(),
   accountName: t.varchar().notNull(),
   accountEmail: t.varchar().notNull(),
   dashboardAccess: t.varchar().default("0").notNull(),
   customerRefunds: t.varchar().default("1").notNull(),
   businessName: t.varchar().notNull(),
-  businessType: businessType().default("individual").notNull(),
-  requestStatus: requestStatus().default('pending').notNull(),
+  businessType: businessTypeEnum().default("individual").notNull(),
+  requestStatus: requestStatusEnum().default('pending').notNull(),
   bankIfscCode: t.varchar().notNull(),
   bankAccountNumber: t.varchar().notNull(),
   phoneNumber: t.varchar().notNull(),

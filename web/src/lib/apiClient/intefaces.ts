@@ -38,6 +38,7 @@ interface ApplyForStreamerPayloadT {
   phoneNumber: string;
   streetAddress: string;
   youtubeChannelName: string;
+  authToken: string;
 }
 
 interface GetStreamByIdPayloadT {
