@@ -425,10 +425,10 @@ export default function Stream() {
       ) : null}
       <header className="justify-between w-full flex py-5 px-6 items-center">
         <div>
-          <img className="h-8 w-auto dark:hidden" src="/assets/T&B@2x.png" />
+          <img className="h-8 w-auto dark:hidden" src="/T&B@2x.png" />
           <img
             className="h-8 w-auto not-dark:hidden"
-            src="/assets/T&W@2x.png"
+            src="/T&W@2x.png"
           />
         </div>
         <div className="flex gap-x-3">

@@ -219,6 +219,9 @@ export const streamSlice = createSlice({
     builder.addCase(setAllPreChats.fulfilled, (state, action) => {
       if (action.payload.length <= 0) return;
 
+      state.premiumChats = []
+      state.basicChats = []
+
       action.payload.forEach((chat: any) => {
         chat.orderId
           ? state.premiumChats.push(chat)

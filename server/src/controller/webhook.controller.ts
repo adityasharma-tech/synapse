@@ -129,7 +129,7 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
 
   if(event.event === "order.paid"){
       const instance = getRazorpayInstance();
-      const orderId = event["payload"]["order"]["entity"]["id"];
+      const orderId = event["payload"]["order"]["entity"]["id"] as string;
       const order = await instance.orders.fetch(orderId);
        ;
       const [orderUpdate] = await db
