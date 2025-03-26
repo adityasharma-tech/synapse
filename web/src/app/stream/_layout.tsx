@@ -1,7 +1,7 @@
 import { Outlet, useNavigate, useParams } from "react-router";
 import { SocketProvider } from "../../hooks/socket.hook";
 import { useAppSelector } from "../../store";
-import React, { useState } from "react";
+import React from "react";
 import LoadingComp from "../../components/loading";
 
 export default function SocketLayout() {

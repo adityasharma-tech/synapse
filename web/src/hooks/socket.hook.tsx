@@ -14,7 +14,7 @@ const backendURL = import.meta.env.VITE_BACKEND_HOST;
 
 // socket provider to wrap the app to get the socket
 const SocketProvider = ({ children, streamId }: PropsWithChildren<{
-    streamId: string
+    streamId?: string
 }>) => {
 
     // fetch the user from the server
