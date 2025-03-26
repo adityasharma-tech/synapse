@@ -4,8 +4,9 @@ import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
 import { User } from "../schemas/user.sql";
 import { ApiError, ErrCodes } from "../lib/ApiError";
-import { createBeneficiary } from "../services/payments.service";
+import { createBeneficiary, getRazorpayInstance } from "../services/payments.service";
 import { TokenTable } from "../schemas/tokenTable.sql";
+import StreamerRequest from "../schemas/streamerRequest.sql";
 
 const logoutHandler = asyncHandler(async (_, res) => {
   res.cookie("accessToken", "", { maxAge: 0 });
@@ -122,4 +123,57 @@ const applyForStreamer = asyncHandler(async (req, res) => {
   res.status(201).json(new ApiResponse(201, null));
 });
 
-export { logoutHandler, getUserHandler, updateUserHandler, applyForStreamer };
+const applyForStreamerV2 = asyncHandler(async (req, res) => {
+  const user = req.user;
+  const {
+    bankAccountNumber,
+    bankIfsc,
+    phoneNumber,
+    streetAddress,
+    city,
+    state,
+    postalCode,
+    youtubeChannelName
+  } = req.body;
+
+  if([bankAccountNumber, bankIfsc, phoneNumber, streetAddress, city, state, postalCode, youtubeChannelName].some((value)=>value ? value.trim() =="" : true)){
+    throw new ApiError(400, "Validation error", ErrCodes.VALIDATION_ERR)
+  }
+
+  const [preRequest] = await db
+    .select({
+      requestStatus: StreamerRequest.requestStatus,
+      userId: StreamerRequest.userId
+    })
+    .from(StreamerRequest)
+    .where(eq(StreamerRequest.userId, user.id))
+    .execute()
+  
+  if(preRequest.requestStatus == "done") throw new ApiError(400, "You application is already fulfilled.");
+
+  if(preRequest) throw new ApiError(400, "You already applied for streamer request.");
+
+  const [request] = await db
+    .insert(StreamerRequest)
+    .values({
+      accountEmail: user.email,
+      accountName: `${user.firstName} ${user.lastName}`,
+      businessName: youtubeChannelName,
+      userId: user.id,
+      bankAccountNumber,
+      bankIfscCode: bankIfsc,
+      city,
+      phoneNumber,
+      postalCode,
+      state,
+      streetAddress
+    })
+    .returning()
+    .execute()
+      
+  if(!request) throw new ApiError(400, 'Failed to submit your application');
+
+  res.status(201).json(new ApiResponse(201, 'Your application is submitted succesfully.'));
+});
+
+export { logoutHandler, getUserHandler, updateUserHandler, applyForStreamer, applyForStreamerV2 };

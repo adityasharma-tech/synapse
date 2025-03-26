@@ -156,17 +156,16 @@ const userRouteValidators = {
       .matches(/^\d+$/)
       .withMessage("Postal code must only contain numbers."),
 
-    body("vpa")
-      .if((_, { req }) => !(req.body.bankAccountNumber && req.body.bankIfsc))
-      .notEmpty()
-      .withMessage("bank account or upi is required to login.")
-      .matches(/^[0-9A-Za-z.-]{2,256}@[A-Za-z]{2,64}$/)
-      .withMessage("Invalid upi id.")
-      .trim()
-      .toLowerCase(),
+    // body("vpa")
+    //   .if((_, { req }) => !(req.body.bankAccountNumber && req.body.bankIfsc))
+    //   .notEmpty()
+    //   .withMessage("bank account or upi is required to login.")
+    //   .matches(/^[0-9A-Za-z.-]{2,256}@[A-Za-z]{2,64}$/)
+    //   .withMessage("Invalid upi id.")
+    //   .trim()
+    //   .toLowerCase(),
 
     body("bankAccountNumber")
-      .if((_, { req }) => !req.body.vpa)
       .notEmpty()
       .withMessage("bank account or upi is required to login.")
       .trim()
@@ -175,7 +174,6 @@ const userRouteValidators = {
       .withMessage("Invalid bank account number."),
 
     body("bankIfsc")
-      .if((_, { req }) => !req.body.vpa)
       .notEmpty()
       .withMessage(
         "Any one of upi or bank details is required to apply for streamer."
@@ -187,16 +185,22 @@ const userRouteValidators = {
 
     body("phoneNumber").notEmpty().isNumeric().isLength({ min: 10, max: 20 }),
 
-    body("countryCode")
-      .notEmpty()
-      .withMessage("please provide your country code.")
-      .matches(/^\+.[0-9]$/)
-      .withMessage("invalid contry code."),
+    // body("countryCode")
+    //   .notEmpty()
+    //   .withMessage("please provide your country code.")
+    //   .matches(/^\+.[0-9]$/)
+    //   .withMessage("invalid contry code."),
 
     body("streetAddress")
       .notEmpty()
       .isLength({ min: 3, max: 90 })
       .withMessage("streetAddress must between 3-90 characters.")
+      .trim(),
+
+    body("youtubeChannelName")
+      .notEmpty()
+      .isLength({ min: 3, max: 90 })
+      .withMessage("channel name must between 3-90 characters.")
       .trim(),
 
     validator,

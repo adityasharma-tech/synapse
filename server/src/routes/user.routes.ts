@@ -3,6 +3,7 @@ import { authMiddleware } from "../middleware/auth.middleware";
 import { userRouteValidators } from "../middleware/validator.middleware";
 import {
   applyForStreamer,
+  applyForStreamerV2,
   getUserHandler,
   logoutHandler,
   updateUserHandler,
@@ -21,6 +22,6 @@ router
 
 router
   .route("/apply-streamer")
-  .post(userRouteValidators.applyForStreamerRoute, applyForStreamer);
+  .post(userRouteValidators.applyForStreamerRoute, applyForStreamerV2);
 
 export default router;
