@@ -46,7 +46,8 @@ const socketAuthMiddleware = async (
       String(accessToken),
       process.env.ACCESS_SECRET_KEY!
     );
-    const db = establishDbConnection();
+    
+     ;
 
     const [stream] = await db
       .select({
@@ -70,7 +71,7 @@ const socketAuthMiddleware = async (
         emailVerified: User.emailVerified,
       })
       .from(User)
-      .where(eq(User.id, decodedUser.urseId))
+      .where(eq(User.id, decodedUser.userId))
       .execute();
 
     const [streamer] = await db

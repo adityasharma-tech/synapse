@@ -68,6 +68,7 @@ export default function Stream() {
 
   // refs
   const lastMessageRef = useRef<HTMLDivElement | null>(null);
+  const videoContainerRef = useRef<HTMLDivElement | null>(null);
 
   // send message by admin TODO: handle permission on server side, check if he is admin or not and add a check mark and highlight
   const handleSendMessage: MouseEventHandler<HTMLButtonElement> = useCallback(
@@ -324,8 +325,8 @@ export default function Stream() {
         await requestHandler(
           getStreamById({ streamId }),
           setLoading,
-          (result)=>{
-            dispatch(updateUserRole(result.data.userRole))
+          (result) => {
+            dispatch(updateUserRole(result.data.userRole));
           },
           undefined,
           false
@@ -354,12 +355,6 @@ export default function Stream() {
       if (!res) alert("Failed to load razorpay api.");
     })();
   }, []);
-
-  React.useEffect(()=>{
-    (()=>{
-      
-    })()
-  }, [])
 
   if (loading) return <LoadingComp />;
 
@@ -467,17 +462,19 @@ export default function Stream() {
       </header>
       <main className="grid grid-cols-2 w-full h-[calc(100vh-82px)] px-5">
         <div className="h-full">
-          <iframe
-            width="890"
-            height="500"
-            src="https://www.youtube.com/embed/5W3niGQWM10?si=xscm8h-BRJmNC0_r&amp;autoplay=1&amp;mute=1"
-            title="YouTube video player"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            referrerPolicy="strict-origin-when-cross-origin"
-            allowFullScreen
-            className="rounded-lg overflow-hidden"
-          ></iframe>
+          <div className="w-full min-h-[450px]" ref={videoContainerRef}>
+            <iframe
+              width={videoContainerRef.current?.clientWidth ? videoContainerRef.current.clientWidth-10 : 500}
+              height={videoContainerRef.current?.clientHeight}
+              src="https://www.youtube.com/embed/5W3niGQWM10?si=xscm8h-BRJmNC0_r&amp;autoplay=1&amp;mute=1"
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+              className="rounded-lg overflow-hidden"
+            ></iframe>
+          </div>
           <div className="grid grid-cols-3 gap-3 p-4">
             <div className="bg-neutral-950 rounded-lg py-4 flex items-center justify-between px-5">
               <svg
@@ -506,7 +503,7 @@ export default function Stream() {
               <BasicChatComp
                 key={idx}
                 {...chat}
-                role={user?.role ?? "viewer"}
+                role={streamState.userRole}
                 handleMarkDone={() => handleUpdateMarkDone(chat.id)}
                 handleUpVoteChat={() => handleUpVoteChat(chat.id)}
                 handleDownVoteChat={() => handleDownVoteChat(chat.id)}
@@ -516,7 +513,7 @@ export default function Stream() {
               <BasicChatComp
                 key={idx}
                 {...chat}
-                role={user?.role ?? "viewer"}
+                role={streamState.userRole}
                 handleMarkDone={() => handleUpdateMarkDone(chat.id)}
                 handleUpVoteChat={() => handleUpVoteChat(chat.id)}
                 handleDownVoteChat={() => handleDownVoteChat(chat.id)}
@@ -526,7 +523,7 @@ export default function Stream() {
           </div>
           <div className="relative">
             {streamState.typerNames.length > 0 ? (
-              <div className="flex items-center gap-x-2 text-sm font-medium absolute -top-10 bg-black left-0 right-0">
+              <div className="flex items-center gap-x-2 text-sm font-medium absolute -top-10 bg-black/10 px-3 rounded-t-md py-1 backdrop-blur-md left-0 right-0">
                 <span className="loading loading-dots loading-lg" />
                 {streamState.typerNames.map((user) => (
                   <span key={user.userId} className="animate-pulse">
@@ -543,6 +540,7 @@ export default function Stream() {
                   throttle(handleStartTyping, 4000);
                   debounce(handleStopTyping, 3000);
                 }}
+                value={message}
                 placeholder="Enter message here..."
                 className="w-full focus:outline-none"
               />
@@ -556,7 +554,10 @@ export default function Stream() {
                   </button>
                 ) : null}
 
-                <button onClick={handleSendMessage} className="button btn-solid w-full justify-center mt-1">
+                <button
+                  onClick={handleSendMessage}
+                  className="button btn-solid w-full justify-center mt-1"
+                >
                   Basic
                 </button>
               </div>
@@ -579,7 +580,8 @@ function BasicChatComp(props: PropsWithChildren<BasicChatCompPropT>) {
   return (
     <div
       data-premium={props.orderId ? true : false}
-      className="px-3 py-3 first:mt-0 mt-3 bg-neutral-100 dark:bg-[#222] rounded-xl data-[premium=true]:border data-[premium=true]:border-amber-300 data-[premium=true]:bg-amber-50 dark:data-[premium=true]:border-amber-300 dark:data-[premium=true]:bg-amber-300/5"
+      data-markRead={props.markRead}
+      className="px-3 py-3 first:mt-0 mt-3 last:mb-10 bg-neutral-100 dark:bg-[#222] data-[markRead=true]:opacity-60 rounded-xl data-[premium=true]:border data-[premium=true]:border-amber-300 data-[premium=true]:bg-amber-50 dark:data-[premium=true]:border-amber-300 dark:data-[premium=true]:bg-amber-300/5"
     >
       <div className="flex w-full justify-between">
         <div className="flex gap-x-3 items-center dark:text-neutral-50 text-neutral-800 font-medium">
@@ -638,7 +640,7 @@ function BasicChatComp(props: PropsWithChildren<BasicChatCompPropT>) {
             </span>
             <button
               onClick={props.handleMarkDone}
-              className="button btn-soft btn-success btn-xs"
+              className="btn btn-soft btn-success btn-xs"
             >
               Mark read
             </button>

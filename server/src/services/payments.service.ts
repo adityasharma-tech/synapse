@@ -143,7 +143,7 @@ const createCfOrder: (
     order_note: "",
   };
 
-  const db = establishDbConnection();
+   ;
 
   // creates an order in the Order table of postgress db using drizzle-orm
   const [dbOrder] = await db
@@ -218,7 +218,7 @@ const createRazorpayOrder: (
     },
   };
 
-  const db = establishDbConnection();
+   ;
   try {
     // using razorpay, this will make an api request to create an order on razorpay payment service for paymentSessionId
     const instance = getRazorpayInstance();

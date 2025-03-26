@@ -64,7 +64,7 @@ interface ChatMarkDonePayloadT extends ChatDeletePayloadT {}
 
 interface ChatTypingEventT extends LeaveStreamHandlerPayloadT {}
 
-const db = establishDbConnection();
+ ;
 
 // event handlers
 function joinStreamHandler(socket: Socket, payload: JoinStreamHandlerPayloadT) {

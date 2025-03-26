@@ -40,7 +40,7 @@ const handleVerifyCfOrder = asyncHandler(async (req, res) => {
     payload["data"]["order"]["order_id"]
   );
 
-  const db = establishDbConnection();
+   ;
   const [orderUpdate] = await db
     .update(Order)
     .set({
@@ -131,7 +131,7 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
       const instance = getRazorpayInstance();
       const orderId = event["payload"]["order"]["entity"]["id"];
       const order = await instance.orders.fetch(orderId);
-      const db = establishDbConnection();
+       ;
       const [orderUpdate] = await db
         .update(Order)
         .set({ orderAmount: order.amount_paid, orderStatus: order.status })

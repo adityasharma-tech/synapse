@@ -24,7 +24,7 @@ const authMiddleware = asyncHandler(async (req, _, next) => {
       process.env.ACCESS_SECRET_KEY!
     );
     logger.warn(`Decoded user: ${JSON.stringify(decodedUser)}`);
-    const db = establishDbConnection();
+     ;
 
     const [user] = await db
       .select()
@@ -65,7 +65,7 @@ const streamerAuthMiddeware = asyncHandler(async (req, _, next) => {
   if (req.user.role != "streamer")
     throw new ApiError(401, "You are not authorized streamer.");
 
-  const db = establishDbConnection();
+   ;
 
   const tokens = await db
     .select()

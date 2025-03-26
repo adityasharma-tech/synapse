@@ -25,7 +25,7 @@ const updateUserHandler = asyncHandler(async (req, res) => {
 
   const updateData = req.body;
 
-  const db = establishDbConnection();
+   ;
 
   const [dbUser] = await db
     .select()
@@ -70,7 +70,7 @@ const applyForStreamer = asyncHandler(async (req, res) => {
       ErrCodes.VALIDATION_ERR
     );
 
-  const db = establishDbConnection();
+   ;
 
   const tokens = await db
     .select()

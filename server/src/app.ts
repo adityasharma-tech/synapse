@@ -6,6 +6,7 @@ import morgan from "morgan";
 import helmet from "helmet";
 import express from "express";
 import cookieParser from "cookie-parser";
+import establishDbConnection from "./db";
 
 import { rateLimit } from "express-rate-limit";
 import { ApiResponse } from "./lib/ApiResponse";
@@ -26,6 +27,7 @@ dotenv.config({ debug: false });
  */
 const app = express();
 const server = http.createServer(app);
+global.db = establishDbConnection();
 
 /**
  * Socket io server

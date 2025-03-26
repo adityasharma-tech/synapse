@@ -25,7 +25,7 @@ const createNewStream = asyncHandler(async (req, res) => {
       ErrCodes.VALIDATION_ERR
     );
 
-  const db = establishDbConnection();
+   ;
 
   const streamingToken = jwt.sign(
     { streamerId: user.id },
@@ -64,7 +64,7 @@ const getAllStreams = asyncHandler(async (req, res) => {
   const currentPage = parseInt(page ? page.toString() : "1");
   const currentLimit = parseInt(limit ? limit.toString() : "10");
 
-  const db = establishDbConnection();
+   ;
 
   const results = await db
     .select({
@@ -109,7 +109,7 @@ const getStreamById = asyncHandler(async (req, res) => {
   const { role } = req.user;
 
   logger.info(`Id of stream: ${id}`);
-  const db = establishDbConnection();
+   ;
 
   const [stream] = await db
     .select({
@@ -122,13 +122,13 @@ const getStreamById = asyncHandler(async (req, res) => {
 
   if (!stream) throw new ApiError(400, "Stream not found.");
 
-  res.status(200).json({ stream, userRole: role });
+  res.status(200).json(new ApiResponse(200, { stream, userRole: role }));
 });
 
 const getAllChatsByStreamingId = asyncHandler(async (req, res) => {
   const { streamId } = req.params;
 
-  const db = establishDbConnection();
+   ;
   const results = await db
     .select({
       id: ChatMessage.id,
@@ -192,7 +192,7 @@ const makePremiumChat = asyncHandler(async (req, res) => {
   if (Number.isNaN(orderAmt))
     throw new ApiError(400, "Please enter a valid payment amount.");
 
-  const db = establishDbConnection();
+   ;
 
   const [stream] = await db
     .select()
