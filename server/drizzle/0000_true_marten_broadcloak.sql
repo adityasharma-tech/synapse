@@ -74,6 +74,7 @@ CREATE TABLE "upgrade"."streamer_request" (
 	"city" varchar NOT NULL,
 	"state" varchar NOT NULL,
 	"postal_code" varchar NOT NULL,
+	"pan_card" varchar NOT NULL,
 	"updated_at" timestamp,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
@@ -84,9 +85,9 @@ CREATE TABLE "upgrade"."token_table" (
 	"user_refresh_token" varchar,
 	"streamer_verification_token" varchar,
 	"reset_password_token" varchar,
-	"reset_password_token_expiry" timestamp DEFAULT '2025-03-26 14:42:12.245',
+	"reset_password_token_expiry" timestamp DEFAULT '2025-03-27 10:42:03.064',
 	"email_verification_token" varchar,
-	"email_verification_token_expiry" timestamp DEFAULT '2025-03-26 14:42:12.245',
+	"email_verification_token_expiry" timestamp DEFAULT '2025-03-27 10:42:03.064',
 	"updated_at" timestamp,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );

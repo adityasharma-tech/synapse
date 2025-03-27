@@ -94,7 +94,7 @@ const acceptFormData = asyncHandler(async (req, res) => {
           },
         },
       },
-      legal_info: { pan: "" },
+      legal_info: { pan: application.panCard },
       reference_id: String(application.userId),
     },
     {

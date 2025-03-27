@@ -66,7 +66,7 @@ const socketAuthMiddleware = async (
         emailVerified: User.emailVerified,
       })
       .from(User)
-      .where(eq(User.id, decodedUser.userId))
+      .where(eq(User.id, decodedUser.id))
       .execute();
 
     const [streamer] = await db

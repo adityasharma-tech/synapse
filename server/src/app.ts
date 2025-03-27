@@ -32,19 +32,19 @@ global.db = establishDbConnection();
 /**
  * Socket io server
  * using redis as a pub/sub for sockets
- */
-const subClient = redisClient.duplicate();
-(async () => await Promise.all([redisClient.connect(), subClient.connect()]))();
+*/
+//const subClient = redisClient.duplicate();
+//(async () => await Promise.all([redisClient.connect(), subClient.connect()]))();
 
 const io = new SocketIO(server, {
   cors: { origin: corsOrigins, credentials: true },
-  adapter: createAdapter(redisClient, subClient),
+  // adapter: createAdapter(redisClient, subClient), // only if you want to use redis as an adapter
   cookie: true,
 });
 
 // socket.io middlewares
 io.engine.use(helmet());
-// created /ws path to maintain paths, not to conflict with express server
+// created /ws path to maintain paths for websocket
 // const ws = io.of('/ws');
 // Authentication middleware for socket.io to let in authenticated users only and streamer verification
 io.use(socketAuthMiddleware);

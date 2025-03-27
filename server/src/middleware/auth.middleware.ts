@@ -1,8 +1,6 @@
 import jwt from "jsonwebtoken";
-import establishDbConnection from "../db";
 
 import { eq } from "drizzle-orm";
-import { User } from "../schemas/user.sql";
 import { logger } from "../lib/logger";
 import { TokenTable } from "../schemas/tokenTable.sql";
 import { asyncHandler } from "../lib/asyncHandler";
@@ -20,28 +18,11 @@ const authMiddleware = asyncHandler(async (req, _, next) => {
     throw new ApiError(401, "Unauthorized", ErrCodes.UNAUTHORIZED);
   try {
     const decodedUser: any = jwt.verify(
-      cookies.accessToken,
+      accessToken,
       process.env.ACCESS_SECRET_KEY!
     );
     logger.warn(`Decoded user: ${JSON.stringify(decodedUser)}`);
-    const [user] = await db
-      .select()
-      .from(User)
-      .where(eq(User.id, decodedUser.userId))
-      .execute();
-
-    if (!user) throw new ApiError(401, "Unauthorized", ErrCodes.UNAUTHORIZED);
-
-    req.user = {
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      emailVerified: user.emailVerified,
-      id: user.id,
-      role: user.role ?? "viewer",
-      username: user.username,
-      profilePicture: user.profilePicture || undefined,
-    };
+    req.user = decodedUser;
   } catch (error: any) {
     logger.error(`Error during accessing middleware: ${error.message}`);
     if (error instanceof jwt.TokenExpiredError)

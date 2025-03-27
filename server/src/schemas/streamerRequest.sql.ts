@@ -41,7 +41,8 @@ const StreamerRequest = schema.table("streamer_request", {
   city: t.varchar().notNull(),
   state: t.varchar().notNull(),
   postalCode: t.varchar().notNull(),
-  ...timestamps,
+  panCard: t.varchar().notNull(),
+  ...timestamps
 });
 
 export default StreamerRequest;

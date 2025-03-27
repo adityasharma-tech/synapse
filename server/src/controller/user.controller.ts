@@ -208,6 +208,7 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
       postalCode,
       state,
       streetAddress,
+      panCard: ""
     })
     .returning()
     .execute();

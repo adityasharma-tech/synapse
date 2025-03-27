@@ -21,7 +21,9 @@ function generateUsername() {
 }
 
 function getSigningTokens(payload: any) {
-  const refreshToken = jwt.sign(payload, process.env.REFRESH_SECRET_KEY!, {
+  const refreshToken = jwt.sign({
+    id: payload.id
+  }, process.env.REFRESH_SECRET_KEY!, {
     expiresIn: "4d",
   });
   const accessToken = jwt.sign(payload, process.env.ACCESS_SECRET_KEY!, {
