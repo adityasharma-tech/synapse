@@ -20,7 +20,7 @@ function generateUsername() {
   return username;
 }
 
-function getSigningTokens(payload: any) {
+function getSigningTokens(payload: Partial<MiddlewareUserT>) {
   const refreshToken = jwt.sign({
     id: payload.id
   }, process.env.REFRESH_SECRET_KEY!, {

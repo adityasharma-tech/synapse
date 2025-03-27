@@ -66,7 +66,14 @@ const loginHandler = asyncHandler(async (req, res) => {
 
   const { accessToken, refreshToken, cookieOptions } = getSigningTokens({
     id: user.id,
-  });
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    role: user.role ?? "viewer",
+    username: user.username,
+    profilePicture: user.profilePicture ?? "",
+    emailVerified: user.emailVerified
+   });
 
   if (!isPasswordCorrect) {
     throw new ApiError(401, "Invalid credentials!", ErrCodes.INVALID_CREDS);
@@ -365,9 +372,10 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
     firstName: user.users.firstName,
     lastName: user.users.lastName,
     email: user.users.email,
-    role: user.users.role,
+    role: user.users.role ?? "viewer",
     username: user.users.username,
-    profilePicture: user.users.profilePicture
+    profilePicture: user.users.profilePicture ?? "",
+    emailVerified: user.users.emailVerified
    });
 
   await db
