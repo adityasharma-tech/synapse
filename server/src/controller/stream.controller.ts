@@ -25,8 +25,6 @@ const createNewStream = asyncHandler(async (req, res) => {
       ErrCodes.VALIDATION_ERR
     );
 
-   ;
-
   const streamingToken = jwt.sign(
     { streamerId: user.id },
     process.env.STREAMER_SECRET_KEY!,
@@ -63,8 +61,6 @@ const getAllStreams = asyncHandler(async (req, res) => {
 
   const currentPage = parseInt(page ? page.toString() : "1");
   const currentLimit = parseInt(limit ? limit.toString() : "10");
-
-   ;
 
   const results = await db
     .select({
@@ -109,13 +105,8 @@ const getStreamById = asyncHandler(async (req, res) => {
   const { role } = req.user;
 
   logger.info(`Id of stream: ${id}`);
-   ;
-
   const [stream] = await db
-    .select({
-      streamTitle: Stream.streamTitle,
-      streamUid: Stream.streamingUid
-    })
+    .select({ streamTitle: Stream.streamTitle, streamUid: Stream.streamingUid })
     .from(Stream)
     .where(eq(Stream.streamingUid, id))
     .execute();
@@ -128,7 +119,6 @@ const getStreamById = asyncHandler(async (req, res) => {
 const getAllChatsByStreamingId = asyncHandler(async (req, res) => {
   const { streamId } = req.params;
 
-   ;
   const results = await db
     .select({
       id: ChatMessage.id,
@@ -146,7 +136,7 @@ const getAllChatsByStreamingId = asyncHandler(async (req, res) => {
       updatedAt: ChatMessage.updatedAt,
       orderId: ChatMessage.cfOrderId,
       paymentAmount: Order.orderAmount,
-      paymentCurrency: Order.orderCurrency
+      paymentCurrency: Order.orderCurrency,
     })
     .from(ChatMessage)
     .groupBy(
@@ -192,8 +182,6 @@ const makePremiumChat = asyncHandler(async (req, res) => {
   if (Number.isNaN(orderAmt))
     throw new ApiError(400, "Please enter a valid payment amount.");
 
-   ;
-
   const [stream] = await db
     .select()
     .from(Stream)
@@ -233,7 +221,9 @@ const makePremiumChat = asyncHandler(async (req, res) => {
 
   if (!newChat) throw new ApiError(400, "failed to insert new chat.");
 
-  res.status(201).json(new ApiResponse(201, { paymentSessionId, orderId: newOrderId }));
+  res
+    .status(201)
+    .json(new ApiResponse(201, { paymentSessionId, orderId: newOrderId }));
 });
 
 export {

@@ -58,12 +58,11 @@ const authMiddleware = asyncHandler(async (req, _, next) => {
  */
 const streamerAuthMiddeware = asyncHandler(async (req, _, next) => {
   if (!req.user) throw new ApiError(401, "Unauthorized");
-  if(req.user.role == "admin") return next();
+  if (req.user.role == "admin") return next();
 
   // checking the role which must be streamer
   if (req.user.role != "streamer")
     throw new ApiError(401, "You are not authorized streamer.");
-
 
   const tokens = await db
     .select()

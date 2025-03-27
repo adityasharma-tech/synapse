@@ -41,23 +41,18 @@ const socketAuthMiddleware = async (
     if (!accessToken)
       throw new ApiError(401, "Unauthorized", ErrCodes.UNAUTHORIZED);
 
-    
     const decodedUser: any = jwt.verify(
       String(accessToken),
       process.env.ACCESS_SECRET_KEY!
     );
-    
-     ;
 
     const [stream] = await db
-      .select({
-        streamingUid: Stream.streamingUid
-      })
+      .select({ streamingUid: Stream.streamingUid })
       .from(Stream)
       .where(eq(Stream.streamingUid, streamId))
       .execute();
 
-    if(!stream) throw new ApiError(400, "Stream not found");
+    if (!stream) throw new ApiError(400, "Stream not found");
 
     const [user] = await db
       .select({
@@ -77,11 +72,13 @@ const socketAuthMiddleware = async (
     const [streamer] = await db
       .select({
         streamerId: Stream.streamerId,
-        streamingUid: Stream.streamingUid
+        streamingUid: Stream.streamingUid,
       })
       .from(Stream)
-      .where(and(eq(Stream.streamerId, user.id), eq(Stream.streamingUid, streamId)))
-      .execute()
+      .where(
+        and(eq(Stream.streamerId, user.id), eq(Stream.streamingUid, streamId))
+      )
+      .execute();
 
     socket.user = {
       firstName: user.firstName,
@@ -94,7 +91,7 @@ const socketAuthMiddleware = async (
       profilePicture: user.profilePicture || undefined,
     };
 
-    if(streamer){
+    if (streamer) {
       socket.user.role = "streamer";
     }
     next();

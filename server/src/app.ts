@@ -92,6 +92,7 @@ import authRouter from "./routes/auth.routes";
 import userRouter from "./routes/user.routes";
 import streamRouter from "./routes/stream.routes";
 import webhookRouter from "./routes/webhook.routes";
+import adminRouter from "./routes/admin.routes";
 
 /**
  * Router handlers
@@ -101,6 +102,7 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/streams", streamRouter);
 app.use("/api/v1/webhook", webhookRouter);
+app.use("/api/v1/admin", adminRouter);
 
 /**
  * express error handler

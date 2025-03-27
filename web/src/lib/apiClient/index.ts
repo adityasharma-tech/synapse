@@ -102,25 +102,42 @@ function getStreamById(payload: GetStreamByIdPayloadT) {
 }
 
 function getAllChatByStreamId(payload: GetStreamByIdPayloadT){
-  return apiClient.get(`streams/${payload.streamId}/chats`)
+  return apiClient.get(`/streams/${payload.streamId}/chats`)
 }
 
 function createPremiumChatOrder(payload: MakePremiumChatOrderPayloadT){
-  return apiClient.post(`streams/${payload.streamId}/premium-chat`, payload)
+  return apiClient.post(`/streams/${payload.streamId}/premium-chat`, payload)
+}
+
+function fetchAllApplications(){
+  return apiClient.get(`/admin/streamer-applications`)
+}
+
+function downloadApplicationAsCsv(){
+  return apiClient.get(`/admin/applications-csv`)
+}
+
+function acceptApplication(email: string){
+  return apiClient.post('/admin/accept-application', {
+    email
+  })
 }
 
 export {
   getUser,
-  logoutUser,
   loginUser,
-  signupUser,
-  resendEmailVerification,
-  verifyEmail,
-  startNewStream,
-  getAllStreams,
-  applyForStreamer,
   apiClient,
+  logoutUser,
+  signupUser,
+  verifyEmail,
   getStreamById,
+  getAllStreams,
+  startNewStream,
+  applyForStreamer,
+  acceptApplication,
+  fetchAllApplications,
   getAllChatByStreamId,
-  createPremiumChatOrder
+  createPremiumChatOrder,
+  resendEmailVerification,
+  downloadApplicationAsCsv
 };

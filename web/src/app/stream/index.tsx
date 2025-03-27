@@ -9,11 +9,11 @@ import { requestHandler } from "../../lib/requestHandler";
 import { razorpayKeyId, SocketEventEnum } from "../../lib/constants";
 import { useAppDispatch, useAppSelector } from "../../store";
 import {
-  FormEventHandler,
-  useCallback,
-  useState,
-  PropsWithChildren,
   useRef,
+  useState,
+  useCallback,
+  FormEventHandler,
+  PropsWithChildren,
 } from "react";
 import {
   addBasicChat,
@@ -573,7 +573,7 @@ interface BasicChatCompPropT extends PremiumChatT {
   handleDownVoteChat: () => void;
   handleUpVoteChat: () => void;
   handleMarkDone: () => void;
-  role?: "streamer" | "viewer";
+  role?: "streamer" | "viewer" | "admin";
 }
 
 function BasicChatComp(props: PropsWithChildren<BasicChatCompPropT>) {

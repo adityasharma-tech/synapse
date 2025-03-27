@@ -1,6 +1,6 @@
 import { Request } from "express";
 import { MiddlewareUserT } from "./src/lib/types";
-import { Server } from "socket.io"
+import { Server } from "socket.io";
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 declare global {
@@ -9,8 +9,8 @@ declare global {
       user: MiddlewareUserT | { [key: string]: any };
     }
   }
-  var io: Socket
-  var db: NodePgDatabase<Record<string, never>> & {$client: Pool;}
+  var io: Socket;
+  var db: NodePgDatabase<Record<string, never>> & { $client: Pool };
 }
 
 declare module "socket.io" {
@@ -18,5 +18,3 @@ declare module "socket.io" {
     user: MiddlewareUserT;
   }
 }
-
-export {};

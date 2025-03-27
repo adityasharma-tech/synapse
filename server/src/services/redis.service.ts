@@ -1,5 +1,5 @@
 import { createClient as createRedisClient } from "redis";
-import 'dotenv/config'
+import "dotenv/config";
 
 const redisClient = createRedisClient({
   url: process.env.REDIS_CONNECT_URI!,

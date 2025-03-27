@@ -26,7 +26,7 @@ const loginHandler = asyncHandler(async (req, res) => {
       ErrCodes.VALIDATION_ERR
     );
 
-  const users = await  db
+  const users = await db
     .select()
     .from(User)
     .where(
@@ -72,7 +72,7 @@ const loginHandler = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Invalid credentials!", ErrCodes.INVALID_CREDS);
   }
 
-  await  db
+  await db
     .update(TokenTable)
     .set({ userRefreshToken: refreshToken, updatedAt: new Date() })
     .where(eq(TokenTable.userId, user.id))
@@ -106,9 +106,7 @@ const registerHandler = asyncHandler(async (req, res) => {
       ErrCodes.VALIDATION_ERR
     );
 
-   ;
-
-  const users = await  db
+  const users = await db
     .select()
     .from(User)
     .where(eq(User.email, email.trim().toLowerCase()))
@@ -129,7 +127,7 @@ const registerHandler = asyncHandler(async (req, res) => {
 
   const username = `${firstName.trim().toLowerCase()}-${generateUsername()}`;
 
-  const result = await  db
+  const result = await db
     .insert(User)
     .values({
       firstName,
@@ -152,14 +150,14 @@ const registerHandler = asyncHandler(async (req, res) => {
     );
   }
 
-  const tokenTableResult = await  db
+  const tokenTableResult = await db
     .select()
     .from(TokenTable)
     .where(eq(TokenTable.userId, result[0].id))
     .execute();
 
   if (!tokenTableResult || tokenTableResult.length <= 0) {
-    const tokenInsertResults = await  db
+    const tokenInsertResults = await db
       .insert(TokenTable)
       .values({
         userId: result[0].id,
@@ -175,9 +173,8 @@ const registerHandler = asyncHandler(async (req, res) => {
         "Failed to insert token in token table",
         ErrCodes.DB_INSERT_ERR
       );
-      
   } else {
-    const tokenUpdateResults = await  db
+    const tokenUpdateResults = await db
       .update(TokenTable)
       .set({ emailVerificationToken, emailVerificationTokenExpiry })
       .where(eq(TokenTable.userId, result[0].id))
@@ -218,8 +215,6 @@ const verifyEmailHandler = asyncHandler(async (req, res) => {
       "verification token is a required parameter.",
       ErrCodes.VALIDATION_ERR
     );
-
-   ;
 
   const users = await db
     .select()
@@ -289,8 +284,6 @@ const resendEmailHandler = asyncHandler(async (req, res) => {
 
   const emailVerificationToken = crpyto.randomBytes(20).toString("hex");
 
-   ;
-
   const users = await db
     .select()
     .from(User)
@@ -345,8 +338,6 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
       ErrCodes.REFRESH_TOKEN_EXPIRED
     );
   }
-
-   ;
 
   const users = await db
     .select()
@@ -405,8 +396,6 @@ const resetPasswordHandler = asyncHandler(async (req, res) => {
       "Verification token not found",
       ErrCodes.VALIDATION_ERR
     );
-
-   ;
 
   const users = await db
     .select()

@@ -7,6 +7,7 @@ import VerifyPage from "./app/auth/verify";
 import LogoutPage from "./app/user/logout";
 import DashboardPage from "./app/dashboard";
 import ApplyForStreamer from "./app/dashboard/apply";
+import StreamerApplicationsPage from "./app/dashboard/streamer-applications";
 
 
 // layouts
@@ -26,7 +27,7 @@ export default function Main() {
   const dispatch = useAppDispatch()
 
   // user from the redux state
-  const user = useAppSelector(state => state.app);
+  const user = useAppSelector(state => state.app.user);
   
   // this line fetches user every time user reload it's page and set user data to the redux state;
   useEffect(() => {
@@ -53,6 +54,7 @@ export default function Main() {
           {user ? <Route path="dashboard" element={<DashboardLayout/>}>
             <Route index element={<DashboardPage />} />
             <Route path="apply" element={<ApplyForStreamer/>}/>
+            {user.role == "admin" ? <Route path="streamer-applications" element={<StreamerApplicationsPage/>}/> : null}
           </Route> : null}
           <Route element={<SocketLayout/>}>
           <Route path="stream/:streamId" element={<Stream />} />

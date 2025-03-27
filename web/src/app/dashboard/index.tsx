@@ -55,13 +55,19 @@ export default function DashboardPage() {
       <Header>
         {user?.role == "streamer" ? (
           " "
-        ) : (
+        ) : user?.role == "viewer" ? (
           <Link to="/dashboard/apply">
-            <button className="border border-neutral-400 rounded-md px-5 py-2 capitalize font-medium">
+            <button className="border cursor-pointer border-neutral-400 rounded-md px-5 py-2 capitalize font-medium">
               apply for streamer
             </button>
           </Link>
-        )}
+        ) : user?.role == "admin" ? (
+          <Link to="/dashboard/streamer-applications">
+            <button className="border cursor-pointer border-neutral-400 rounded-md px-5 py-2 capitalize font-medium">
+              View applications
+            </button>
+          </Link>
+        ) : null}
       </Header>
       <section className="h-[calc(100vh-72px)] flex flex-col">
         <div className="flex w-full gap-x-4 py-3 px-4 min-h-36">

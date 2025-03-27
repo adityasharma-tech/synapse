@@ -31,7 +31,7 @@ function getSigningTokens(payload: any) {
     httpOnly: true,
     secure: true,
     maxAge: 60 * 60 * 24 * 4 * 1000,
-    sameSite: "none"
+    sameSite: "none",
   };
 
   return { refreshToken, accessToken, cookieOptions };
@@ -79,7 +79,7 @@ const ROLES = {
     "stream:create",
     "stream:update",
     "stream:view",
-    "stream:user:block"
+    "stream:user:block",
   ],
   streamer: [
     "chat:create",

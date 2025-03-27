@@ -3,16 +3,24 @@ import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
 import { User } from "../schemas/user.sql";
 import { ApiError, ErrCodes } from "../lib/ApiError";
-import {
-  createBeneficiary,
-} from "../services/payments.service";
+import { createBeneficiary } from "../services/payments.service";
 import { TokenTable } from "../schemas/tokenTable.sql";
 import StreamerRequest from "../schemas/streamerRequest.sql";
 import { msg91AuthKey } from "../lib/constants";
 
 const logoutHandler = asyncHandler(async (_, res) => {
-  res.cookie("accessToken", "", { maxAge: 0, sameSite: "none", httpOnly: true, secure: true });
-  res.cookie("refreshToken", "", { maxAge: 0, sameSite: "none", httpOnly: true, secure: true });
+  res.cookie("accessToken", "", {
+    maxAge: 0,
+    sameSite: "none",
+    httpOnly: true,
+    secure: true,
+  });
+  res.cookie("refreshToken", "", {
+    maxAge: 0,
+    sameSite: "none",
+    httpOnly: true,
+    secure: true,
+  });
 
   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   res.setHeader("Pragma", "no-cache");

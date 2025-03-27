@@ -40,7 +40,6 @@ const handleVerifyCfOrder = asyncHandler(async (req, res) => {
     payload["data"]["order"]["order_id"]
   );
 
-   ;
   const [orderUpdate] = await db
     .update(Order)
     .set({
@@ -125,78 +124,77 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
 
   const event = body;
 
-  console.log("event", event)
+  console.log("event", event);
 
-  if(event.event === "order.paid"){
-      const instance = getRazorpayInstance();
-      const orderId = event["payload"]["order"]["entity"]["id"] as string;
-      const order = await instance.orders.fetch(orderId);
-       ;
-      const [orderUpdate] = await db
-        .update(Order)
-        .set({ orderAmount: order.amount_paid, orderStatus: order.status })
-        .where(eq(Order.cfOrderId, String(orderId)))
+  if (event.event === "order.paid") {
+    const instance = getRazorpayInstance();
+    const orderId = event["payload"]["order"]["entity"]["id"] as string;
+    const order = await instance.orders.fetch(orderId);
+    const [orderUpdate] = await db
+      .update(Order)
+      .set({ orderAmount: order.amount_paid, orderStatus: order.status })
+      .where(eq(Order.cfOrderId, String(orderId)))
+      .returning()
+      .execute();
+
+    if (order.status === "paid") {
+      const [preChatMessage] = await db
+        .select({ paymentStatus: ChatMessage.paymentStatus })
+        .from(ChatMessage)
+        .where(eq(ChatMessage.cfOrderId, orderUpdate.cfOrderId))
+        .execute();
+
+      if (preChatMessage.paymentStatus === "paid")
+        return res.status(200).json(new ApiResponse(200, "Webhook success"));
+
+      const [chatMessage] = await db
+        .update(ChatMessage)
+        .set({ paymentStatus: "paid" })
+        .where(eq(ChatMessage.cfOrderId, orderUpdate.cfOrderId))
         .returning()
         .execute();
 
-      if (order.status === "paid") {
-        const [preChatMessage] = await db
-          .select({ paymentStatus: ChatMessage.paymentStatus })
-          .from(ChatMessage)
-          .where(eq(ChatMessage.cfOrderId, orderUpdate.cfOrderId))
-          .execute();
+      const [user] = await db
+        .select({
+          fullName: sql`${User.firstName} || ' ' || ${User.lastName}`,
+          username: User.username,
+          profilePicture: User.profilePicture,
+        })
+        .from(User)
+        .groupBy(
+          User.firstName,
+          User.lastName,
+          User.username,
+          User.profilePicture
+        )
+        .where(eq(User.id, chatMessage.userId))
+        .execute();
 
-        if (preChatMessage.paymentStatus === "paid")
-          return res.status(200).json(new ApiResponse(200, "Webhook success"));
+      if (!chatMessage || !user)
+        throw new ApiError(400, "Failed to get user or chatMessage");
 
-        const [chatMessage] = await db
-          .update(ChatMessage)
-          .set({ paymentStatus: "paid" })
-          .where(eq(ChatMessage.cfOrderId, orderUpdate.cfOrderId))
-          .returning()
-          .execute();
-
-        const [user] = await db
-          .select({
-            fullName: sql`${User.firstName} || ' ' || ${User.lastName}`,
-            username: User.username,
-            profilePicture: User.profilePicture,
-          })
-          .from(User)
-          .groupBy(
-            User.firstName,
-            User.lastName,
-            User.username,
-            User.profilePicture
-          )
-          .where(eq(User.id, chatMessage.userId))
-          .execute();
-
-        if (!chatMessage || !user)
-          throw new ApiError(400, "Failed to get user or chatMessage");
-
-        if (chatMessage.streamUid) {
-          const io = global.io as Server;
-          io.to(chatMessage.streamUid).emit(
-            SocketEventEnum.PAYMENT_CHAT_CREATE_EVENT,
-            {
-              message: chatMessage.message,
-              id: String(chatMessage.id),
-              markRead: false,
-              upVotes: 0,
-              downVotes: 0,
-              user: { ...user, role: "viewer" },
-              pinned: false,
-              orderId: orderUpdate.cfOrderId,
-              paymentAmount: orderUpdate.orderAmount,
-            }
-          );
-        }
+      if (chatMessage.streamUid) {
+        const io = global.io as Server;
+        io.to(chatMessage.streamUid).emit(
+          SocketEventEnum.PAYMENT_CHAT_CREATE_EVENT,
+          {
+            message: chatMessage.message,
+            id: String(chatMessage.id),
+            markRead: false,
+            upVotes: 0,
+            downVotes: 0,
+            user: { ...user, role: "viewer" },
+            pinned: false,
+            orderId: orderUpdate.cfOrderId,
+            paymentAmount: orderUpdate.orderAmount,
+          }
+        );
       }
-    } else {
-      throw new ApiError(404, "Event not found.");
     }
-    return res.status(200).json(new ApiResponse(200, "Sucess"))
+  } else {
+    throw new ApiError(404, "Event not found.");
+  }
+  return res.status(200).json(new ApiResponse(200, "Sucess"));
 });
 
 export { handleVerifyCfOrder, handleVerfiyRazorpayOrder };

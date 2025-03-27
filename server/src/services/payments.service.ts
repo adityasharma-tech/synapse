@@ -13,6 +13,8 @@ import "dotenv/config";
 import OrderId from "order-id";
 import Razorpay from "razorpay";
 import { Orders } from "razorpay/dist/types/orders";
+import { Accounts } from "razorpay/dist/types/accounts";
+import { encodeBase64 } from "bcryptjs";
 
 const cashfreeClientHeaders = new Headers();
 cashfreeClientHeaders.set("x-api-version", process.env.CF_PAYOUT_XAPI_VERSION!);
@@ -51,12 +53,12 @@ interface CreateOrderPropT {
   user: MiddlewareUserT;
 }
 
-const getRazorpayInstance = function(){
+const getRazorpayInstance = function () {
   return new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID!,
-    key_secret: process.env.RAZORPAY_SECRET_KEY!
-  })
-}
+    key_secret: process.env.RAZORPAY_SECRET_KEY!,
+  });
+};
 
 const createBeneficiary: (p: CreateBeneficiaryPropT) => Promise<string> =
   function (props) {
@@ -143,8 +145,6 @@ const createCfOrder: (
     order_note: "",
   };
 
-   ;
-
   // creates an order in the Order table of postgress db using drizzle-orm
   const [dbOrder] = await db
     .insert(Order)
@@ -196,7 +196,11 @@ const createCfOrder: (
 const createRazorpayOrder: (
   p: CreateOrderPropT
 ) => Promise<
-  | { orderId: string; paymentStatus: "created" | "attempted" | "paid"; paymentSessionId: string }
+  | {
+      orderId: string;
+      paymentStatus: "created" | "attempted" | "paid";
+      paymentSessionId: string;
+    }
   | undefined
 > = async function (props) {
   const user = props.user;
@@ -218,7 +222,6 @@ const createRazorpayOrder: (
     },
   };
 
-   ;
   try {
     // using razorpay, this will make an api request to create an order on razorpay payment service for paymentSessionId
     const instance = getRazorpayInstance();
@@ -231,14 +234,14 @@ const createRazorpayOrder: (
       .values({
         cfOrderId: order.id,
         orderAmount: +order.amount,
-        orderExpiryTime: (new Date(1000 * 14 * 60)).toUTCString(),
+        orderExpiryTime: new Date(1000 * 14 * 60).toUTCString(),
         userId: user.id,
         orderCurrency: order.currency,
         orderStatus: order.status,
-        paymentSessionId: null
+        paymentSessionId: null,
       })
       .returning()
-      .execute()
+      .execute();
 
     return {
       orderId: String(dbOrder.cfOrderId),
@@ -251,4 +254,82 @@ const createRazorpayOrder: (
   }
 };
 
-export { createBeneficiary, createCfOrder, createRazorpayOrder, getRazorpayInstance };
+const createLinkedAccount = async function (
+  options: Accounts.RazorpayAccountCreateRequestBody,
+  accountData: {
+    accountNumber: string;
+    ifscCode: string;
+    beneficiaryName: string;
+  }
+) {
+  if (!options.legal_info?.pan)
+    throw new ApiError(400, "You have to provide pan card.");
+  const instance = getRazorpayInstance();
+  const accountCreateResult = await instance.accounts.create(options);
+
+  logger.info(
+    `Account creation result: ${JSON.stringify(accountCreateResult)}`
+  );
+
+  const stakeholderResult = await instance.stakeholders.create(
+    accountCreateResult.id,
+    {
+      email: options.email,
+      kyc: { pan: options.legal_info.pan },
+      name: options.contact_name,
+      phone: { primary: options.phone.toString() },
+    }
+  );
+
+  logger.info(
+    `Stakeholder creation result: ${JSON.stringify(stakeholderResult)}`
+  );
+
+  const productConfiguration =
+    await instance.products.requestProductConfiguration(
+      accountCreateResult.id,
+      { product_name: "route", tnc_accepted: true }
+    );
+
+  logger.info(
+    `product configuration result: ${JSON.stringify(productConfiguration)}`
+  );
+
+  const headers = new Headers();
+  headers.set("Content-Type", "application/json");
+  headers.set(
+    "Authorization",
+    `Bearer ${btoa(process.env.RAZORPAY_KEY_ID! + ":" + process.env.RAZORPAY_SECRET_KEY!)}`
+  );
+
+  const payload = JSON.stringify({
+    settlements: {
+      account_number: accountData.accountNumber,
+      ifsc_code: accountData.ifscCode,
+      beneficiary_name: accountData.beneficiaryName,
+    },
+    tnc_accepted: true,
+  });
+
+  const fetchOptions: RequestInit = { body: payload, headers, method: "PATCH" };
+
+  const request = await fetch(
+    `https://api.razorpay.com/v2/accounts/${productConfiguration.account_id}/products/${productConfiguration.id}`,
+    fetchOptions
+  );
+  const response = await request.json();
+
+  logger.info(`acount id add: ${JSON.stringify(response)}`);
+
+  if (!response.id) throw new ApiError(400, "Failed to create linked account.");
+
+  return productConfiguration.account_id;
+};
+
+export {
+  createBeneficiary,
+  createCfOrder,
+  createRazorpayOrder,
+  getRazorpayInstance,
+  createLinkedAccount,
+};

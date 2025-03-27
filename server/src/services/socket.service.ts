@@ -64,8 +64,6 @@ interface ChatMarkDonePayloadT extends ChatDeletePayloadT {}
 
 interface ChatTypingEventT extends LeaveStreamHandlerPayloadT {}
 
- ;
-
 // event handlers
 function joinStreamHandler(socket: Socket, payload: JoinStreamHandlerPayloadT) {
   socket.join(payload.streamId);
@@ -298,11 +296,13 @@ function socketHandler(io: Server, socket: Socket) {
       SocketEventEnum.PAYMENT_CHAT_CREATE_EVENT,
       paymentChatCreateHandler
     );
-    socket.on(SocketEventEnum.CHAT_UPVOTE_EVENT, async (payload) =>
-      await chatUpvoteHandler(io, socket, payload)
+    socket.on(
+      SocketEventEnum.CHAT_UPVOTE_EVENT,
+      async (payload) => await chatUpvoteHandler(io, socket, payload)
     );
-    socket.on(SocketEventEnum.CHAT_DOWNVOTE_EVENT, async (payload) =>
-      await chatDownVoteHandler(io, socket, payload)
+    socket.on(
+      SocketEventEnum.CHAT_DOWNVOTE_EVENT,
+      async (payload) => await chatDownVoteHandler(io, socket, payload)
     );
     socket.on(SocketEventEnum.STREAM_TYPING_EVENT, (payload) =>
       chatTypingEvent(io, socket, payload)

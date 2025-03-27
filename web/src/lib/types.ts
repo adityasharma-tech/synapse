@@ -7,7 +7,7 @@ interface UserT {
     email: string;
     profilePicture?: string;
     phoneNumber: string;
-    role: "streamer" | "viewer";
+    role: "streamer" | "viewer" | "admin";
     emailVerified: boolean;
 }
 

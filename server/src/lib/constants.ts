@@ -8,7 +8,7 @@ const corsOrigins = [
   String(process.env.FRONTEND_URL!),
   "https://synapse-local.adityasharma.live",
   "https://localport-3000.adityasharma.live",
-  "https://alishanshowroom.vercel.app"
+  "https://alishanshowroom.vercel.app",
 ];
 
 const SocketEventEnum = Object.freeze({

@@ -50,7 +50,7 @@ interface DashStreamReducer {
   premiumChats: PremiumChatT[];
   stream: any;
   typerNames: TypingEventPayloadT[];
-  userRole: "streamer" | "viewer"
+  userRole: "streamer" | "viewer" | "admin"
 }
 
 // Define the initial state using that type
@@ -76,7 +76,7 @@ export const streamSlice = createSlice({
     },
 
     // update role
-    updateUserRole: (state, action: PayloadAction<"viewer" | "streamer">) => {
+    updateUserRole: (state, action: PayloadAction<"viewer" | "streamer" | "admin">) => {
       state.userRole = action.payload
     },
 
