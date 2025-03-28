@@ -4,6 +4,7 @@ const msgAuthToken = import.meta.env.VITE_TOKEN_AUTH!;
 
 //
 const hostBaseUrl = import.meta.env.VITE_BACKEND_HOST + '/api/v1'
+const githubUrl = "https://github.com/adityasharma-tech/synapse.git"
 
 // razorpay key id import only
 const razorpayKeyId = import.meta.env.VITE_RAZORPAY_KEY_ID!;
@@ -30,4 +31,4 @@ const SocketEventEnum = Object.freeze({
   CHAT_DOWNVOTE_DOWN_EVENT: "stream:chat:downvote-down",
 });
 
-export { msgAuthToken, msgWidgetId,hostBaseUrl, SocketEventEnum, razorpayKeyId };
+export { msgAuthToken, msgWidgetId,hostBaseUrl, SocketEventEnum, razorpayKeyId, githubUrl };

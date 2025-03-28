@@ -1,64 +1,64 @@
-import { useCallback } from "react";
+import React, { useCallback } from "react";
 import { useNavigate } from "react-router";
+import { useAppSelector } from "../store";
 
 export default function Home() {
   const navigate = useNavigate();
   const chats = [
     {
-      "name": "Charlie Davis",
-      "message": "Loving the premium chat! Worth every penny. 💎",
-      "upvotes": 50,
-      "downvotes": 2,
-      "premium": true,
-      "payment_amount": 9.99
+      name: "Charlie Davis",
+      message: "Loving the premium chat! Worth every penny. 💎",
+      upvotes: 50,
+      downvotes: 2,
+      premium: true,
+      payment_amount: 9.99,
     },
     {
-      "name": "Ethan Clark",
-      "message": "Just subscribed to premium, and it's amazing! 🔥",
-      "upvotes": 40,
-      "downvotes": 0,
-      "premium": true,
-      "payment_amount": 4.99
+      name: "Ethan Clark",
+      message: "Just subscribed to premium, and it's amazing! 🔥",
+      upvotes: 40,
+      downvotes: 0,
+      premium: true,
+      payment_amount: 4.99,
     },
     {
-      "name": "Alice Johnson",
-      "message": "This chat app is super fast and smooth! 🚀",
-      "upvotes": 25,
-      "downvotes": 3,
-      "premium": false
+      name: "Alice Johnson",
+      message: "This chat app is super fast and smooth! 🚀",
+      upvotes: 25,
+      downvotes: 3,
+      premium: false,
     },
     {
-      "name": "Bob Williams",
-      "message": "How do I enable dark mode? 🌙",
-      "upvotes": 10,
-      "downvotes": 1,
-      "premium": false
+      name: "Bob Williams",
+      message: "How do I enable dark mode? 🌙",
+      upvotes: 10,
+      downvotes: 1,
+      premium: false,
     },
     {
-      "name": "Diana Ross",
-      "message": "This app needs more emojis! 😆",
-      "upvotes": 15,
-      "downvotes": 5,
-      "premium": false
+      name: "Diana Ross",
+      message: "This app needs more emojis! 😆",
+      upvotes: 15,
+      downvotes: 5,
+      premium: false,
     },
-  ]
+  ];
 
-  const handleToogleDarkMode = useCallback(()=>{
-    const root = window.document.querySelector('body')
-    if(!root) return;
-    if(root.classList.contains('dark')) root.classList.remove('dark')
-      else root.classList.add('dark');
-  },[])
-  
+  const user = useAppSelector((state) => state.app.user);
+
+  const handleToogleDarkMode = useCallback(() => {
+    const root = window.document.querySelector("body");
+    if (!root) return;
+    if (root.classList.contains("dark")) root.classList.remove("dark");
+    else root.classList.add("dark");
+  }, []);
+
   return (
     <div className="overflow-y-scroll h-screen">
       <header className="justify-between w-full flex py-5 px-6 items-center">
         <div>
           <img className="h-8 w-auto dark:hidden" src="/T&B@2x.png" />
-          <img
-            className="h-8 w-auto not-dark:hidden"
-            src="/T&W@2x.png"
-          />
+          <img className="h-8 w-auto not-dark:hidden" src="/T&W@2x.png" />
         </div>
         <div className="flex gap-x-3">
           <button className="button btn-ghost">Product</button>
@@ -67,7 +67,10 @@ export default function Home() {
           <button className="button btn-ghost">Privacy Policy</button>
         </div>
         <div className="flex gap-x-3">
-          <button onClick={handleToogleDarkMode} className="button mr-4 group hover:bg-neutral-800 px-2.5 rounded-full">
+          <button
+            onClick={handleToogleDarkMode}
+            className="button mr-4 group hover:bg-neutral-800 px-2.5 rounded-full"
+          >
             <svg width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none">
               <path
                 d="M7.285 10.333a5 5 0 103.049-3.049M12 2v2M12 20v2M4 12H2M22 12h-2M19.778 4.223l-2.222 2.031M4.222 4.223l2.222 2.031M6.444 17.556l-2.222 2.222M19.778 19.777l-2.222-2.222"
@@ -77,8 +80,25 @@ export default function Home() {
               />
             </svg>
           </button>
-          <button onClick={()=>navigate('/auth/login')} className="button btn-outline">Log in</button>
-          <button onClick={()=>navigate('/auth/signup')} className="button btn-solid">Sign up</button>
+          {user ? <button
+              onClick={() => navigate("/dashboard")}
+              className="button btn-solid"
+            >
+              Dashboard
+            </button> :<React.Fragment>
+            <button
+              onClick={() => navigate("/auth/login")}
+              className="button btn-outline"
+            >
+              Log in
+            </button>
+            <button
+              onClick={() => navigate("/auth/signup")}
+              className="button btn-solid"
+            >
+              Sign up
+            </button>
+          </React.Fragment>}
         </div>
       </header>
       <main>
@@ -102,7 +122,10 @@ export default function Home() {
               </p>
             </div>
             <div className="flex gap-x-5 mt-8">
-              <button onClick={()=>navigate('/dashboard')} className="button btn-solid h-12 relative group">
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="button btn-solid h-12 relative group"
+              >
                 <svg
                   width="1.3em"
                   height="1.3em"
