@@ -14,13 +14,15 @@ export default function StreamerApplicationsPage() {
   const handleFetchApplications = React.useCallback(async () => {
     await requestHandler(fetchAllApplications(), setLoading, (result) => {
       setApplications(result.data.applications);
-      console.log(result.data);
     });
   }, [requestHandler, fetchAllApplications, setLoading, setApplications]);
 
   const handleProcessSelected = React.useCallback(async (email: string)=>{
-    await requestHandler(acceptApplication(email), )
-  }, [])
+    setLoadingItem(email)
+    await requestHandler(acceptApplication(email), undefined, ()=>{
+      setLoadingItem(null)
+    })
+  }, [setLoadingItem, requestHandler, acceptApplication])
 
   React.useEffect(() => {
     handleFetchApplications();
@@ -57,7 +59,7 @@ export default function StreamerApplicationsPage() {
               ))}
               {<button onClick={()=>handleProcessSelected(application.accountEmail)} className={applications[idx]['requestStatus'] === "account_added" ? "btn btn-sm btn-warning" :"btn btn-sm btn-success"}>
                 {applications[idx]['requestStatus'] === "account_added" ? "Refresh" : "Accept"}
-                {loadingItem == "" ? <span className="loading-spinner loading loading-xs"></span> : null}
+                {loadingItem == application.accountEmail ? <span className="loading-spinner loading loading-xs"></span> : null}
               </button>}
             </div>
           ))}
