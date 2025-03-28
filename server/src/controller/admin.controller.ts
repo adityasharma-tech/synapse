@@ -1,10 +1,15 @@
 import fs from "fs/promises";
+import StreamerRequest from "../schemas/streamerRequest.sql";
+import crpto from "crypto";
+
 import { eq } from "drizzle-orm";
 import { ApiError } from "../lib/ApiError";
 import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
-import StreamerRequest from "../schemas/streamerRequest.sql";
 import { createLinkedAccount } from "../services/payments.service";
+import { TokenTable } from "../schemas/tokenTable.sql";
+import { signStreamerVerficationToken } from "../lib/utils";
+import { User } from "../schemas/user.sql";
 
 const getAllStreamApplications = asyncHandler(async (req, res) => {
   const user = req.user;
@@ -17,10 +22,10 @@ const getAllStreamApplications = asyncHandler(async (req, res) => {
       accountEmail: StreamerRequest.accountEmail,
       dashboardAccess: StreamerRequest.dashboardAccess,
       customerRefunds: StreamerRequest.customerRefunds,
+      requestStatus: StreamerRequest.requestStatus,
       businessName: StreamerRequest.businessName,
     })
     .from(StreamerRequest)
-    .where(eq(StreamerRequest.requestStatus, "pending"))
     .execute();
 
   res.status(200).json(new ApiResponse(200, { applications }));
@@ -75,38 +80,81 @@ const acceptFormData = asyncHandler(async (req, res) => {
   if (!application)
     throw new ApiError(400, "Failed to get application details.");
 
-  const result = await createLinkedAccount(
-    {
-      business_type: application.businessType,
-      contact_name: application.accountName,
-      email: application.accountEmail,
-      legal_business_name: application.businessName,
-      phone: application.phoneNumber,
-      profile: {
-        addresses: {
-          registered: {
-            city: application.city,
-            country: "IN",
-            postal_code: application.postalCode,
-            state: application.state,
-            street1: application.streetAddress,
-            street2: application.streetAddress,
+  try {
+    const referenceId = Math.floor(Math.random()*1000000000);
+    console.log(JSON.stringify(application));
+
+    const result = await createLinkedAccount(application.requestStatus,
+      {
+        business_type: application.businessType,
+        type: "route",
+        contact_name: application.accountName,
+        email: application.accountEmail,
+        legal_business_name: application.businessName,
+        phone: application.phoneNumber,
+        profile: {
+          category: "social",
+          subcategory: "messaging",
+          addresses: {
+            registered: {
+              city: application.city,
+              country: "IN",
+              postal_code: application.postalCode,
+              state: application.state,
+              street1: application.streetAddress,
+              street2: application.streetAddress,
+            },
           },
         },
+        legal_info: { pan: application.panCard.trim() == "" ? undefined : application.panCard },
+        reference_id: String(referenceId),
       },
-      legal_info: { pan: application.panCard },
-      reference_id: String(application.userId),
-    },
-    {
-      accountNumber: application.bankAccountNumber,
-      beneficiaryName: application.accountName,
-      ifscCode: application.bankIfscCode,
-    }
-  );
+      {
+        accountId: application.razorpayAccountId,
+        accountNumber: application.bankAccountNumber,
+        beneficiaryName: application.accountName,
+        ifscCode: application.bankIfscCode,
+        productConfigurationId: application.productConfigurationId
+      }
+    );
+    if (!result) throw new ApiError(400, "Failed to create linked account.");
 
-  if (!result) throw new ApiError(400, "Failed to create linked account.");
+    await db
+      .update(StreamerRequest)
+      .set({
+        requestStatus: "account_added",
+        updatedAt: new Date()
+      })
+      .where(eq(StreamerRequest.accountEmail, application.accountEmail))
+      .execute()
 
-  res.status(200).json(new ApiResponse(200, "Success"));
+    await db
+      .update(TokenTable)
+      .set({
+        streamerVerificationToken: signStreamerVerficationToken({
+          beneficiaryId: String(application.razorpayAccountId),
+          userId: String(application.userId),
+          addedAt: new Date().toISOString()
+        }),
+        updatedAt: new Date()
+      })
+      .where(eq(TokenTable.userId, application.userId))
+      .execute()
+
+    await db
+      .update(User)
+      .set({
+        role: "streamer",
+        refrenceId: String(referenceId),
+        updatedAt: new Date()
+      })
+      .where(eq(User.id, application.userId))
+
+    res.status(200).json(new ApiResponse(200, "Success"));
+  } catch (err) {
+    console.error(err);
+    throw new ApiError(400, "Failed to create linked account.");
+  }
 });
 
 export { getAllStreamApplications, downloadStreamAsCsv, acceptFormData };

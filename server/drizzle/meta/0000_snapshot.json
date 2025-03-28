@@ -1,5 +1,5 @@
 {
-  "id": "a08c47b8-3ad3-466b-8e99-96925a3dc59a",
+  "id": "499187c4-ce95-4507-a448-d2395534b4f2",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -433,6 +433,23 @@
       "name": "streamer_request",
       "schema": "upgrade",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "streamer_request_id_seq",
+            "schema": "upgrade",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
         "user_id": {
           "name": "user_id",
           "type": "integer",
@@ -622,7 +639,7 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
-          "default": "'2025-03-27 10:42:03.064'"
+          "default": "'2025-03-28 09:38:06.497'"
         },
         "email_verification_token": {
           "name": "email_verification_token",
@@ -635,7 +652,7 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
-          "default": "'2025-03-27 10:42:03.064'"
+          "default": "'2025-03-28 09:38:06.497'"
         },
         "updated_at": {
           "name": "updated_at",
@@ -752,6 +769,12 @@
           "notNull": true,
           "default": false
         },
+        "refrence_id": {
+          "name": "refrence_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
@@ -813,8 +836,10 @@
       "schema": "upgrade",
       "values": [
         "pending",
-        "processing",
-        "accepted",
+        "account_created",
+        "stakeholder_created",
+        "tnc_accepted",
+        "account_added",
         "done"
       ]
     },

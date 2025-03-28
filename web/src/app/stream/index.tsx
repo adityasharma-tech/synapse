@@ -43,7 +43,13 @@ export default function Stream() {
   const dispatch = useAppDispatch();
   const throttle = useThrottle();
   const debounce = useDebounce();
+  // state hooks
   const user = useAppSelector((state) => state.app.user);
+  const streamState = useAppSelector((state) => state.stream);
+
+  // special state for basic message type
+  // const [optimisticMessages, setOptimisticMessages] = useOptimistic(streamState.basicChats)
+
 
   // local states
   const [message, setMessage] = useState("");
@@ -63,8 +69,6 @@ export default function Stream() {
   // cashfree states
   const [cashfree] = useState<any>(null);
 
-  // state hooks
-  const streamState = useAppSelector((state) => state.stream);
 
   // refs
   const lastMessageRef = useRef<HTMLDivElement | null>(null);

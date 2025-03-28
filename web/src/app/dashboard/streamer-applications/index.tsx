@@ -55,10 +55,10 @@ export default function StreamerApplicationsPage() {
               {Object.values(application).map((value: any) => (
                 <span>{value}</span>
               ))}
-              <button onClick={()=>handleProcessSelected(application.accountEmail)} className="btn btn-sm btn-success">
-                Accept
+              {<button onClick={()=>handleProcessSelected(application.accountEmail)} className={applications[idx]['requestStatus'] === "account_added" ? "btn btn-sm btn-warning" :"btn btn-sm btn-success"}>
+                {applications[idx]['requestStatus'] === "account_added" ? "Refresh" : "Accept"}
                 {loadingItem == "" ? <span className="loading-spinner loading loading-xs"></span> : null}
-              </button>
+              </button>}
             </div>
           ))}
         </section>

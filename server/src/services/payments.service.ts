@@ -1,11 +1,10 @@
 import crypto from "crypto";
-import establishDbConnection from "../db";
-
-import { eq, or } from "drizzle-orm";
+import axios, { AxiosHeaders } from "axios";
+import base64 from "base-64"
+import { eq } from "drizzle-orm";
 import { Order } from "../schemas/order.sql";
 import { logger } from "../lib/logger";
 import { ApiError } from "../lib/ApiError";
-import { v4 as uuidv4 } from "uuid";
 import { MiddlewareUserT } from "../lib/types";
 import { Cashfree, CreateOrderRequest } from "cashfree-pg";
 import { signStreamerVerficationToken } from "../lib/utils";
@@ -14,7 +13,7 @@ import OrderId from "order-id";
 import Razorpay from "razorpay";
 import { Orders } from "razorpay/dist/types/orders";
 import { Accounts } from "razorpay/dist/types/accounts";
-import { encodeBase64 } from "bcryptjs";
+import StreamerRequest from "../schemas/streamerRequest.sql";
 
 const cashfreeClientHeaders = new Headers();
 cashfreeClientHeaders.set("x-api-version", process.env.CF_PAYOUT_XAPI_VERSION!);
@@ -255,75 +254,145 @@ const createRazorpayOrder: (
 };
 
 const createLinkedAccount = async function (
+  requestStatus:
+    | "pending"
+    | "account_created"
+    | "stakeholder_created"
+    | "tnc_accepted"
+    | "account_added"
+    | "done",
   options: Accounts.RazorpayAccountCreateRequestBody,
   accountData: {
+    accountId: string | null;
+    productConfigurationId: string | null;
     accountNumber: string;
     ifscCode: string;
     beneficiaryName: string;
   }
 ) {
-  if (!options.legal_info?.pan)
-    throw new ApiError(400, "You have to provide pan card.");
   const instance = getRazorpayInstance();
-  const accountCreateResult = await instance.accounts.create(options);
+  let accountCreateResult: Accounts.RazorpayAccount;
 
-  logger.info(
-    `Account creation result: ${JSON.stringify(accountCreateResult)}`
-  );
+  if (requestStatus == "pending") {
+    // if (!options.legal_info?.pan)
+    //   throw new ApiError(400, "You have to provide pan card.");
+    console.log(JSON.stringify(options));
+    accountCreateResult = await instance.accounts.create(options);
 
-  const stakeholderResult = await instance.stakeholders.create(
-    accountCreateResult.id,
-    {
-      email: options.email,
-      kyc: { pan: options.legal_info.pan },
-      name: options.contact_name,
-      phone: { primary: options.phone.toString() },
-    }
-  );
+    await db
+      .update(StreamerRequest)
+      .set({ razorpayAccountId: accountCreateResult.id, requestStatus: "account_created", updatedAt: new Date() })
+      .where(eq(StreamerRequest.accountEmail, options.email))
+      .execute();
 
-  logger.info(
-    `Stakeholder creation result: ${JSON.stringify(stakeholderResult)}`
-  );
+    requestStatus = "account_created";
+    accountData.accountId = accountCreateResult.id
 
-  const productConfiguration =
-    await instance.products.requestProductConfiguration(
-      accountCreateResult.id,
-      { product_name: "route", tnc_accepted: true }
+    logger.info(
+      `Account creation result: ${JSON.stringify(accountCreateResult)}`
+    );
+  }
+  if (requestStatus == "account_created") {
+    const address = options.profile.addresses
+      ?.registered as Accounts.ProfileAddresses;
+    logger.info(`Primary phone number: ${JSON.stringify(options.phone)}`);
+
+    const stakeholderResult = await instance.stakeholders.create(
+      accountData.accountId!,
+      {
+        name: options.contact_name,
+        email: options.email,
+        kyc: { pan: options.legal_info?.pan ?? "AAAPA1234A" },
+        addresses: {
+          residential: {
+            city: address.city,
+            country: address.country,
+            postal_code: address.postal_code,
+            state: address.state,
+            street: address.street1,
+          },
+        },
+        phone: {
+          primary: options.phone
+            ? options.phone.toString().replace("+91", "")
+            : "1234567890",
+        },
+      }
     );
 
-  logger.info(
-    `product configuration result: ${JSON.stringify(productConfiguration)}`
-  );
+    await db
+      .update(StreamerRequest)
+      .set({ requestStatus: "stakeholder_created" })
+      .where(eq(StreamerRequest.accountEmail, options.email))
+      .execute();
 
-  const headers = new Headers();
-  headers.set("Content-Type", "application/json");
-  headers.set(
-    "Authorization",
-    `Bearer ${btoa(process.env.RAZORPAY_KEY_ID! + ":" + process.env.RAZORPAY_SECRET_KEY!)}`
-  );
+    requestStatus = "stakeholder_created"
 
-  const payload = JSON.stringify({
-    settlements: {
-      account_number: accountData.accountNumber,
-      ifsc_code: accountData.ifscCode,
-      beneficiary_name: accountData.beneficiaryName,
-    },
-    tnc_accepted: true,
-  });
+    logger.info(
+      `Stakeholder creation result: ${JSON.stringify(stakeholderResult)}`
+    );
+  }
 
-  const fetchOptions: RequestInit = { body: payload, headers, method: "PATCH" };
+  if (requestStatus == "stakeholder_created") {
+    const productConfiguration =
+      await instance.products.requestProductConfiguration(
+        accountData.accountId!,
+        { product_name: "route", tnc_accepted: true }
+      );
 
-  const request = await fetch(
-    `https://api.razorpay.com/v2/accounts/${productConfiguration.account_id}/products/${productConfiguration.id}`,
-    fetchOptions
-  );
-  const response = await request.json();
+    await db
+      .update(StreamerRequest)
+      .set({ productConfigurationId: productConfiguration.id, requestStatus: "tnc_accepted", updatedAt: new Date() })
+      .where(eq(StreamerRequest.accountEmail, options.email))
+      .execute();
+    
+    accountData.productConfigurationId = productConfiguration.id
+    
+    requestStatus = "tnc_accepted"
 
-  logger.info(`acount id add: ${JSON.stringify(response)}`);
+    logger.info(
+      `product configuration result: ${JSON.stringify(productConfiguration)}`
+    );
+  }
+  if (requestStatus == "tnc_accepted") {
 
-  if (!response.id) throw new ApiError(400, "Failed to create linked account.");
+    const url = (`https://api.razorpay.com/v2/accounts/${accountData.accountId}/products/${accountData.productConfigurationId}`)
+    const authorizationToken = `Basic ${base64.encode(process.env.RAZORPAY_KEY_ID! + ":" + process.env.RAZORPAY_SECRET_KEY!)}`
 
-  return productConfiguration.account_id;
+    const payload = {
+      settlements: {
+        account_number: accountData.accountNumber,
+        ifsc_code: accountData.ifscCode.toUpperCase(),
+        beneficiary_name: accountData.beneficiaryName
+      },
+      tnc_accepted: true
+    };
+
+    const request = await axios.patch(url, JSON.stringify(payload), {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": authorizationToken
+      }
+    })
+    const response = request.data
+
+    logger.info(`acount id add: ${JSON.stringify(response)}`);
+
+    if (!response.id)
+      throw new ApiError(400, "Failed to create linked account.");
+
+    await db
+      .update(StreamerRequest)
+      .set({ requestStatus: "account_added", updatedAt: new Date() })
+      .where(eq(StreamerRequest.accountEmail, options.email))
+      .execute();
+
+    return accountData.accountId;
+  }
+  if((requestStatus == "account_added") || (requestStatus == "done")){
+    return accountData.accountId
+  }
+  return null;
 };
 
 export {

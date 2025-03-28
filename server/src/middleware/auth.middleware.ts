@@ -21,7 +21,6 @@ const authMiddleware = asyncHandler(async (req, _, next) => {
       accessToken,
       process.env.ACCESS_SECRET_KEY!
     );
-    logger.warn(`Decoded user: ${JSON.stringify(decodedUser)}`);
     req.user = decodedUser;
   } catch (error: any) {
     logger.error(`Error during accessing middleware: ${error.message}`);

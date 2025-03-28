@@ -346,8 +346,6 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
     );
   }
 
-  console.log("I am herer....")
-
   const users = await db
     .select()
     .from(User)
@@ -355,8 +353,6 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
     .where(eq(TokenTable.userRefreshToken, refreshToken))
     .limit(1)
     .execute();
-
-  console.log("I am here", users)
 
   if (!users || users.length <= 0)
     throw new ApiError(400, "User not found with provided refreshToken.");
