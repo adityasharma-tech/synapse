@@ -1,20 +1,26 @@
+import "dotenv/config";
+import axios from "axios";
 import crypto from "crypto";
-import axios, { AxiosHeaders } from "axios";
 import base64 from "base-64";
+import OrderId from "order-id";
+import Razorpay from "razorpay";
+import StreamerRequest from "../schemas/streamerRequest.sql";
+
 import { eq } from "drizzle-orm";
 import { Order } from "../schemas/order.sql";
 import { logger } from "../lib/logger";
+import { Orders } from "razorpay/dist/types/orders";
 import { ApiError } from "../lib/ApiError";
+import { Accounts } from "razorpay/dist/types/accounts";
+import { Stakeholders } from "razorpay/dist/types/stakeholders";
 import { MiddlewareUserT } from "../lib/types";
 import { Cashfree, CreateOrderRequest } from "cashfree-pg";
 import { signStreamerVerficationToken } from "../lib/utils";
-import "dotenv/config";
-import OrderId from "order-id";
-import Razorpay from "razorpay";
-import { Orders } from "razorpay/dist/types/orders";
-import { Accounts } from "razorpay/dist/types/accounts";
-import StreamerRequest from "../schemas/streamerRequest.sql";
+import { ReadStream } from "fs";
 
+/**
+ * Cashfree configuration
+ */
 const cashfreeClientHeaders = new Headers();
 cashfreeClientHeaders.set("x-api-version", process.env.CF_PAYOUT_XAPI_VERSION!);
 cashfreeClientHeaders.set("x-client-id", process.env.CF_PAYOUT_CLIENT_ID!);
@@ -31,6 +37,10 @@ Cashfree.XEnvironment =
   process.env.CF_PAYMENT_MODE == "sandbox"
     ? Cashfree.Environment.SANDBOX
     : Cashfree.Environment.PRODUCTION;
+
+/**
+ * Cashfree configuration end
+ */
 
 interface CreateBeneficiaryPropT {
   userId: string;
@@ -192,6 +202,12 @@ const createCfOrder: (
   };
 };
 
+
+/**
+ * Creates a new razorpay order and save your data to database and updates payment status
+ * @param {CreateOrderPropT} // Order creation props
+ * @returns {Promise< | { orderId: string; paymentStatus: "created" | "attempted" | "paid"; paymentSessionId: string; } | undefined >}
+ */
 const createRazorpayOrder: (
   p: CreateOrderPropT
 ) => Promise<
@@ -253,6 +269,178 @@ const createRazorpayOrder: (
   }
 };
 
+/**
+ * Create a linked account as a partner account on razorpay
+ * @param {Accounts.RazorpayAccountCreateRequestBody}
+ * @returns {account_id: string} Returns a account_id of razorpay
+ */
+const createAccount = async function (
+  options: Accounts.RazorpayAccountCreateRequestBody
+) {
+  const instance = getRazorpayInstance();
+  const result = await instance.accounts.create(options);
+
+  await db
+    .update(StreamerRequest)
+    .set({
+      razorpayAccountId: result.id,
+      requestStatus: "account_created",
+      updatedAt: new Date(),
+    })
+    .where(eq(StreamerRequest.accountEmail, options.email))
+    .execute();
+
+  return result.id;
+};
+
+/**
+ * Create stakeholder account & link with the razorpay patner account id.
+ * @param accountId Razorpay account id
+ * @param {Stakeholders.RazorpayStakeholderCreateRequestBody}
+ */
+const createStakeholderAccount = async function (
+  accountId: string,
+  options: Stakeholders.RazorpayStakeholderCreateRequestBody
+) {
+  const instance = getRazorpayInstance();
+  const stakeholderResult = await instance.stakeholders.create(
+    accountId,
+    options
+  );
+
+  await db
+    .update(StreamerRequest)
+    .set({
+      stakeholderId: stakeholderResult.id,
+      requestStatus: "stakeholder_created",
+      updatedAt: new Date(),
+    })
+    .where(eq(StreamerRequest.accountEmail, options.email))
+    .execute();
+};
+
+/**
+ * Accept Terms & Conditions for razorpay route integration
+ * @param accountId Razorpay account id of patner account (linked account)
+ * @param email Account email of razorpay linked account
+ */
+const requestPrdConfig = async function (accountId: string, email: string) {
+  const instance = getRazorpayInstance();
+  const productConfiguration =
+    await instance.products.requestProductConfiguration(accountId, {
+      product_name: "route",
+      tnc_accepted: true,
+    });
+
+  await db
+    .update(StreamerRequest)
+    .set({
+      productConfigurationId: productConfiguration.id,
+      requestStatus: "tnc_accepted",
+      updatedAt: new Date(),
+    })
+    .where(eq(StreamerRequest.accountEmail, email))
+    .execute();
+};
+
+/**
+ * Add legal bank details to Razorpay linked account where the payments should be transfered
+ * @param accountId Razorpay account id of patner account (linked account)
+ * @param options Bank details of linked account partner (accountNumber, ifscCode, beneficiaryName)
+ */
+const updateBankAccountData = async function (
+  accountId: string,
+  options: { accountNumber: string; ifscCode: string; beneficiaryName: string }
+) {
+  const [accountRequest] = await db
+    .select({
+      productConfigId: StreamerRequest.productConfigurationId,
+      accountEmail: StreamerRequest.accountEmail,
+    })
+    .from(StreamerRequest)
+    .where(eq(StreamerRequest.razorpayAccountId, accountId))
+    .execute();
+
+  if (!accountRequest) throw new ApiError(400, "Account request not found!");
+
+  const url = `https://api.razorpay.com/v2/accounts/${accountId}/products/${accountRequest.productConfigId}`;
+  const authorizationToken = `Basic ${base64.encode(process.env.RAZORPAY_KEY_ID! + ":" + process.env.RAZORPAY_SECRET_KEY!)}`;
+
+  const payload = {
+    settlements: {
+      account_number: options.accountNumber,
+      ifsc_code: options.ifscCode.toUpperCase(),
+      beneficiary_name: options.beneficiaryName,
+    },
+    tnc_accepted: true,
+  };
+
+  const request = await axios.patch(url, JSON.stringify(payload), {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: authorizationToken,
+    },
+  });
+  const response = request.data;
+
+  logger.info(`acount id add: ${JSON.stringify(response)}`);
+
+  if (!response.id) throw new ApiError(400, "Failed to create linked account.");
+
+  await db
+    .update(StreamerRequest)
+    .set({ requestStatus: "account_added", updatedAt: new Date() })
+    .where(eq(StreamerRequest.accountEmail, accountRequest.accountEmail))
+    .execute();
+};
+
+/**
+ * Documents upload of PAN, AADHAR or other proof for KYC verification on razorpay partner account
+ * @param accountId Razorpay account id of patner account (linked account)
+ * @param documentFile // Still TODO
+ */
+const uploadStakeholderDocuments = async function (
+  accountId: string,
+  documentFile: {
+    value: ReadStream;
+    options: { filename: string; contentType: string | null };
+  }
+) {
+  const instance = getRazorpayInstance();
+
+  const [accountRequest] = await db
+    .select({ stakeholderId: StreamerRequest.stakeholderId })
+    .from(StreamerRequest)
+    .where(eq(StreamerRequest.razorpayAccountId, accountId))
+    .execute();
+
+  if (!accountRequest || !accountRequest.stakeholderId)
+    throw new ApiError(
+      400,
+      "Failed to get account request in document uploader"
+    );
+
+  await instance.stakeholders.uploadStakeholderDoc(
+    accountId,
+    accountRequest.stakeholderId,
+    { document_type: "personal_pan", file: documentFile }
+  );
+
+  await db
+    .update(StreamerRequest)
+    .set({ requestStatus: "done", updatedAt: new Date() })
+    .where(eq(StreamerRequest.razorpayAccountId, accountId))
+    .execute();
+};
+
+
+/**
+ * 
+ * @param requestStatus Current razorpay linked account creation status
+ * @param options First linked account creation options for razorpay
+ * @param accountData Bank details
+ * @returns {Promise<string>}
+ */
 const createLinkedAccount = async function (
   requestStatus:
     | "pending"
@@ -270,133 +458,68 @@ const createLinkedAccount = async function (
     beneficiaryName: string;
   }
 ) {
-  const instance = getRazorpayInstance();
-  let accountCreateResult: Accounts.RazorpayAccount;
-
+  // create new linked account
   if (requestStatus == "pending") {
-    // if (!options.legal_info?.pan)
-    //   throw new ApiError(400, "You have to provide pan card.");
-    console.log(JSON.stringify(options));
-    accountCreateResult = await instance.accounts.create(options);
-
-    await db
-      .update(StreamerRequest)
-      .set({
-        razorpayAccountId: accountCreateResult.id,
-        requestStatus: "account_created",
-        updatedAt: new Date(),
-      })
-      .where(eq(StreamerRequest.accountEmail, options.email))
-      .execute();
-
+    accountData.accountId = await createAccount(options);
     requestStatus = "account_created";
-    accountData.accountId = accountCreateResult.id;
-
-    logger.info(
-      `Account creation result: ${JSON.stringify(accountCreateResult)}`
-    );
   }
+  // check if account id is available
+  if (!accountData.accountId) throw new ApiError(400, "Can't get account_id!");
+
+  // create stakeholder account linked to razorpay account
   if (requestStatus == "account_created") {
     const address = options.profile.addresses
       ?.registered as Accounts.ProfileAddresses;
-    logger.info(`Primary phone number: ${JSON.stringify(options.phone)}`);
 
-    const stakeholderResult = await instance.stakeholders.create(
-      accountData.accountId!,
-      {
-        name: options.contact_name,
-        email: options.email,
-        kyc: { pan: options.legal_info?.pan ?? "AAAPA1234A" },
-        addresses: {
-          residential: {
-            city: address.city,
-            country: address.country,
-            postal_code: address.postal_code,
-            state: address.state,
-            street: address.street1,
-          },
+    await createStakeholderAccount(accountData.accountId, {
+      name: options.contact_name,
+      email: options.email,
+      kyc: { pan: options.legal_info?.pan ?? "AAAPA1234A" },
+      addresses: {
+        residential: {
+          city: address.city,
+          country: address.country,
+          postal_code: address.postal_code,
+          state: address.state,
+          street: address.street1,
         },
-        phone: {
-          primary: options.phone
-            ? options.phone.toString().replace("+91", "")
-            : "1234567890",
-        },
-      }
-    );
-
-    await db
-      .update(StreamerRequest)
-      .set({ requestStatus: "stakeholder_created" })
-      .where(eq(StreamerRequest.accountEmail, options.email))
-      .execute();
-
-    requestStatus = "stakeholder_created";
-
-    logger.info(
-      `Stakeholder creation result: ${JSON.stringify(stakeholderResult)}`
-    );
-  }
-
-  if (requestStatus == "stakeholder_created") {
-    const productConfiguration =
-      await instance.products.requestProductConfiguration(
-        accountData.accountId!,
-        { product_name: "route", tnc_accepted: true }
-      );
-
-    await db
-      .update(StreamerRequest)
-      .set({
-        productConfigurationId: productConfiguration.id,
-        requestStatus: "tnc_accepted",
-        updatedAt: new Date(),
-      })
-      .where(eq(StreamerRequest.accountEmail, options.email))
-      .execute();
-
-    accountData.productConfigurationId = productConfiguration.id;
-
-    requestStatus = "tnc_accepted";
-
-    logger.info(
-      `product configuration result: ${JSON.stringify(productConfiguration)}`
-    );
-  }
-  if (requestStatus == "tnc_accepted") {
-    const url = `https://api.razorpay.com/v2/accounts/${accountData.accountId}/products/${accountData.productConfigurationId}`;
-    const authorizationToken = `Basic ${base64.encode(process.env.RAZORPAY_KEY_ID! + ":" + process.env.RAZORPAY_SECRET_KEY!)}`;
-
-    const payload = {
-      settlements: {
-        account_number: accountData.accountNumber,
-        ifsc_code: accountData.ifscCode.toUpperCase(),
-        beneficiary_name: accountData.beneficiaryName,
       },
-      tnc_accepted: true,
-    };
-
-    const request = await axios.patch(url, JSON.stringify(payload), {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: authorizationToken,
+      phone: {
+        primary: options.phone
+          ? options.phone.toString().replace("+91", "")
+          : "1234567890",
       },
     });
-    const response = request.data;
-
-    logger.info(`acount id add: ${JSON.stringify(response)}`);
-
-    if (!response.id)
-      throw new ApiError(400, "Failed to create linked account.");
-
-    await db
-      .update(StreamerRequest)
-      .set({ requestStatus: "account_added", updatedAt: new Date() })
-      .where(eq(StreamerRequest.accountEmail, options.email))
-      .execute();
-
-    return accountData.accountId;
+    requestStatus = "stakeholder_created";
   }
-  if (requestStatus == "account_added" || requestStatus == "done") {
+
+  // accept terms & conditions of razorpay 
+  if (requestStatus == "stakeholder_created") {
+    await requestPrdConfig(accountData.accountId, options.email);
+    requestStatus = "tnc_accepted";
+  }
+
+  // add bank account data ex: account_number, ifsc & beneficiary id
+  if (requestStatus == "tnc_accepted") {
+    await updateBankAccountData(accountData.accountId, {
+      accountNumber: accountData.accountNumber,
+      beneficiaryName: accountData.beneficiaryName,
+      ifscCode: accountData.ifscCode,
+    });
+    requestStatus = "account_added";
+  }
+
+  // upload required kyc document to razorpay to clear your 'need_clarification' status
+  if (requestStatus == "account_added") {
+    await uploadStakeholderDocuments(accountData.accountId, {
+      value: new ReadStream(), // TODO
+      options: { contentType: "", filename: "" },
+    });
+    requestStatus = "done";
+  }
+
+  // if everything is done return the account id as result
+  if (requestStatus == "done") {
     return accountData.accountId;
   }
   return null;

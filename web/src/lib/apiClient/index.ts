@@ -123,6 +123,12 @@ function acceptApplication(email: string){
   })
 }
 
+function getYoutubeVideoData(videoUrl: string){
+  const searchParams = new URLSearchParams()
+  searchParams.set('videoUrl', videoUrl)
+  return apiClient.post(`/streams/fetchYoutubeData?${searchParams.toString()}`)
+}
+
 export {
   getUser,
   loginUser,
@@ -135,6 +141,7 @@ export {
   startNewStream,
   applyForStreamer,
   acceptApplication,
+  getYoutubeVideoData,
   fetchAllApplications,
   getAllChatByStreamId,
   createPremiumChatOrder,

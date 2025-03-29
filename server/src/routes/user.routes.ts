@@ -2,12 +2,12 @@ import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { userRouteValidators } from "../middleware/validator.middleware";
 import {
-  applyForStreamer,
   applyForStreamerV2,
   getUserHandler,
   logoutHandler,
   updateUserHandler,
 } from "../controller/user.controller";
+import { upload } from "../middleware/multer.middeware";
 
 const router = Router();
 
@@ -22,6 +22,6 @@ router
 
 router
   .route("/apply-streamer")
-  .post(userRouteValidators.applyForStreamerRoute, applyForStreamerV2);
+  .post(userRouteValidators.applyForStreamerRoute, upload.single("document"), applyForStreamerV2);
 
 export default router;

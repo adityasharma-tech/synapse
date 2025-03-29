@@ -7,6 +7,7 @@ import { createBeneficiary } from "../services/payments.service";
 import { TokenTable } from "../schemas/tokenTable.sql";
 import StreamerRequest from "../schemas/streamerRequest.sql";
 import { msg91AuthKey } from "../lib/constants";
+import { uploadDocumentOnCloudinary } from "../lib/cloudinary";
 
 const logoutHandler = asyncHandler(async (_, res) => {
   res.cookie("accessToken", "", {
@@ -145,6 +146,10 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
     authToken,
   } = req.body;
 
+  const documentFilePath = req.file?.path;
+
+  if(!documentFilePath) throw new ApiError(400, "required document not attached yet.");
+
   if (
     [
       bankAccountNumber,
@@ -194,6 +199,9 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
   if (preRequest)
     throw new ApiError(400, "You already applied for streamer request.");
 
+  const docUploadResult = await uploadDocumentOnCloudinary(documentFilePath);  
+  if(!docUploadResult) throw new ApiError(400, "Failed to upload document to cloudinary resources.");
+
   const [request] = await db
     .insert(StreamerRequest)
     .values({
@@ -209,6 +217,7 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
       state,
       streetAddress,
       panCard: "",
+      kycDocumentUrl: docUploadResult
     })
     .returning()
     .execute();

@@ -32,6 +32,7 @@ const StreamerRequest = schema.table("streamer_request", {
     .notNull(),
   razorpayAccountId: t.varchar({ length: 255 }),
   productConfigurationId: t.varchar({ length: 255 }),
+  stakeholderId: t.varchar({ length: 255 }),
   accountName: t.varchar().notNull(),
   accountEmail: t.varchar().notNull(),
   dashboardAccess: t.varchar().default("0").notNull(),
@@ -47,6 +48,7 @@ const StreamerRequest = schema.table("streamer_request", {
   state: t.varchar().notNull(),
   postalCode: t.varchar().notNull(),
   panCard: t.varchar().notNull(),
+  kycDocumentUrl: t.varchar(),
   ...timestamps,
 });
 
