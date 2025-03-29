@@ -32,7 +32,7 @@ global.db = establishDbConnection();
 /**
  * Socket io server
  * using redis as a pub/sub for sockets
-*/
+ */
 //const subClient = redisClient.duplicate();
 //(async () => await Promise.all([redisClient.connect(), subClient.connect()]))();
 

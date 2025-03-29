@@ -72,8 +72,8 @@ const loginHandler = asyncHandler(async (req, res) => {
     role: user.role ?? "viewer",
     username: user.username,
     profilePicture: user.profilePicture ?? "",
-    emailVerified: user.emailVerified
-   });
+    emailVerified: user.emailVerified,
+  });
 
   if (!isPasswordCorrect) {
     throw new ApiError(401, "Invalid credentials!", ErrCodes.INVALID_CREDS);
@@ -371,8 +371,8 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
     role: user.users.role ?? "viewer",
     username: user.users.username,
     profilePicture: user.users.profilePicture ?? "",
-    emailVerified: user.users.emailVerified
-   });
+    emailVerified: user.users.emailVerified,
+  });
 
   await db
     .update(TokenTable)

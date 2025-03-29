@@ -1,18 +1,18 @@
 import jwt from "jsonwebtoken";
-import establishDbConnection from "../db";
 
+import { User } from "../schemas/user.sql";
+import { Order } from "../schemas/order.sql";
+import { google } from "googleapis";
+import { logger } from "../lib/logger";
 import { Stream } from "../schemas/stream.sql";
-import { and, count, eq, or, sql } from "drizzle-orm";
+import { ChatMessage } from "../schemas/chats.sql";
 import { ApiResponse } from "../lib/ApiResponse";
 import { v4 as uuidv4 } from "uuid";
 import { asyncHandler } from "../lib/asyncHandler";
-import { ApiError, ErrCodes } from "../lib/ApiError";
-import { logger } from "../lib/logger";
-import { ChatMessage } from "../schemas/chats.sql";
-import { User } from "../schemas/user.sql";
-import { createRazorpayOrder } from "../services/payments.service";
 import { MiddlewareUserT } from "../lib/types";
-import { Order } from "../schemas/order.sql";
+import { ApiError, ErrCodes } from "../lib/ApiError";
+import { createRazorpayOrder } from "../services/payments.service";
+import { and, count, eq, or, sql } from "drizzle-orm";
 
 const createNewStream = asyncHandler(async (req, res) => {
   const { title } = req.body;
@@ -52,6 +52,43 @@ const createNewStream = asyncHandler(async (req, res) => {
     .status(201)
     .json(
       new ApiResponse(201, { stream: { ...stream, streamingToken: undefined } })
+    );
+});
+
+const fetchYoutubeData = asyncHandler(async (req, res) => {
+  const { videoUrl } = req.query;
+
+  if (!videoUrl) throw new ApiError(400, "Please provide video url.");
+
+  const url = new URL(String(videoUrl));
+
+  console.log("search params", url.searchParams.get("v"));
+  const videoId = url.searchParams.get("v");
+
+  if (!videoId) throw new ApiError(400, "Video not found.");
+
+  const youtube = google.youtube("v3");
+  const result = await youtube.videos.list({
+    part: ["snippet", "contentDetails", "statistics"],
+    id: ["ZMm1gMZBlsc"],
+    key: process.env.GOOGLE_API_KEY!,
+  });
+
+  const items = result["data"]["items"];
+
+  if (!items?.length || items.length <= 0)
+    return res.status(200).json(new ApiResponse(200, null));
+
+  const video = items[0]["snippet"];
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, {
+        title: video?.title,
+        thumbnail: video?.thumbnails?.default?.url,
+        channelTitle: video?.channelTitle,
+      })
     );
 });
 
@@ -232,4 +269,5 @@ export {
   getStreamById,
   getAllChatsByStreamingId,
   makePremiumChat,
+  fetchYoutubeData,
 };

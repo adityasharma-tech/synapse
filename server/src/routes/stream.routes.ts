@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createNewStream,
+  fetchYoutubeData,
   getAllChatsByStreamingId,
   getAllStreams,
   getStreamById,
@@ -24,6 +25,8 @@ router
     createNewStream
   )
   .get(streamerAuthMiddeware, getAllStreams);
+
+router.route("/fetchYoutubeData").post(fetchYoutubeData);
 
 router.route("/:id").get(getStreamById);
 

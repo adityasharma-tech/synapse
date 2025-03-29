@@ -81,10 +81,11 @@ const acceptFormData = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Failed to get application details.");
 
   try {
-    const referenceId = Math.floor(Math.random()*1000000000);
+    const referenceId = Math.floor(Math.random() * 1000000000);
     console.log(JSON.stringify(application));
 
-    const result = await createLinkedAccount(application.requestStatus,
+    const result = await createLinkedAccount(
+      application.requestStatus,
       {
         business_type: application.businessType,
         type: "route",
@@ -106,7 +107,10 @@ const acceptFormData = asyncHandler(async (req, res) => {
             },
           },
         },
-        legal_info: { pan: application.panCard.trim() == "" ? undefined : application.panCard },
+        legal_info: {
+          pan:
+            application.panCard.trim() == "" ? undefined : application.panCard,
+        },
         reference_id: String(referenceId),
       },
       {
@@ -114,19 +118,16 @@ const acceptFormData = asyncHandler(async (req, res) => {
         accountNumber: application.bankAccountNumber,
         beneficiaryName: application.accountName,
         ifscCode: application.bankIfscCode,
-        productConfigurationId: application.productConfigurationId
+        productConfigurationId: application.productConfigurationId,
       }
     );
     if (!result) throw new ApiError(400, "Failed to create linked account.");
 
     await db
       .update(StreamerRequest)
-      .set({
-        requestStatus: "account_added",
-        updatedAt: new Date()
-      })
+      .set({ requestStatus: "account_added", updatedAt: new Date() })
       .where(eq(StreamerRequest.accountEmail, application.accountEmail))
-      .execute()
+      .execute();
 
     await db
       .update(TokenTable)
@@ -134,21 +135,21 @@ const acceptFormData = asyncHandler(async (req, res) => {
         streamerVerificationToken: signStreamerVerficationToken({
           beneficiaryId: String(application.razorpayAccountId),
           userId: String(application.userId),
-          addedAt: new Date().toISOString()
+          addedAt: new Date().toISOString(),
         }),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(TokenTable.userId, application.userId))
-      .execute()
+      .execute();
 
     await db
       .update(User)
       .set({
         role: "streamer",
         refrenceId: String(referenceId),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
-      .where(eq(User.id, application.userId))
+      .where(eq(User.id, application.userId));
 
     res.status(200).json(new ApiResponse(200, "Success"));
   } catch (err) {

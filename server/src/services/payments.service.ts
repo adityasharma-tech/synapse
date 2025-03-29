@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import axios, { AxiosHeaders } from "axios";
-import base64 from "base-64"
+import base64 from "base-64";
 import { eq } from "drizzle-orm";
 import { Order } from "../schemas/order.sql";
 import { logger } from "../lib/logger";
@@ -281,12 +281,16 @@ const createLinkedAccount = async function (
 
     await db
       .update(StreamerRequest)
-      .set({ razorpayAccountId: accountCreateResult.id, requestStatus: "account_created", updatedAt: new Date() })
+      .set({
+        razorpayAccountId: accountCreateResult.id,
+        requestStatus: "account_created",
+        updatedAt: new Date(),
+      })
       .where(eq(StreamerRequest.accountEmail, options.email))
       .execute();
 
     requestStatus = "account_created";
-    accountData.accountId = accountCreateResult.id
+    accountData.accountId = accountCreateResult.id;
 
     logger.info(
       `Account creation result: ${JSON.stringify(accountCreateResult)}`
@@ -326,7 +330,7 @@ const createLinkedAccount = async function (
       .where(eq(StreamerRequest.accountEmail, options.email))
       .execute();
 
-    requestStatus = "stakeholder_created"
+    requestStatus = "stakeholder_created";
 
     logger.info(
       `Stakeholder creation result: ${JSON.stringify(stakeholderResult)}`
@@ -342,39 +346,42 @@ const createLinkedAccount = async function (
 
     await db
       .update(StreamerRequest)
-      .set({ productConfigurationId: productConfiguration.id, requestStatus: "tnc_accepted", updatedAt: new Date() })
+      .set({
+        productConfigurationId: productConfiguration.id,
+        requestStatus: "tnc_accepted",
+        updatedAt: new Date(),
+      })
       .where(eq(StreamerRequest.accountEmail, options.email))
       .execute();
-    
-    accountData.productConfigurationId = productConfiguration.id
-    
-    requestStatus = "tnc_accepted"
+
+    accountData.productConfigurationId = productConfiguration.id;
+
+    requestStatus = "tnc_accepted";
 
     logger.info(
       `product configuration result: ${JSON.stringify(productConfiguration)}`
     );
   }
   if (requestStatus == "tnc_accepted") {
-
-    const url = (`https://api.razorpay.com/v2/accounts/${accountData.accountId}/products/${accountData.productConfigurationId}`)
-    const authorizationToken = `Basic ${base64.encode(process.env.RAZORPAY_KEY_ID! + ":" + process.env.RAZORPAY_SECRET_KEY!)}`
+    const url = `https://api.razorpay.com/v2/accounts/${accountData.accountId}/products/${accountData.productConfigurationId}`;
+    const authorizationToken = `Basic ${base64.encode(process.env.RAZORPAY_KEY_ID! + ":" + process.env.RAZORPAY_SECRET_KEY!)}`;
 
     const payload = {
       settlements: {
         account_number: accountData.accountNumber,
         ifsc_code: accountData.ifscCode.toUpperCase(),
-        beneficiary_name: accountData.beneficiaryName
+        beneficiary_name: accountData.beneficiaryName,
       },
-      tnc_accepted: true
+      tnc_accepted: true,
     };
 
     const request = await axios.patch(url, JSON.stringify(payload), {
       headers: {
         "Content-Type": "application/json",
-        "Authorization": authorizationToken
-      }
-    })
-    const response = request.data
+        Authorization: authorizationToken,
+      },
+    });
+    const response = request.data;
 
     logger.info(`acount id add: ${JSON.stringify(response)}`);
 
@@ -389,8 +396,8 @@ const createLinkedAccount = async function (
 
     return accountData.accountId;
   }
-  if((requestStatus == "account_added") || (requestStatus == "done")){
-    return accountData.accountId
+  if (requestStatus == "account_added" || requestStatus == "done") {
+    return accountData.accountId;
   }
   return null;
 };
