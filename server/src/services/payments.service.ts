@@ -12,11 +12,11 @@ import { logger } from "../lib/logger";
 import { Orders } from "razorpay/dist/types/orders";
 import { ApiError } from "../lib/ApiError";
 import { Accounts } from "razorpay/dist/types/accounts";
+import { ReadStream } from "fs";
 import { Stakeholders } from "razorpay/dist/types/stakeholders";
 import { MiddlewareUserT } from "../lib/types";
 import { Cashfree, CreateOrderRequest } from "cashfree-pg";
 import { signStreamerVerficationToken } from "../lib/utils";
-import { ReadStream } from "fs";
 
 /**
  * Cashfree configuration
@@ -202,7 +202,6 @@ const createCfOrder: (
   };
 };
 
-
 /**
  * Creates a new razorpay order and save your data to database and updates payment status
  * @param {CreateOrderPropT} // Order creation props
@@ -290,6 +289,8 @@ const createAccount = async function (
     .where(eq(StreamerRequest.accountEmail, options.email))
     .execute();
 
+  logger.info(`Razorpay account created: ${result.id}`);
+
   return result.id;
 };
 
@@ -317,6 +318,8 @@ const createStakeholderAccount = async function (
     })
     .where(eq(StreamerRequest.accountEmail, options.email))
     .execute();
+
+  logger.info(`Create stakeholder account: ${stakeholderResult.id}`);
 };
 
 /**
@@ -341,6 +344,10 @@ const requestPrdConfig = async function (accountId: string, email: string) {
     })
     .where(eq(StreamerRequest.accountEmail, email))
     .execute();
+
+  logger.info(
+    `Terms & Conditions accepted: ${productConfiguration.tnc_accepted}, status:${productConfiguration.activation_status}, active_config:${productConfiguration.active_configuration}`
+  );
 };
 
 /**
@@ -382,9 +389,6 @@ const updateBankAccountData = async function (
     },
   });
   const response = request.data;
-
-  logger.info(`acount id add: ${JSON.stringify(response)}`);
-
   if (!response.id) throw new ApiError(400, "Failed to create linked account.");
 
   await db
@@ -392,6 +396,8 @@ const updateBankAccountData = async function (
     .set({ requestStatus: "account_added", updatedAt: new Date() })
     .where(eq(StreamerRequest.accountEmail, accountRequest.accountEmail))
     .execute();
+
+  logger.info(`Bank account details updated: ${JSON.stringify(response)}`)
 };
 
 /**
@@ -399,31 +405,45 @@ const updateBankAccountData = async function (
  * @param accountId Razorpay account id of patner account (linked account)
  * @param documentFile // Still TODO
  */
-const uploadStakeholderDocuments = async function (
-  accountId: string,
-  documentFile: {
-    value: ReadStream;
-    options: { filename: string; contentType: string | null };
-  }
-) {
+const uploadStakeholderDocuments = async function (accountId: string) {
   const instance = getRazorpayInstance();
 
   const [accountRequest] = await db
-    .select({ stakeholderId: StreamerRequest.stakeholderId })
+    .select({
+      stakeholderId: StreamerRequest.stakeholderId,
+      documentUrl: StreamerRequest.kycDocumentUrl,
+    })
     .from(StreamerRequest)
     .where(eq(StreamerRequest.razorpayAccountId, accountId))
     .execute();
 
-  if (!accountRequest || !accountRequest.stakeholderId)
+  if (
+    !accountRequest ||
+    !accountRequest.stakeholderId ||
+    !accountRequest.documentUrl
+  )
     throw new ApiError(
       400,
       "Failed to get account request in document uploader"
     );
 
-  await instance.stakeholders.uploadStakeholderDoc(
+  const req = await fetch(accountRequest.documentUrl);
+
+  const readStream = new ReadStream({ read: req.body?.getReader });
+
+  const documentUploadResult = await instance.stakeholders.uploadStakeholderDoc(
     accountId,
     accountRequest.stakeholderId,
-    { document_type: "personal_pan", file: documentFile }
+    {
+      document_type: "aadhar_front",
+      file: {
+        value: readStream,
+        options: {
+          filename: `${accountRequest.stakeholderId}-kyc.png`,
+          contentType: null,
+        },
+      },
+    }
   );
 
   await db
@@ -431,17 +451,18 @@ const uploadStakeholderDocuments = async function (
     .set({ requestStatus: "done", updatedAt: new Date() })
     .where(eq(StreamerRequest.razorpayAccountId, accountId))
     .execute();
+
+  logger.info(`Stakeholder documents uploaded: ${JSON.stringify(documentUploadResult.individual_proof_of_address)}`)
 };
 
-
 /**
- * 
+ *
  * @param requestStatus Current razorpay linked account creation status
  * @param options First linked account creation options for razorpay
  * @param accountData Bank details
  * @returns {Promise<string>}
  */
-const createLinkedAccount = async function (
+const setupRazorpayAccount = async function (
   requestStatus:
     | "pending"
     | "account_created"
@@ -493,7 +514,7 @@ const createLinkedAccount = async function (
     requestStatus = "stakeholder_created";
   }
 
-  // accept terms & conditions of razorpay 
+  // accept terms & conditions of razorpay
   if (requestStatus == "stakeholder_created") {
     await requestPrdConfig(accountData.accountId, options.email);
     requestStatus = "tnc_accepted";
@@ -511,10 +532,7 @@ const createLinkedAccount = async function (
 
   // upload required kyc document to razorpay to clear your 'need_clarification' status
   if (requestStatus == "account_added") {
-    await uploadStakeholderDocuments(accountData.accountId, {
-      value: new ReadStream(), // TODO
-      options: { contentType: "", filename: "" },
-    });
+    await uploadStakeholderDocuments(accountData.accountId);
     requestStatus = "done";
   }
 
@@ -530,5 +548,5 @@ export {
   createCfOrder,
   createRazorpayOrder,
   getRazorpayInstance,
-  createLinkedAccount,
+  setupRazorpayAccount,
 };

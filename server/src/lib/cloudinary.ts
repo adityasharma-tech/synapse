@@ -1,6 +1,5 @@
 import fs from "fs"
 import { v2 as cloudinary } from 'cloudinary';
-import { ApiError } from "./ApiError";
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
@@ -14,7 +13,8 @@ const uploadDocumentOnCloudinary: (f: string)=>Promise<string | null> = async (l
             .upload(
                 localFilePath,
                 {
-                    resource_type: "auto"
+                    resource_type: "auto",
+                    format: "jpg"
                 }
             )
         

@@ -1,15 +1,14 @@
 import fs from "fs/promises";
 import StreamerRequest from "../schemas/streamerRequest.sql";
-import crpto from "crypto";
 
 import { eq } from "drizzle-orm";
+import { User } from "../schemas/user.sql";
 import { ApiError } from "../lib/ApiError";
 import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
-import { createLinkedAccount } from "../services/payments.service";
+import { setupRazorpayAccount } from "../services/payments.service";
 import { TokenTable } from "../schemas/tokenTable.sql";
 import { signStreamerVerficationToken } from "../lib/utils";
-import { User } from "../schemas/user.sql";
 
 const getAllStreamApplications = asyncHandler(async (req, res) => {
   const user = req.user;
@@ -82,9 +81,8 @@ const acceptFormData = asyncHandler(async (req, res) => {
 
   try {
     const referenceId = Math.floor(Math.random() * 1000000000);
-    console.log(JSON.stringify(application));
 
-    const result = await createLinkedAccount(
+    const result = await setupRazorpayAccount(
       application.requestStatus,
       {
         business_type: application.businessType,
