@@ -50,6 +50,9 @@ const StreamerRequest = schema.table("streamer_request", {
   panCard: t.varchar().notNull(),
   kycDocumentUrl: t.varchar(),
   ...timestamps,
-});
+}, (table)=>[
+  t.uniqueIndex("razorpayAccountIdIdx").on(table.razorpayAccountId),
+  t.index("accountEmailIdx").on(table.accountEmail),
+]);
 
 export default StreamerRequest;

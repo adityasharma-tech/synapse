@@ -33,12 +33,12 @@ global.db = establishDbConnection();
  * Socket io server
  * using redis as a pub/sub for sockets
  */
-//const subClient = redisClient.duplicate();
-//(async () => await Promise.all([redisClient.connect(), subClient.connect()]))();
+const subClient = redisClient.duplicate();
+(async () => await Promise.all([redisClient.connect(), subClient.connect()]))();
 
 const io = new SocketIO(server, {
   cors: { origin: corsOrigins, credentials: true },
-  // adapter: createAdapter(redisClient, subClient), // only if you want to use redis as an adapter
+  adapter: createAdapter(redisClient, subClient), // only if you want to use redis as an adapter
   cookie: true,
 });
 

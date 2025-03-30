@@ -27,6 +27,8 @@ const ChatMessage = schema.table("chats", {
   pinned: t.boolean().default(false).notNull(),
   paymentStatus: t.varchar().default("IDLE").notNull(),
   ...timestamps,
-});
+}, (table)=>[
+  t.index('streamUidIdx').on(table.streamUid)
+]);
 
 export { ChatMessage };

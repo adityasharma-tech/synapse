@@ -1,5 +1,5 @@
 {
-  "id": "499187c4-ce95-4507-a448-d2395534b4f2",
+  "id": "7faf2c0b-0938-4e9a-8ba0-55195b4ee9dd",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -98,15 +98,35 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "streamUidIdx": {
+          "name": "streamUidIdx",
+          "columns": [
+            {
+              "expression": "stream_uid",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "chats_user_id_users_id_fk": {
           "name": "chats_user_id_users_id_fk",
           "tableFrom": "chats",
           "tableTo": "users",
           "schemaTo": "upgrade",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -202,15 +222,35 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "cfOrderIdIdx": {
+          "name": "cfOrderIdIdx",
+          "columns": [
+            {
+              "expression": "cf_order_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "orders_user_id_users_id_fk": {
           "name": "orders_user_id_users_id_fk",
           "tableFrom": "orders",
           "tableTo": "users",
           "schemaTo": "upgrade",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -323,8 +363,12 @@
           "tableFrom": "payouts",
           "tableTo": "users",
           "schemaTo": "upgrade",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -394,15 +438,35 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "streamingUidIdx": {
+          "name": "streamingUidIdx",
+          "columns": [
+            {
+              "expression": "streaming_uid",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "streams_streamer_id_users_id_fk": {
           "name": "streams_streamer_id_users_id_fk",
           "tableFrom": "streams",
           "tableTo": "users",
           "schemaTo": "upgrade",
-          "columnsFrom": ["streamer_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "streamer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -440,6 +504,24 @@
           "primaryKey": false,
           "notNull": true
         },
+        "razorpay_account_id": {
+          "name": "razorpay_account_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "product_configuration_id": {
+          "name": "product_configuration_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "stakeholder_id": {
+          "name": "stakeholder_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "account_name": {
           "name": "account_name",
           "type": "varchar",
@@ -464,7 +546,7 @@
           "type": "varchar",
           "primaryKey": false,
           "notNull": true,
-          "default": "'1'"
+          "default": "'0'"
         },
         "business_name": {
           "name": "business_name",
@@ -536,6 +618,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "kyc_document_url": {
+          "name": "kyc_document_url",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
@@ -550,15 +638,50 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "razorpayAccountIdIdx": {
+          "name": "razorpayAccountIdIdx",
+          "columns": [
+            {
+              "expression": "razorpay_account_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "accountEmailIdx": {
+          "name": "accountEmailIdx",
+          "columns": [
+            {
+              "expression": "account_email",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "streamer_request_user_id_users_id_fk": {
           "name": "streamer_request_user_id_users_id_fk",
           "tableFrom": "streamer_request",
           "tableTo": "users",
           "schemaTo": "upgrade",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -619,7 +742,7 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
-          "default": "'2025-03-28 09:38:06.497'"
+          "default": "'2025-03-30 08:03:15.240'"
         },
         "email_verification_token": {
           "name": "email_verification_token",
@@ -632,7 +755,7 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
-          "default": "'2025-03-28 09:38:06.497'"
+          "default": "'2025-03-30 08:03:15.240'"
         },
         "updated_at": {
           "name": "updated_at",
@@ -655,8 +778,12 @@
           "tableFrom": "token_table",
           "tableTo": "users",
           "schemaTo": "upgrade",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -765,19 +892,54 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "emailIdx": {
+          "name": "emailIdx",
+          "columns": [
+            {
+              "expression": "email",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "usernameIdx": {
+          "name": "usernameIdx",
+          "columns": [
+            {
+              "expression": "username",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "users_username_unique": {
           "name": "users_username_unique",
           "nullsNotDistinct": false,
-          "columns": ["username"]
+          "columns": [
+            "username"
+          ]
         },
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": ["email"]
+          "columns": [
+            "email"
+          ]
         }
       },
       "policies": {},
@@ -818,13 +980,23 @@
     "upgrade.roles": {
       "name": "roles",
       "schema": "upgrade",
-      "values": ["streamer", "viewer", "admin"]
+      "values": [
+        "streamer",
+        "viewer",
+        "admin"
+      ]
     }
   },
-  "schemas": { "upgrade": "upgrade" },
+  "schemas": {
+    "upgrade": "upgrade"
+  },
   "sequences": {},
   "roles": {},
   "policies": {},
   "views": {},
-  "_meta": { "columns": {}, "schemas": {}, "tables": {} }
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
 }

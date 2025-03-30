@@ -12,6 +12,8 @@ const Stream = schema.table("streams", {
     .references(() => User.id)
     .notNull(),
   ...timestamps,
-});
+}, (table)=>([
+  t.uniqueIndex("streamingUidIdx").on(table.streamingUid)
+]));
 
 export { Stream };

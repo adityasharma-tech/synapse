@@ -233,8 +233,6 @@ const makePremiumChat = asyncHandler(async (req, res) => {
     orderAmount: orderAmt,
   });
 
-  console.log(orderResult);
-
   if (!orderResult)
     throw new ApiError(
       400,

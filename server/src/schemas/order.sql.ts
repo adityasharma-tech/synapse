@@ -16,6 +16,8 @@ const Order = schema.table("orders", {
   orderExpiryTime: t.varchar().notNull(),
   orderNote: t.varchar(),
   ...timestamps,
-});
+}, (table)=>[
+  t.index('cfOrderIdIdx').on(table.cfOrderId)
+]);
 
 export { Order };

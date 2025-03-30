@@ -20,6 +20,9 @@ const User = schema.table("users", {
   emailVerified: t.boolean().default(false).notNull(),
   refrenceId: t.varchar(),
   ...timestamps,
-});
+}, (table)=>[
+  t.uniqueIndex("emailIdx").on(table.email),
+  t.uniqueIndex("usernameIdx").on(table.username)
+]);
 
 export { User };
