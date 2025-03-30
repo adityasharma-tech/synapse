@@ -4,10 +4,10 @@ import StreamerRequest from "../schemas/streamerRequest.sql";
 import { eq } from "drizzle-orm";
 import { User } from "../schemas/user.sql";
 import { ApiError } from "../lib/ApiError";
+import { TokenTable } from "../schemas/tokenTable.sql";
 import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
 import { setupRazorpayAccount } from "../services/payments.service";
-import { TokenTable } from "../schemas/tokenTable.sql";
 import { signStreamerVerficationToken } from "../lib/utils";
 
 const getAllStreamApplications = asyncHandler(async (req, res) => {

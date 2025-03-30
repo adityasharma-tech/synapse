@@ -133,9 +133,17 @@ export default function DashboardPage() {
                 <DropdownMenuItem>Profile</DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => navigate("apply")}>
-                  Apply for streamer
-                </DropdownMenuItem>
+                {user?.role == "viewer" ? (
+                  <DropdownMenuItem onClick={() => navigate("apply")}>
+                    Apply for streamer
+                  </DropdownMenuItem>
+                ) : user?.role == "admin" ? (
+                  <DropdownMenuItem
+                    onClick={() => navigate("streamer-applications")}
+                  >
+                    View all applications
+                  </DropdownMenuItem>
+                ) : null}
               </DropdownMenuGroup>
               <DropdownMenuItem disabled>API</DropdownMenuItem>
               <DropdownMenuSeparator />

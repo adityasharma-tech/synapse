@@ -134,6 +134,8 @@ const applyForStreamer = asyncHandler(async (req, res) => {
 
 const applyForStreamerV2 = asyncHandler(async (req, res) => {
   const user = req.user;
+
+  console.log(`Form Data: `, req.body);
   const {
     bankAccountNumber,
     bankIfsc,
@@ -144,6 +146,7 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
     postalCode,
     youtubeChannelName,
     authToken,
+    panNumber
   } = req.body;
 
   const documentFilePath = req.file?.path;
@@ -161,6 +164,7 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
       postalCode,
       youtubeChannelName,
       authToken,
+      panNumber
     ].some((value) => (value ? value.trim() == "" : true))
   ) {
     throw new ApiError(400, "Validation error", ErrCodes.VALIDATION_ERR);
@@ -216,7 +220,7 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
       postalCode,
       state,
       streetAddress,
-      panCard: "",
+      panCard: panNumber.toUpperCase().trim(),
       kycDocumentUrl: docUploadResult
     })
     .returning()

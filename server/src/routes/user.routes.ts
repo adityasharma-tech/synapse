@@ -22,6 +22,6 @@ router
 
 router
   .route("/apply-streamer")
-  .post(userRouteValidators.applyForStreamerRoute, upload.single("document"), applyForStreamerV2);
+  .post(upload.single("document"), applyForStreamerV2);
 
 export default router;

@@ -93,8 +93,12 @@ function getAllStreams(payload?: GetAllStreamsPayloadT) {
   return apiClient.get(`/streams?${searchParams}`);
 }
 
-function applyForStreamer(payload: ApplyForStreamerPayloadT) {
-  return apiClient.post("/user/apply-streamer", payload);
+function applyForStreamer(payload: FormData) {
+  return apiClient.post("/user/apply-streamer", payload, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
 }
 
 function getStreamById(payload: GetStreamByIdPayloadT) {

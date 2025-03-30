@@ -1,4 +1,5 @@
 import "dotenv/config";
+import fs from "fs";
 import axios from "axios";
 import crypto from "crypto";
 import base64 from "base-64";
@@ -12,7 +13,6 @@ import { logger } from "../lib/logger";
 import { Orders } from "razorpay/dist/types/orders";
 import { ApiError } from "../lib/ApiError";
 import { Accounts } from "razorpay/dist/types/accounts";
-import { ReadStream } from "fs";
 import { Stakeholders } from "razorpay/dist/types/stakeholders";
 import { MiddlewareUserT } from "../lib/types";
 import { Cashfree, CreateOrderRequest } from "cashfree-pg";
@@ -240,6 +240,7 @@ const createRazorpayOrder: (
     // using razorpay, this will make an api request to create an order on razorpay payment service for paymentSessionId
     const instance = getRazorpayInstance();
 
+    // make n order using razorpay instance
     const order = await instance.orders.create(orderOptions);
 
     // updating the order table row
@@ -252,7 +253,7 @@ const createRazorpayOrder: (
         userId: user.id,
         orderCurrency: order.currency,
         orderStatus: order.status,
-        paymentSessionId: null,
+        paymentSessionId: null
       })
       .returning()
       .execute();
@@ -346,7 +347,7 @@ const requestPrdConfig = async function (accountId: string, email: string) {
     .execute();
 
   logger.info(
-    `Terms & Conditions accepted: ${productConfiguration.tnc_accepted}, status:${productConfiguration.activation_status}, active_config:${productConfiguration.active_configuration}`
+    `Terms & Conditions accepted, status:${productConfiguration.activation_status}, active_config:${productConfiguration.active_configuration}`
   );
 };
 
@@ -382,22 +383,32 @@ const updateBankAccountData = async function (
     tnc_accepted: true,
   };
 
-  const request = await axios.patch(url, JSON.stringify(payload), {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: authorizationToken,
-    },
-  });
-  const response = request.data;
-  if (!response.id) throw new ApiError(400, "Failed to create linked account.");
+  console.log("payload", JSON.stringify(payload))
 
-  await db
-    .update(StreamerRequest)
-    .set({ requestStatus: "account_added", updatedAt: new Date() })
-    .where(eq(StreamerRequest.accountEmail, accountRequest.accountEmail))
-    .execute();
-
-  logger.info(`Bank account details updated: ${JSON.stringify(response)}`)
+  try {
+    const request = await axios.patch(url, JSON.stringify(payload), {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: authorizationToken,
+      },
+    });
+    const response = request.data;
+    if (!response.id) throw new ApiError(400, "Failed to create linked account.");
+  
+    await db
+      .update(StreamerRequest)
+      .set({ requestStatus: "account_added", updatedAt: new Date() })
+      .where(eq(StreamerRequest.accountEmail, accountRequest.accountEmail))
+      .execute();
+  
+    logger.info(`Bank account details updated: ${JSON.stringify(response)}`);
+  } catch (error: any) {
+    if(error.response.data){
+      logger.error(`Failed to update bank details: ${error.response.data.error.description}`);
+      throw new ApiError(400, error.response.data.error.description);
+    }
+    throw new ApiError(400, "Failed to create linked account.");
+  }
 };
 
 /**
@@ -406,7 +417,6 @@ const updateBankAccountData = async function (
  * @param documentFile // Still TODO
  */
 const uploadStakeholderDocuments = async function (accountId: string) {
-  const instance = getRazorpayInstance();
 
   const [accountRequest] = await db
     .select({
@@ -427,32 +437,37 @@ const uploadStakeholderDocuments = async function (accountId: string) {
       "Failed to get account request in document uploader"
     );
 
-  const req = await fetch(accountRequest.documentUrl);
+    try {
 
-  const readStream = new ReadStream({ read: req.body?.getReader });
+      const imageGetRequest = await axios.get(accountRequest.documentUrl, {
+        responseType: "arraybuffer"
+      });
 
-  const documentUploadResult = await instance.stakeholders.uploadStakeholderDoc(
-    accountId,
-    accountRequest.stakeholderId,
-    {
-      document_type: "aadhar_front",
-      file: {
-        value: readStream,
-        options: {
-          filename: `${accountRequest.stakeholderId}-kyc.png`,
-          contentType: null,
-        },
-      },
+      
+    
+      const requestUrl = `http://api.razorpay.in/v2/accounts/${accountId}/stakeholders/${accountRequest.stakeholderId}/documents`;
+    
+      const formData = new FormData()
+      formData.append("document_type", "aadhar_front");
+      formData.append('file', imageGetRequest.data);    
+
+      const documentUploadRequest = await axios.post(requestUrl, formData);
+      const documentUploadResult = documentUploadRequest.data;
+      await db
+        .update(StreamerRequest)
+        .set({ requestStatus: "done", updatedAt: new Date() })
+        .where(eq(StreamerRequest.razorpayAccountId, accountId))
+        .execute();
+    
+      logger.info(
+        `Stakeholder documents uploaded: ${JSON.stringify(documentUploadResult.individual_proof_of_address)}`
+      );
+    } catch (error: any) {
+      console.error(error)
+      console.error(error.response)
+      // console.log("Error: jakdfjaosdjf", error.response.data)
+      throw new ApiError(400, error.message)
     }
-  );
-
-  await db
-    .update(StreamerRequest)
-    .set({ requestStatus: "done", updatedAt: new Date() })
-    .where(eq(StreamerRequest.razorpayAccountId, accountId))
-    .execute();
-
-  logger.info(`Stakeholder documents uploaded: ${JSON.stringify(documentUploadResult.individual_proof_of_address)}`)
 };
 
 /**

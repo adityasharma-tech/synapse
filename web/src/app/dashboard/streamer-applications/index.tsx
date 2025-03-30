@@ -1,8 +1,9 @@
 import React, { useState } from "react";
+import LoadingComp from "../../../components/loading";
+
+import { hostBaseUrl } from "../../../lib/constants";
 import { requestHandler } from "../../../lib/requestHandler";
 import { acceptApplication, fetchAllApplications } from "../../../lib/apiClient";
-import LoadingComp from "../../../components/loading";
-import { hostBaseUrl } from "../../../lib/constants";
 
 export default function StreamerApplicationsPage() {
   const [loading, setLoading] = useState(false);
@@ -54,8 +55,8 @@ export default function StreamerApplicationsPage() {
               key={idx}
               className="flex justify-between py-2 items-center px-3 mb-2 bg-black border border-neutral-700"
             >
-              {Object.values(application).map((value: any) => (
-                <span>{value}</span>
+              {Object.values(application).map((value: any, idx) => (
+                <span key={idx}>{value}</span>
               ))}
               {<button onClick={()=>handleProcessSelected(application.accountEmail)} className={applications[idx]['requestStatus'] === "account_added" ? "btn btn-sm btn-warning" :"btn btn-sm btn-success"}>
                 {applications[idx]['requestStatus'] === "account_added" ? "Refresh" : "Accept"}

@@ -3,13 +3,13 @@ import TextArea from "../../../components/cui/TextArea";
 import TextInput from "../../../components/cui/TextInput";
 
 import { toast } from "sonner";
+import { loadScript } from "../../../lib/utils";
 import { useNavigate } from "react-router";
 import { useAppSelector } from "../../../store";
 import { requestHandler } from "../../../lib/requestHandler";
 import { applyForStreamer } from "../../../lib/apiClient";
-import { FormEventHandler, useCallback, useState } from "react";
-import { loadScript } from "../../../lib/utils";
 import { msgAuthToken, msgWidgetId } from "../../../lib/constants";
+import { FormEventHandler, useCallback, useState, useRef } from "react";
 
 export default function ApplyForStreamer() {
   const navigate = useNavigate();
@@ -17,7 +17,9 @@ export default function ApplyForStreamer() {
   const [loading, setLoading] = useState(false);
   const user = useAppSelector((state) => state.app.user);
 
-  const [formData, setFormData] = useState<{
+  const documentInputRef = useRef<HTMLInputElement | null>(null);
+
+  const [inputData, setInputData] = useState<{
     phoneNumber: string;
     otpVerified: boolean;
     otp: string;
@@ -28,6 +30,7 @@ export default function ApplyForStreamer() {
     state: string;
     pinCode: string;
     youtubeChannelName: string;
+    panNumber: string;
   }>({
     phoneNumber: user?.phoneNumber ?? "",
     otpVerified: false,
@@ -39,34 +42,53 @@ export default function ApplyForStreamer() {
     bankIfsc: "",
     bankAccountNumber: "",
     youtubeChannelName: "",
+    panNumber: "",
   });
 
   const handleStreamer: FormEventHandler<HTMLFormElement> = useCallback(
     async (e) => {
       e.preventDefault();
-      if(!formData.phoneNumber.includes('+')) return toast('Please include country code with phone number');
+      if (!inputData.phoneNumber.includes("+"))
+        return toast("Please include country code with phone number");
+
       setLoading(true);
+
       const configuration = {
         widgetId: msgWidgetId,
         tokenAuth: msgAuthToken,
-        identifier: formData.phoneNumber,
+        identifier: inputData.phoneNumber,
         exposeMethods: "false", // When true will expose the methods for OTP verification. Refer 'How it works?' for more details
         success: async (data: any) => {
-          // get verified token in response
+          const bodyFormData = new FormData();
+
+          if (
+            !documentInputRef.current ||
+            !documentInputRef.current.files ||
+            documentInputRef.current.files.length <= 0
+          ) {
+            setLoading(false);
+            return toast("Please select your kyc document first.");
+          }
+
+          bodyFormData.append("document", documentInputRef.current.files[0]);
+          bodyFormData.append("bankAccountNumber", inputData.bankAccountNumber);
+          bodyFormData.append("panNumber", inputData.panNumber);
+          bodyFormData.append("bankIfsc", inputData.bankIfsc);
+          bodyFormData.append("city", inputData.city);
+          bodyFormData.append("phoneNumber", inputData.phoneNumber);
+          bodyFormData.append("postalCode", inputData.pinCode);
+          bodyFormData.append("state", inputData.state);
+          bodyFormData.append("streetAddress", inputData.address);
+          bodyFormData.append(
+            "youtubeChannelName",
+            inputData.youtubeChannelName
+          );
+          bodyFormData.append("authToken", data.message);
+
           await requestHandler(
-            applyForStreamer({
-              bankAccountNumber: formData.bankAccountNumber,
-              bankIfsc: formData.bankIfsc,
-              city: formData.city,
-              phoneNumber: formData.phoneNumber,
-              postalCode: formData.pinCode,
-              state: formData.state,
-              streetAddress: formData.address,
-              youtubeChannelName: formData.youtubeChannelName,
-              authToken: data.message,
-            }),
+            applyForStreamer(bodyFormData),
             setLoading,
-            ()=>{
+            () => {
               navigate("/dashboard");
             }
           );
@@ -83,7 +105,7 @@ export default function ApplyForStreamer() {
       window.initSendOTP(configuration);
     },
     [
-      formData,
+      inputData,
       toast,
       requestHandler,
       applyForStreamer,
@@ -138,10 +160,10 @@ export default function ApplyForStreamer() {
                 required
                 placeholder="+91xxxxxxxxxx"
                 type="tel"
-                value={formData.phoneNumber}
+                value={inputData.phoneNumber}
                 onChange={(e) => {
-                  setFormData({
-                    ...formData,
+                  setInputData({
+                    ...inputData,
                     phoneNumber: e.target.value.trim().replace(" ", ""),
                   });
                 }}
@@ -151,9 +173,9 @@ export default function ApplyForStreamer() {
                 label="Address"
                 disabled={loading}
                 placeholder="Address here"
-                value={formData.address}
+                value={inputData.address}
                 onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
+                  setInputData({ ...inputData, address: e.target.value })
                 }
               />
 
@@ -163,9 +185,9 @@ export default function ApplyForStreamer() {
                 required
                 placeholder="New york"
                 type="text"
-                value={formData.city}
+                value={inputData.city}
                 onChange={(e) =>
-                  setFormData({ ...formData, city: e.target.value })
+                  setInputData({ ...inputData, city: e.target.value })
                 }
               />
 
@@ -175,9 +197,9 @@ export default function ApplyForStreamer() {
                 required
                 placeholder="123456"
                 type="tel"
-                value={formData.pinCode}
+                value={inputData.pinCode}
                 onChange={(e) =>
-                  setFormData({ ...formData, pinCode: e.target.value })
+                  setInputData({ ...inputData, pinCode: e.target.value })
                 }
               />
 
@@ -187,9 +209,9 @@ export default function ApplyForStreamer() {
                 required
                 placeholder="Delhi"
                 type="text"
-                value={formData.state}
+                value={inputData.state}
                 onChange={(e) =>
-                  setFormData({ ...formData, state: e.target.value })
+                  setInputData({ ...inputData, state: e.target.value })
                 }
               />
             </div>
@@ -206,12 +228,12 @@ export default function ApplyForStreamer() {
                   type="text"
                   placeholder="Chai Aur Code"
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
+                    setInputData({
+                      ...inputData,
                       youtubeChannelName: e.target.value,
                     })
                   }
-                  value={formData.youtubeChannelName}
+                  value={inputData.youtubeChannelName}
                 />
                 <TextInput
                   label="Bank account number"
@@ -219,12 +241,12 @@ export default function ApplyForStreamer() {
                   type="text"
                   placeholder="**************"
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
+                    setInputData({
+                      ...inputData,
                       bankAccountNumber: e.target.value.trim().replace(" ", ""),
                     })
                   }
-                  value={formData.bankAccountNumber}
+                  value={inputData.bankAccountNumber}
                 />
                 <TextInput
                   label="IFSC Code"
@@ -232,13 +254,45 @@ export default function ApplyForStreamer() {
                   placeholder="**********"
                   type="text"
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
+                    setInputData({
+                      ...inputData,
                       bankIfsc: e.target.value.trim().replace(" ", ""),
                     })
                   }
-                  value={formData.bankIfsc}
+                  value={inputData.bankIfsc}
                 />
+                <TextInput
+                  label="PanCard No."
+                  required
+                  placeholder="**********"
+                  type="text"
+                  onChange={(e) =>
+                    setInputData({
+                      ...inputData,
+                      panNumber: e.target.value.trim().replace(" ", ""),
+                    })
+                  }
+                  value={inputData.panNumber}
+                />
+                <div className={"flex flex-col gap-y-2 mt-4"}>
+                  <label
+                    style={{
+                      fontSize: "14px",
+                    }}
+                    className="font-medium dark:text-white"
+                  >
+                    Aadhar Card Document<span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    ref={documentInputRef}
+                    accept="image/*"
+                    type="file"
+                    required
+                    className={
+                      "focus:outline-none p-2 w-full disabled:text-neutral-600 disabled:cursor-not-allowed text-neutral-100 border border-neutral-700 bg-neutral-800 focus:ring-2 ring-sky-400 rounded-sm"
+                    }
+                  />
+                </div>
               </React.Fragment>
             </div>
           </div>
@@ -246,13 +300,13 @@ export default function ApplyForStreamer() {
             <button
               disabled={
                 loading ||
-                formData.phoneNumber.trim() == "" ||
-                formData.bankAccountNumber.trim() == "" ||
-                formData.bankIfsc.trim() == "" ||
-                formData.address.trim() == "" ||
-                formData.city.trim() == "" ||
-                formData.pinCode.trim() == "" ||
-                formData.state.trim() == ""
+                inputData.phoneNumber.trim() == "" ||
+                inputData.bankAccountNumber.trim() == "" ||
+                inputData.bankIfsc.trim() == "" ||
+                inputData.address.trim() == "" ||
+                inputData.city.trim() == "" ||
+                inputData.pinCode.trim() == "" ||
+                inputData.state.trim() == ""
               }
               type="submit"
               className="py-2 g-recaptcha flex gap-x-3 justify-center items-center mx-auto min-w-xs bg-sky-600 rounded-md text-white font-medium disabled:bg-neutral-700 disabled:opacity-45"
