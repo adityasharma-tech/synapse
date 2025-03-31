@@ -6,14 +6,15 @@ import { User } from "../schemas/user.sql";
 import { Order } from "../schemas/order.sql";
 import { logger } from "../lib/logger";
 import { Server } from "socket.io";
-import { eq, sql } from "drizzle-orm";
+import { eq, or, sql } from "drizzle-orm";
 import { Cashfree } from "cashfree-pg";
 import { ApiError } from "../lib/ApiError";
 import { ChatMessage } from "../schemas/chats.sql";
 import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
-import { SocketEventEnum } from "../lib/constants";
+import { RMQ_PAYOUT_QUEUE, SocketEventEnum } from "../lib/constants";
 import { getRazorpayInstance } from "../services/payments.service";
+import { getPayoutChannel } from "../services/queue.service";
 
 Cashfree.XClientId = process.env.CF_PAYMENT_CLIENT_ID!;
 Cashfree.XClientSecret = process.env.CF_PAYMENT_CLIENT_SECRET!;
@@ -109,6 +110,10 @@ const handleVerifyCfOrder = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, "Webhook success"));
 });
 
+
+/**
+ * Razorpay Verfiy Order
+ */
 const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
   const razorpaySignature = req.headers["x-razorpay-signature"];
   const body = req.body;
@@ -126,6 +131,8 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
 
   console.log("event", event);
 
+  const payoutChannel = await getPayoutChannel()
+
   if (event.event === "order.paid") {
     const instance = getRazorpayInstance();
     const orderId = event["payload"]["order"]["entity"]["id"] as string;
@@ -136,6 +143,12 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
       .where(eq(Order.cfOrderId, String(orderId)))
       .returning()
       .execute();
+
+    const payload = JSON.stringify({
+      orderId
+    })
+      
+    payoutChannel.sendToQueue(RMQ_PAYOUT_QUEUE, Buffer.from(payload));
 
     if (order.status === "paid") {
       const [preChatMessage] = await db

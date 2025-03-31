@@ -11,6 +11,9 @@ const corsOrigins = [
   "https://alishanshowroom.vercel.app",
 ];
 
+// RabbitMQ Channels
+const RMQ_PAYOUT_QUEUE = 'payout_queue' 
+
 const SocketEventEnum = Object.freeze({
   CONNECTED_EVENT: "connection",
   DISCONNECT_EVENT: "disconnecting",
@@ -35,4 +38,5 @@ export {
   msg91AuthKey,
   corsOrigins,
   SocketEventEnum,
+  RMQ_PAYOUT_QUEUE
 };
