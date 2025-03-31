@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "amqplib": "^0.10.7",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "razorpay": "^2.9.6"
   }
 }
