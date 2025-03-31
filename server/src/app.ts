@@ -10,9 +10,9 @@ import establishDbConnection from "./db";
 
 import { rateLimit } from "express-rate-limit";
 import { ApiResponse } from "./lib/ApiResponse";
-import { redisClient } from "./services/redis.service";
+// import { redisClient } from "./services/redis.service";
 import { socketHandler } from "./services/socket.service";
-import { createAdapter } from "@socket.io/redis-adapter";
+// import { createAdapter } from "@socket.io/redis-adapter";
 import { Server as SocketIO } from "socket.io";
 import { socketAuthMiddleware } from "./middleware/socket.middleware";
 import { corsOrigins, SocketEventEnum } from "./lib/constants";
@@ -33,12 +33,12 @@ global.db = establishDbConnection();
  * Socket io server
  * using redis as a pub/sub for sockets
  */
-const subClient = redisClient.duplicate();
-(async () => await Promise.all([redisClient.connect(), subClient.connect()]))();
+// const subClient = redisClient.duplicate();
+// (async () => await Promise.all([redisClient.connect(), subClient.connect()]))();
 
 const io = new SocketIO(server, {
   cors: { origin: corsOrigins, credentials: true },
-  adapter: createAdapter(redisClient, subClient), // only if you want to use redis as an adapter
+  // adapter: createAdapter(redisClient, subClient), // only if you want to use redis as an adapter
   cookie: true,
 });
 
