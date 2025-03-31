@@ -131,7 +131,10 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
 
   console.log("event", event);
 
-  const payoutChannel = await getPayoutChannel()
+  /**
+   * Only if you want to use queue system to send payouts
+   */
+  // const payoutChannel = await getPayoutChannel()
 
   if (event.event === "order.paid") {
     const instance = getRazorpayInstance();
@@ -148,7 +151,7 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
       orderId
     })
       
-    payoutChannel.sendToQueue(RMQ_PAYOUT_QUEUE, Buffer.from(payload));
+    // payoutChannel.sendToQueue(RMQ_PAYOUT_QUEUE, Buffer.from(payload));
 
     if (order.status === "paid") {
       const [preChatMessage] = await db

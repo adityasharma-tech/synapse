@@ -13,6 +13,7 @@ import { MiddlewareUserT } from "../lib/types";
 import { ApiError, ErrCodes } from "../lib/ApiError";
 import { createRazorpayOrder } from "../services/payments.service";
 import { and, count, eq, or, sql } from "drizzle-orm";
+import StreamerRequest from "../schemas/streamerRequest.sql";
 
 const createNewStream = asyncHandler(async (req, res) => {
   const { title } = req.body;
@@ -228,9 +229,20 @@ const makePremiumChat = asyncHandler(async (req, res) => {
   if (!stream)
     throw new ApiError(400, "Failed to get the stream you wanna chat on.");
 
+  const [streamer] = await db
+    .select({
+      razorpayAccountId: StreamerRequest.razorpayAccountId
+    })
+    .from(StreamerRequest)
+    .where(eq(StreamerRequest.userId, stream.streamerId))
+    .execute()
+
+  if(!streamer || !streamer.razorpayAccountId) throw new ApiError(400, "Failed to fetch streamer details.");
+
   const orderResult = await createRazorpayOrder({
     user: req.user as MiddlewareUserT,
     orderAmount: orderAmt,
+    transferAccountId: streamer.razorpayAccountId
   });
 
   if (!orderResult)

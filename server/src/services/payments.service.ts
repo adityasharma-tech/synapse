@@ -1,16 +1,15 @@
 import "dotenv/config";
-import fs from "fs";
 import axios from "axios";
 import crypto from "crypto";
 import base64 from "base-64";
 import OrderId from "order-id";
 import Razorpay from "razorpay";
+import lodash from 'lodash'
 import StreamerRequest from "../schemas/streamerRequest.sql";
 
 import { eq } from "drizzle-orm";
 import { Order } from "../schemas/order.sql";
 import { logger } from "../lib/logger";
-import { Orders } from "razorpay/dist/types/orders";
 import { ApiError } from "../lib/ApiError";
 import { Accounts } from "razorpay/dist/types/accounts";
 import { Stakeholders } from "razorpay/dist/types/stakeholders";
@@ -60,6 +59,7 @@ interface CreateBeneficiaryPropT {
 interface CreateOrderPropT {
   orderAmount: number;
   user: MiddlewareUserT;
+  transferAccountId: string;
 }
 
 const getRazorpayInstance = function () {
@@ -219,8 +219,8 @@ const createRazorpayOrder: (
 > = async function (props) {
   const user = props.user;
 
-  const orderOptions: Orders.RazorpayOrderCreateRequestBody = {
-    amount: props.orderAmount * 100, // because we are taking from frontend in ruppes
+  const orderOptions = {
+    amount: lodash.multiply(props.orderAmount, 100), // because we are taking from frontend in ruppes
     currency: "INR",
     receipt: `reciept#${Date.now()}`,
     customer_details: {
@@ -234,6 +234,16 @@ const createRazorpayOrder: (
       name: `${user.firstName} ${user.lastName}`,
       shipping_address: {},
     },
+    partial_payment: false,
+    transfers: [
+      {
+        account: props.transferAccountId,
+        amount: lodash.multiply(lodash.multiply(props.orderAmount, 100), lodash.toNumber(process.env.STREAMER_PAYOUT_CUT!)),
+        currency: "INR",
+        on_hold: 1,
+        on_hold_until: Date.now() + 1000 * 60 * 60 * 3
+      }
+    ]
   };
 
   try {
@@ -248,12 +258,12 @@ const createRazorpayOrder: (
       .insert(Order)
       .values({
         cfOrderId: order.id,
-        orderAmount: +order.amount,
+        orderAmount: lodash.toNumber(order.amount),
         orderExpiryTime: new Date(1000 * 14 * 60).toUTCString(),
         userId: user.id,
         orderCurrency: order.currency,
         orderStatus: order.status,
-        paymentSessionId: null
+        paymentSessionId: null,
       })
       .returning()
       .execute();
@@ -383,7 +393,7 @@ const updateBankAccountData = async function (
     tnc_accepted: true,
   };
 
-  console.log("payload", JSON.stringify(payload))
+  console.log("payload", JSON.stringify(payload));
 
   try {
     const request = await axios.patch(url, JSON.stringify(payload), {
@@ -393,18 +403,21 @@ const updateBankAccountData = async function (
       },
     });
     const response = request.data;
-    if (!response.id) throw new ApiError(400, "Failed to create linked account.");
-  
+    if (!response.id)
+      throw new ApiError(400, "Failed to create linked account.");
+
     await db
       .update(StreamerRequest)
       .set({ requestStatus: "account_added", updatedAt: new Date() })
       .where(eq(StreamerRequest.accountEmail, accountRequest.accountEmail))
       .execute();
-  
+
     logger.info(`Bank account details updated: ${JSON.stringify(response)}`);
   } catch (error: any) {
-    if(error.response.data){
-      logger.error(`Failed to update bank details: ${error.response.data.error.description}`);
+    if (error.response.data) {
+      logger.error(
+        `Failed to update bank details: ${error.response.data.error.description}`
+      );
       throw new ApiError(400, error.response.data.error.description);
     }
     throw new ApiError(400, "Failed to create linked account.");
@@ -417,7 +430,6 @@ const updateBankAccountData = async function (
  * @param documentFile // Still TODO
  */
 const uploadStakeholderDocuments = async function (accountId: string) {
-
   const [accountRequest] = await db
     .select({
       stakeholderId: StreamerRequest.stakeholderId,
@@ -437,37 +449,34 @@ const uploadStakeholderDocuments = async function (accountId: string) {
       "Failed to get account request in document uploader"
     );
 
-    try {
+  try {
+    const imageGetRequest = await axios.get(accountRequest.documentUrl, {
+      responseType: "arraybuffer",
+    });
 
-      const imageGetRequest = await axios.get(accountRequest.documentUrl, {
-        responseType: "arraybuffer"
-      });
+    const requestUrl = `http://api.razorpay.in/v2/accounts/${accountId}/stakeholders/${accountRequest.stakeholderId}/documents`;
 
-      
-    
-      const requestUrl = `http://api.razorpay.in/v2/accounts/${accountId}/stakeholders/${accountRequest.stakeholderId}/documents`;
-    
-      const formData = new FormData()
-      formData.append("document_type", "aadhar_front");
-      formData.append('file', imageGetRequest.data);    
+    const formData = new FormData();
+    formData.append("document_type", "aadhar_front");
+    formData.append("file", imageGetRequest.data);
 
-      const documentUploadRequest = await axios.post(requestUrl, formData);
-      const documentUploadResult = documentUploadRequest.data;
-      await db
-        .update(StreamerRequest)
-        .set({ requestStatus: "done", updatedAt: new Date() })
-        .where(eq(StreamerRequest.razorpayAccountId, accountId))
-        .execute();
-    
-      logger.info(
-        `Stakeholder documents uploaded: ${JSON.stringify(documentUploadResult.individual_proof_of_address)}`
-      );
-    } catch (error: any) {
-      console.error(error)
-      console.error(error.response)
-      // console.log("Error: jakdfjaosdjf", error.response.data)
-      throw new ApiError(400, error.message)
-    }
+    const documentUploadRequest = await axios.post(requestUrl, formData);
+    const documentUploadResult = documentUploadRequest.data;
+    await db
+      .update(StreamerRequest)
+      .set({ requestStatus: "done", updatedAt: new Date() })
+      .where(eq(StreamerRequest.razorpayAccountId, accountId))
+      .execute();
+
+    logger.info(
+      `Stakeholder documents uploaded: ${JSON.stringify(documentUploadResult.individual_proof_of_address)}`
+    );
+  } catch (error: any) {
+    console.error(error);
+    console.error(error.response);
+    // console.log("Error: jakdfjaosdjf", error.response.data)
+    throw new ApiError(400, error.message);
+  }
 };
 
 /**
