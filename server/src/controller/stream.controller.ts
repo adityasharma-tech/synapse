@@ -71,7 +71,7 @@ const fetchYoutubeData = asyncHandler(async (req, res) => {
   const youtube = google.youtube("v3");
   const result = await youtube.videos.list({
     part: ["snippet", "contentDetails", "statistics"],
-    id: ["ZMm1gMZBlsc"],
+    id: [videoId],
     key: process.env.GOOGLE_API_KEY!,
   });
 
