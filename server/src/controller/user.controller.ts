@@ -1,14 +1,18 @@
-import { eq } from "drizzle-orm";
-import { ApiResponse } from "../lib/ApiResponse";
-import { asyncHandler } from "../lib/asyncHandler";
-import { User } from "../schemas/user.sql";
-import { ApiError, ErrCodes } from "../lib/ApiError";
-import { createBeneficiary } from "../services/payments.service";
-import { TokenTable } from "../schemas/tokenTable.sql";
 import StreamerRequest from "../schemas/streamerRequest.sql";
+
+import { eq } from "drizzle-orm";
+import { User } from "../schemas/user.sql";
+import { TokenTable } from "../schemas/tokenTable.sql";
+import { ApiResponse } from "../lib/ApiResponse";
 import { msg91AuthKey } from "../lib/constants";
+import { asyncHandler } from "../lib/asyncHandler";
+import { createBeneficiary } from "../services/payments.service";
+import { ApiError, ErrCodes } from "../lib/ApiError";
 import { uploadDocumentOnCloudinary } from "../lib/cloudinary";
 
+/**
+ * For logout remove the cookies and clear the caches
+ */
 const logoutHandler = asyncHandler(async (_, res) => {
   res.cookie("accessToken", "", {
     maxAge: 0,
@@ -29,11 +33,18 @@ const logoutHandler = asyncHandler(async (_, res) => {
   res.status(200).json(new ApiResponse(200, null, "Logout success."));
 });
 
+/**
+ * Get the current logged in user details
+ */
 const getUserHandler = asyncHandler(async (req, res) => {
   const user = req.user;
   res.status(200).json(new ApiResponse(200, { user }));
 });
 
+
+/**
+ * Update user specific info
+ */
 const updateUserHandler = asyncHandler(async (req, res) => {
   const user = req.user;
 
@@ -61,6 +72,11 @@ const updateUserHandler = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, null, "User updated success."));
 });
 
+
+/**
+ * IMPORTANT (deprecated) => This controller is for cashfree payouts which we
+ *                        are not gonna use more.
+ */
 const applyForStreamer = asyncHandler(async (req, res) => {
   const user = req.user;
   const {
@@ -93,6 +109,7 @@ const applyForStreamer = asyncHandler(async (req, res) => {
 
   const usrToken = tokens[0];
 
+  // check if user is already a streamer
   if (usrToken.streamerVerificationToken)
     throw new ApiError(400, "You may be already a streamer.");
 
@@ -132,6 +149,14 @@ const applyForStreamer = asyncHandler(async (req, res) => {
   res.status(201).json(new ApiResponse(201, null));
 });
 
+
+
+
+/**
+ * Controller to apply for streamer with razorpay route payments
+ * - this will submit an application which will be reviewed by admin
+ *    and then pass to next
+ */
 const applyForStreamerV2 = asyncHandler(async (req, res) => {
   const user = req.user;
 
@@ -186,8 +211,11 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
   });
   const result = await response.json();
 
+  // TODO:  Some failure in verifying the phone auth token to double check btw 
+  //        it is already checked in frontend but 'frontend ke code par barosa nai karna'
   console.log(result);
 
+  // fetch streamer previous requests
   const [preRequest] = await db
     .select({
       requestStatus: StreamerRequest.requestStatus,
@@ -197,15 +225,20 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
     .where(eq(StreamerRequest.userId, user.id))
     .execute();
 
+    // check if it is already done or not
   if (preRequest && preRequest.requestStatus == "done")
     throw new ApiError(400, "You application is already fulfilled.");
 
   if (preRequest)
     throw new ApiError(400, "You already applied for streamer request.");
 
+
+  // pan/aadhar document upload to cloudinary database
   const docUploadResult = await uploadDocumentOnCloudinary(documentFilePath);  
+
   if(!docUploadResult) throw new ApiError(400, "Failed to upload document to cloudinary resources.");
 
+  // Adding new application to our database
   const [request] = await db
     .insert(StreamerRequest)
     .values({

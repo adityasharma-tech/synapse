@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import StreamerRequest from "../schemas/streamerRequest.sql";
 
 import { User } from "../schemas/user.sql";
 import { Order } from "../schemas/order.sql";
@@ -13,8 +14,11 @@ import { MiddlewareUserT } from "../lib/types";
 import { ApiError, ErrCodes } from "../lib/ApiError";
 import { createRazorpayOrder } from "../services/payments.service";
 import { and, count, eq, or, sql } from "drizzle-orm";
-import StreamerRequest from "../schemas/streamerRequest.sql";
 
+
+/**
+ * Controller for streamers to start a new stream
+ */
 const createNewStream = asyncHandler(async (req, res) => {
   const { title } = req.body;
   const user = req.user;
@@ -56,6 +60,11 @@ const createNewStream = asyncHandler(async (req, res) => {
     );
 });
 
+/**
+ * This controller is required to fetch youtube data while creating a
+ * stream for youtube live
+ * TODO: still work left for this but this will work fine
+ */
 const fetchYoutubeData = asyncHandler(async (req, res) => {
   const { videoUrl } = req.query;
 
@@ -93,6 +102,9 @@ const fetchYoutubeData = asyncHandler(async (req, res) => {
     );
 });
 
+/**
+ * Fetch all streams created by a specific streamer
+ */
 const getAllStreams = asyncHandler(async (req, res) => {
   const user = req.user;
   const { page, limit } = req.query;
@@ -137,6 +149,9 @@ const getAllStreams = asyncHandler(async (req, res) => {
     );
 });
 
+/**
+ * Get any stream by it's uid
+ */
 const getStreamById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
@@ -154,6 +169,9 @@ const getStreamById = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, { stream, userRole: role }));
 });
 
+/**
+ * Fetch any chats by specific streaming uid
+ */
 const getAllChatsByStreamingId = asyncHandler(async (req, res) => {
   const { streamId } = req.params;
 
@@ -207,6 +225,9 @@ const getAllChatsByStreamingId = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, { chats: results }));
 });
 
+/**
+ * !IMPORTANT => Controller for make premium chats creating a razorpay order
+ */
 const makePremiumChat = asyncHandler(async (req, res) => {
   const user = req.user;
   const { streamId } = req.params;

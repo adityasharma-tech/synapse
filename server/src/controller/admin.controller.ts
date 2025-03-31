@@ -10,8 +10,16 @@ import { asyncHandler } from "../lib/asyncHandler";
 import { setupRazorpayAccount } from "../services/payments.service";
 import { signStreamerVerficationToken } from "../lib/utils";
 
+
+/**
+ * Controller to get all stream applications and send all required data to the admin dashboard
+ * so that admin can approve or disapprove
+ */
 const getAllStreamApplications = asyncHandler(async (req, res) => {
   const user = req.user;
+
+  // checking if it is admin or not, while this is already done in the middeware
+  // but to make sure I added one more
   if (user.role != "admin") throw new ApiError(401, "Unautorized");
 
   const applications = await db
@@ -30,6 +38,12 @@ const getAllStreamApplications = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, { applications }));
 });
 
+
+/**
+ * A controller to download all application who applied for streamer including their
+ * bank and pan details
+ * TODO: Some modifications so that even admin can't download user bank/pan details
+ */
 const downloadStreamAsCsv = asyncHandler(async (req, res) => {
   const user = req.user;
   if (user.role != "admin") throw new ApiError(401, "Unautorized");
@@ -52,6 +66,8 @@ const downloadStreamAsCsv = asyncHandler(async (req, res) => {
     beneficiary_name: application.accountName,
   }));
 
+
+  // converting the json data to csv format as razorpay accepts on their dashbaord
   const csvFormatDataArray = csvFormatDataJson
     .map((application) => Object.values(application).join(","))
     .join("\n");
@@ -62,6 +78,12 @@ const downloadStreamAsCsv = asyncHandler(async (req, res) => {
   res.download(filepath);
 });
 
+
+/**
+ * @description VERY IMPORTANT!
+ * Controller function to accept the application by making few
+ * razorpay Calls by sending their details through razorpay api
+ */
 const acceptFormData = asyncHandler(async (req, res) => {
   const user = req.user;
   if (user.role != "admin") throw new ApiError(401, "Unautorized");
@@ -80,8 +102,10 @@ const acceptFormData = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Failed to get application details.");
 
   try {
+    // the id passed to razorpay account data to find that user in my db; TODO: left
     const referenceId = Math.floor(Math.random() * 1000000000);
 
+    // please checkout this function to get more details
     const result = await setupRazorpayAccount(
       application.requestStatus,
       {
@@ -121,12 +145,15 @@ const acceptFormData = asyncHandler(async (req, res) => {
     );
     if (!result) throw new ApiError(400, "Failed to create linked account.");
 
+    // update the status of the application
     await db
       .update(StreamerRequest)
       .set({ requestStatus: "account_added", updatedAt: new Date() })
       .where(eq(StreamerRequest.accountEmail, application.accountEmail))
       .execute();
 
+      // sign a token for each streamer to verify each time.
+      // TODO: I don't think this is required but I will fix it later
     await db
       .update(TokenTable)
       .set({
@@ -140,6 +167,7 @@ const acceptFormData = asyncHandler(async (req, res) => {
       .where(eq(TokenTable.userId, application.userId))
       .execute();
 
+      // update the user role to streamer
     await db
       .update(User)
       .set({

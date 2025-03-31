@@ -1,7 +1,3 @@
-# TODO
-- Add pan card input in apply for streamer
-- Add pan as document upload on apply for streamer 
-
 ## Problem Statement -> When we pay on youtube in chat and youtube take 60% of the payment and the popup is irritating. The payment is not instant. Youtube-> GPay-> takes money 
 ## Solution -> Our Solution provides the functionality with less margin and the transfer is within one or 2 business days. Filter can be added for Sorting and Markinig 
 
@@ -79,28 +75,3 @@
 - Redis service
 - Server - onrender
 - Vite - vercel
-
-
-<!-- /**
- * Beneficiary ID
- * Account Name
- * Account email
- * Dashboard Access - Boolean
- * Allow customer refunds - boolean
- * 
- * IFSC Code
- * Account No
- * Re-Enter account number
- * Beneficiary Name
- */
-
-/**
- * email    - string
- * phone    - integer
- * legal_business_name  - string
- * business_type    - string
- * refrence_id  - string        // id of the user in the app db
- * profile  - 
- *      - subcategory
- *      - category 
- */ -->
