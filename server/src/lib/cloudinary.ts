@@ -18,6 +18,7 @@ const uploadDocumentOnCloudinary: (f: string)=>Promise<string | null> = async (l
                 }
             )
         
+            // delete the document file
         fs.unlinkSync(localFilePath);
         return uploadResult.secure_url
     } catch (error) {

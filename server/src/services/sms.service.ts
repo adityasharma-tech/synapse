@@ -1,6 +1,10 @@
 const msg91WidgetUrl = "https://control.msg91.com/api/v5/widget";
 const widgetProcess = `${msg91WidgetUrl}/getWidgetProcess?widgetId=:widgetId&tokenAuth=:tokenAuth`;
 
+/**
+ * TODO: Remove or use other service for sms verification so this all is  ... (you know)
+ */
+
 interface VerifyOtpT {}
 
 interface SendOtpT {}

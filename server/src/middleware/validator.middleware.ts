@@ -1,7 +1,12 @@
-import { body, query, validationResult } from "express-validator";
+import { logger } from "../lib/logger";
 import { asyncHandler } from "../lib/asyncHandler";
 import { ApiError, ErrCodes } from "../lib/ApiError";
-import { logger } from "../lib/logger";
+import { body, query, validationResult } from "express-validator";
+
+
+/**
+ * TODO: Too much validators are still left
+ */
 
 const validator = asyncHandler((req, res, next) => {
   const errors = validationResult(req);

@@ -1,3 +1,4 @@
+// TODO: Have to add more error codes
 const ErrCodes = Object.freeze({
   DEFAULT_RES: "DEFAULT_RES",
   INVALID_CREDS: "INVALID_CREDS",
@@ -16,6 +17,7 @@ const ErrCodes = Object.freeze({
   MSG91_ERROR: "MSG91_ERROR",
 });
 
+// class for ApiError to send custom messages
 class ApiError extends Error {
   statusCode?: number;
   data?: any;

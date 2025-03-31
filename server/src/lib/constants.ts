@@ -14,6 +14,7 @@ const corsOrigins = [
 // RabbitMQ Channels
 const RMQ_PAYOUT_QUEUE = 'payout_queue' 
 
+// socket events
 const SocketEventEnum = Object.freeze({
   CONNECTED_EVENT: "connection",
   DISCONNECT_EVENT: "disconnecting",

@@ -4,9 +4,8 @@ import { logger } from "./logger";
 
 const errorHandler = (
   err: any,
-  req: Request,
-  res: Response,
-  next: NextFunction
+  _: Request,
+  res: Response
 ) => {
   const errStatus = err.statusCode ?? 500;
   const errMsg = err.message || "Internal server error";

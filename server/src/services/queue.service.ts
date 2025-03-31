@@ -1,6 +1,10 @@
 import amqplib from "amqplib";
 import { RMQ_PAYOUT_QUEUE } from "../lib/constants";
 
+/**
+ * TODO: Work still left in queuing system
+ */
+
 let connection: amqplib.ChannelModel;
 let payoutChannel: amqplib.Channel;
 

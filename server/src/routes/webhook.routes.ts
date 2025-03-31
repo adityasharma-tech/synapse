@@ -12,6 +12,8 @@ router.use((_, res, next) => {
 });
 
 router.route("/cf").post(handleVerifyCfOrder);
+
+// webhook to verify razorpay orders
 router.route("/razorpay").post(handleVerfiyRazorpayOrder);
 
 export default router;

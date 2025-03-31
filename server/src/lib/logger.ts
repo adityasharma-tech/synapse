@@ -1,3 +1,6 @@
+/**
+ * Custom logger to view/save logs in currect format
+ */
 import winston, { format, transports } from "winston";
 const { combine, timestamp, label, printf, colorize } = format;
 

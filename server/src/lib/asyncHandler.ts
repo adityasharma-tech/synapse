@@ -9,4 +9,3 @@ const asyncHandler = (
 };
 
 export { asyncHandler };
-// https://api/v2/

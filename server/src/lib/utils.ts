@@ -1,7 +1,61 @@
 import { CookieOptions } from "express";
 import jwt from "jsonwebtoken";
 import { MiddlewareUserT } from "./types";
+// Roles
+export type Role = keyof typeof ROLES;
+type Permission = (typeof ROLES)[Role][number];
 
+const ROLES = {
+  admin: [
+    "chat:create",
+    "chat:delete",
+    "chat:message:own-update",
+    "chat:mark-read",
+    "chat:view",
+    "stream:create",
+    "stream:update",
+    "stream:view",
+    "stream:user:block",
+  ],
+  streamer: [
+    "chat:create",
+    "chat:delete",
+    "chat:message:own-update", // self message update
+    "chat:mark-read",
+    "chat:view",
+    "stream:create",
+    "stream:update",
+    "stream:view",
+    "stream:user:block",
+  ],
+  viewer: [
+    "chat:create",
+    "chat:delete",
+    "chat:message:own-update", // self message update
+    "chat:view",
+    "stream:view",
+    "chat:own-upvote",
+    "chat:own-downvote",
+  ],
+} as const;
+
+/**
+ * Function to check user role permissions
+ * @param user 
+ * @param permission 
+ * @returns 
+ */
+function hasPermission(user: MiddlewareUserT, permission: Permission) {
+  if (user.role == "streamer" && user.streamerToken) {
+    const result = verifyStreamerVerficationToken(user.streamerToken);
+    if (result?.userId != user.id) user.role = "viewer";
+  } else if (user.role == "streamer") {
+    user.role = "viewer";
+  }
+  return (ROLES[user.role] as readonly Permission[]).includes(permission);
+}
+
+// utility fucntion not used anymore
 function areValuesValid(...values: any[]) {
   for (let value of values) {
     if (!value) return false;
@@ -10,6 +64,7 @@ function areValuesValid(...values: any[]) {
   return true;
 }
 
+// username subfix generator function
 function generateUsername() {
   const chars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -20,6 +75,11 @@ function generateUsername() {
   return username;
 }
 
+/**
+ * A utility function to generate json web token
+ * @param {Partial<MiddlewareUserT>} payload
+ * @returns object containing refreshToken, AccessToken and cookieOptions
+ */
 function getSigningTokens(payload: Partial<MiddlewareUserT>) {
   const refreshToken = jwt.sign(
     { id: payload.id },
@@ -66,63 +126,6 @@ function verifyStreamerVerficationToken(token: string) {
   } catch (error) {
     return null;
   }
-}
-
-export type Role = keyof typeof ROLES;
-type Permission = (typeof ROLES)[Role][number];
-
-const ROLES = {
-  admin: [
-    "chat:create",
-    "chat:delete",
-    "chat:message:own-update",
-    "chat:mark-read",
-    "chat:view",
-    "stream:create",
-    "stream:update",
-    "stream:view",
-    "stream:user:block",
-  ],
-  streamer: [
-    "chat:create",
-    "chat:delete",
-    "chat:message:own-update", // self message update
-    "chat:mark-read",
-    "chat:view",
-    "stream:create",
-    "stream:update",
-    "stream:view",
-    "stream:user:block",
-  ],
-  // moderator: [
-  //     "chat:create",
-  //     "chat:delete",
-  //     "chat:message:own-update", // self message update
-  //     "chat:view",
-  //     "stream:view",
-  //     "stream:user:block",
-  //     "chat:own-upvote",
-  //     "chat:own-downvote"
-  // ],
-  viewer: [
-    "chat:create",
-    "chat:delete",
-    "chat:message:own-update", // self message update
-    "chat:view",
-    "stream:view",
-    "chat:own-upvote",
-    "chat:own-downvote",
-  ],
-} as const;
-
-function hasPermission(user: MiddlewareUserT, permission: Permission) {
-  if (user.role == "streamer" && user.streamerToken) {
-    const result = verifyStreamerVerficationToken(user.streamerToken);
-    if (result?.userId != user.id) user.role = "viewer";
-  } else if (user.role == "streamer") {
-    user.role = "viewer";
-  }
-  return (ROLES[user.role] as readonly Permission[]).includes(permission);
 }
 
 export {

@@ -1,3 +1,7 @@
+/**
+ * Custom class for json response to make sure send response
+ * in correct format
+ */
 class ApiResponse {
   statusCode?: number;
   data?: any;
