@@ -6,6 +6,7 @@ import morgan from "morgan";
 import helmet from "helmet";
 import express from "express";
 import cookieParser from "cookie-parser";
+import errorHandler from "./lib/errorHandler";
 import establishDbConnection from "./db";
 
 import { rateLimit } from "express-rate-limit";
@@ -18,13 +19,13 @@ import { socketAuthMiddleware } from "./middleware/socket.middleware";
 import { corsOrigins, SocketEventEnum } from "./lib/constants";
 
 /*
- * Env support configs
- */
+* Env support configs
+*/
 dotenv.config({ debug: false });
 
 /**
  * Http Express Server
- */
+*/
 const app = express();
 const server = http.createServer(app);
 global.db = establishDbConnection();
@@ -57,7 +58,7 @@ io.on(SocketEventEnum.CONNECTED_EVENT, (socket) => socketHandler(io, socket));
 
 /**
  * Rate limiter configuration
- */
+*/
 const limiter = rateLimit({
   windowMs: 1000 * 60,
   limit: 90,
@@ -68,7 +69,7 @@ const limiter = rateLimit({
 
 /**
  * middlewares
- */
+*/
 app.use(
   cors({
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -86,7 +87,7 @@ app.use(limiter);
 
 /**
  * Router imports
- */
+*/
 import defaultRouter from "./routes/default.routes";
 import authRouter from "./routes/auth.routes";
 import userRouter from "./routes/user.routes";
@@ -96,7 +97,7 @@ import adminRouter from "./routes/admin.routes";
 
 /**
  * Router handlers
- */
+*/
 app.use(defaultRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", userRouter);
@@ -107,7 +108,6 @@ app.use("/api/v1/admin", adminRouter);
 /**
  * express error handler
  */
-import errorHandler from "./lib/errorHandler";
 app.use(errorHandler);
 
 export default server;

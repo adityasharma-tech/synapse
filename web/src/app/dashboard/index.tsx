@@ -119,11 +119,19 @@ export default function DashboardPage() {
           ) : null}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex gap-x-2 cursor-pointer items-center rounded-full overflow-hidden transition-colors">
-                <img
-                  className="size-10"
-                  src="https://avatar.iran.liara.run/username?username=AdityaSharma"
-                />
+              <button className="flex gap-x-3 bg-neutral-800 cursor-pointer items-center rounded-lg p-2 pr-10">
+                <div>
+                  <img
+                    className="size-8"
+                    src="https://avatar.iran.liara.run/username?username=AdityaSharma"
+                  />
+                </div>
+                <div className="flex flex-col items-start justify-start">
+                  <span className="text-sm">
+                    {user?.firstName} {user?.lastName}
+                  </span>
+                  <span className="text-xs text-gray-400">{user?.role}</span>
+                </div>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56 bg-neutral-100">
@@ -226,10 +234,18 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-      <section className="h-[calc(100vh-72px)] flex gap-x-4 p-5">
-        <div className="h-full w-[60%] bg-[#222] rounded-xl"></div>
+      <section className="h-[calc(100vh-72px)] flex gap-x-4 px-5 pb-5">
+        <div className="h-full w-[60%] bg-[#222] rounded-xl p-3 relative">
+          <div className="font-medium text-neutral-100 text-lg">Analytics</div>
+          <div className="absolute top-1/2 left-1/2 -translate-1/2 -translate-y-1/2">
+            No analytics yet!
+          </div>
+        </div>
         <div className="h-full w-[40%] flex flex-col gap-5">
           <div className="h-[60%] w-full bg-[#222] rounded-xl p-3 overflow-y-auto">
+            <div className="font-medium text-neutral-100 text-lg">
+              Streams Watch History
+            </div>
             <span
               data-loading={streamFetchLoading}
               className="loading data-[loading=true]:block hidden loading-spinner loading-xs"
@@ -289,7 +305,9 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
-          <div className="h-full w-full bg-[#222] rounded-xl"></div>
+          <div className="h-full w-full bg-[#222] rounded-xl p-3">
+            <div className="text-neutral-100 text-lg">Previous Chats</div>
+          </div>
         </div>
       </section>
     </React.Fragment>

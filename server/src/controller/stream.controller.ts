@@ -14,7 +14,7 @@ import { MiddlewareUserT } from "../lib/types";
 import { ApiError, ErrCodes } from "../lib/ApiError";
 import { createRazorpayOrder } from "../services/payments.service";
 import { and, count, eq, or, sql } from "drizzle-orm";
-
+import { Role } from "../lib/utils";
 
 /**
  * Controller for streamers to start a new stream
@@ -154,19 +154,43 @@ const getAllStreams = asyncHandler(async (req, res) => {
  */
 const getStreamById = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  
+  let userRole: Role = "viewer";
 
-  const { role } = req.user;
+  if(req.user.role == "admin") userRole = "admin"; 
 
   logger.info(`Id of stream: ${id}`);
   const [stream] = await db
-    .select({ streamTitle: Stream.streamTitle, streamUid: Stream.streamingUid })
+    .select({ streamTitle: Stream.streamTitle, streamUid: Stream.streamingUid, streamerId: Stream.streamerId, id: Stream.id })
     .from(Stream)
     .where(eq(Stream.streamingUid, id))
     .execute();
 
   if (!stream) throw new ApiError(400, "Stream not found.");
 
-  res.status(200).json(new ApiResponse(200, { stream, userRole: role }));
+  stream.streamerId == req.user.id ? userRole = "streamer" : null;
+
+  if(userRole != "streamer"){
+    const [usr] = await db
+      .select({ watchHistory: User.watchHistory })
+      .from(User)
+      .where(eq(User.id, req.user.id))
+      .execute()
+    if(!usr) throw new ApiError(400, "Failed to get user details.");
+
+    const { watchHistory } = usr;
+
+    if(!watchHistory.includes(stream.id))
+      await db
+        .update(User)
+        .set({
+          watchHistory: [...watchHistory, stream.id]
+        })
+        .where(eq(User.id, req.user.id))
+        .execute()
+  }
+
+  res.status(200).json(new ApiResponse(200, { stream, userRole }));
 });
 
 /**
@@ -251,19 +275,18 @@ const makePremiumChat = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Failed to get the stream you wanna chat on.");
 
   const [streamer] = await db
-    .select({
-      razorpayAccountId: StreamerRequest.razorpayAccountId
-    })
+    .select({ razorpayAccountId: StreamerRequest.razorpayAccountId })
     .from(StreamerRequest)
     .where(eq(StreamerRequest.userId, stream.streamerId))
-    .execute()
+    .execute();
 
-  if(!streamer || !streamer.razorpayAccountId) throw new ApiError(400, "Failed to fetch streamer details.");
+  if (!streamer || !streamer.razorpayAccountId)
+    throw new ApiError(400, "Failed to fetch streamer details.");
 
   const orderResult = await createRazorpayOrder({
     user: req.user as MiddlewareUserT,
     orderAmount: orderAmt,
-    transferAccountId: streamer.razorpayAccountId
+    transferAccountId: streamer.razorpayAccountId,
   });
 
   if (!orderResult)

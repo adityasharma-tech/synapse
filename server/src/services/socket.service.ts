@@ -1,10 +1,9 @@
-import { Socket, Server } from "socket.io";
-import { logger } from "../lib/logger";
-import { SocketEventEnum } from "../lib/constants";
-import { ApiError } from "../lib/ApiError";
-import establishDbConnection from "../db";
-import { ChatMessage } from "../schemas/chats.sql";
 import { eq } from "drizzle-orm";
+import { logger } from "../lib/logger";
+import { ApiError } from "../lib/ApiError";
+import { ChatMessage } from "../schemas/chats.sql";
+import { Socket, Server } from "socket.io";
+import { SocketEventEnum } from "../lib/constants";
 import { hasPermission, Role } from "../lib/utils";
 
 // basic data types to support

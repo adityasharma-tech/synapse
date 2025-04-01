@@ -39,6 +39,8 @@ const ROLES = {
   ],
 } as const;
 
+export const userRoles = Object.keys(ROLES);
+
 /**
  * Function to check user role permissions
  * @param user 

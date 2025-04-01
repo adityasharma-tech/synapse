@@ -266,10 +266,31 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, "Your application is submitted succesfully."));
 });
 
+
+const getAllWatchHistory = asyncHandler(async (req, res)=>{
+  const user = req.user;
+
+  const [dbUser] = await db
+    .select({
+      watchHistory: User.watchHistory
+    })
+    .from(User)
+    .where(eq(User.id, user.id))
+    .execute()
+
+  if(!dbUser)
+    throw new ApiError(400, "Failed to get user info.");
+
+  res.status(200).json(new ApiResponse(200, {
+    watchHistory: dbUser.watchHistory
+  }))
+})
+
 export {
   logoutHandler,
   getUserHandler,
   updateUserHandler,
   applyForStreamer,
   applyForStreamerV2,
+  getAllWatchHistory
 };

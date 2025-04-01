@@ -42,6 +42,7 @@ async function requestHandler<T extends ServerResT | any = ServerResT>(
     // check if response is fromt he server or from the client;
     if (error.response) {
         // showing toast error message
+        console.error(error.response)
       showToast && toast &&
         toast(error.response.data.message, {
           style: {

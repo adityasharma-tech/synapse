@@ -46,11 +46,11 @@ export default function Main() {
             <Route path="resend-email" element={<SignupPage />} />
             <Route path="forgot-password" element={<SignupPage />} />
           </Route>
-          {user ? <Route path="user">
+           <Route path="user">
             <Route index element={<SignupPage />} />
             <Route path="reset-password" element={<SignupPage />} />
             <Route path="logout" element={<LogoutPage />} />
-          </Route> : null}
+          </Route>
           {user ? <Route path="dashboard" element={<DashboardLayout/>}>
             <Route index element={<DashboardPage />} />
             <Route path="apply" element={<ApplyForStreamer/>}/>

@@ -44,7 +44,6 @@ export default function Stream() {
   const throttle = useThrottle();
   const debounce = useDebounce();
   // state hooks
-  const user = useAppSelector((state) => state.app.user);
   const streamState = useAppSelector((state) => state.stream);
 
   // special state for basic message type
@@ -309,6 +308,7 @@ export default function Stream() {
     registerTypingEvent,
   ]);
 
+  //...
   const handleStartTyping = useCallback(() => {
     if (socket)
       socket.emit(SocketEventEnum.STREAM_TYPING_EVENT, {
@@ -316,6 +316,7 @@ export default function Stream() {
       });
   }, [socket, SocketEventEnum, streamState.streamId]);
 
+  //...
   const handleStopTyping = useCallback(() => {
     if (socket)
       socket.emit(SocketEventEnum.STREAM_STOP_TYPING_EVENT, {
@@ -549,7 +550,7 @@ export default function Stream() {
                 className="w-full focus:outline-none"
               />
               <div>
-                {user?.role == "viewer" ? (
+                {streamState.userRole == "viewer" ? (
                   <button
                     onClick={() => setPayDialogOpen(!dialogPayOpen)}
                     className="button btn-outline"
