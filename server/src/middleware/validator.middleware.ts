@@ -217,7 +217,7 @@ const streamRouteValidators = {
     body("title")
       .notEmpty()
       .withMessage("Title is required field.")
-      .isLength({ min: 3, max: 60 })
+      .isLength({ min: 3, max: 190 })
       .withMessage("Title must be within 3-60 characters.")
       .trim(),
     validator,

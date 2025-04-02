@@ -498,7 +498,7 @@ export default function Stream() {
               251 Watching
             </div>
             <div className="bg-neutral-950 rounded-lg py-4 flex items-center justify-between px-5">
-              500 Questions
+              {streamState.totalQuestions} Questions
             </div>
           </div>
         </div>
@@ -585,14 +585,14 @@ function BasicChatComp(props: PropsWithChildren<BasicChatCompPropT>) {
   return (
     <div
       data-premium={props.orderId ? true : false}
-      data-markRead={props.markRead}
-      className="px-3 py-3 first:mt-0 mt-3 last:mb-10 bg-neutral-100 dark:bg-[#222] data-[markRead=true]:opacity-60 rounded-xl data-[premium=true]:border data-[premium=true]:border-amber-300 data-[premium=true]:bg-amber-50 dark:data-[premium=true]:border-amber-300 dark:data-[premium=true]:bg-amber-300/5"
+      data-markread={props.markRead}
+      className="px-3 py-3 first:mt-0 mt-3 last:mb-10 bg-neutral-100 dark:bg-[#222] data-[markread=true]:opacity-60 rounded-xl data-[premium=true]:border data-[premium=true]:border-amber-300 data-[premium=true]:bg-amber-50 dark:data-[premium=true]:border-amber-300 dark:data-[premium=true]:bg-amber-300/5"
     >
       <div className="flex w-full justify-between">
         <div className="flex gap-x-3 items-center dark:text-neutral-50 text-neutral-800 font-medium">
           <img
             className="size-8 rounded-full"
-            src={`https://avatar.iran.liara.run/public?id=${props.user.id}`}
+            src={`https://avatar.iran.liara.run/public?id=${props.user.username}`}
           />
           <span className="font-medium">{props.user.fullName}</span>
           {props.paymentAmount ? (

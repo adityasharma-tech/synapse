@@ -241,7 +241,7 @@ const createRazorpayOrder: (
         amount: lodash.multiply(lodash.multiply(props.orderAmount, 100), lodash.toNumber(process.env.STREAMER_PAYOUT_CUT!)),
         currency: "INR",
         on_hold: 1,
-        on_hold_until: Date.now() + 1000 * 60 * 60 * 3
+        on_hold_until: Math.floor((Date.now()/1000) + (60 * 60 * 3))
       }
     ]
   };
@@ -505,7 +505,7 @@ const setupRazorpayAccount = async function (
 ) {
   // create new linked account
   if (requestStatus == "pending") {
-    accountData.accountId = await createAccount(options);
+    accountData.accountId = await createAccount({...options, legal_info: {}});
     requestStatus = "account_created";
   }
   // check if account id is available
@@ -556,7 +556,12 @@ const setupRazorpayAccount = async function (
 
   // upload required kyc document to razorpay to clear your 'need_clarification' status
   if (requestStatus == "account_added") {
-    await uploadStakeholderDocuments(accountData.accountId);
+    // await uploadStakeholderDocuments(accountData.accountId);
+    await db
+      .update(StreamerRequest)
+      .set({ requestStatus: "done", updatedAt: new Date() })
+      .where(eq(StreamerRequest.razorpayAccountId, accountData.accountId))
+      .execute(); // IMPORTANT: Only for testing purpose
     requestStatus = "done";
   }
 

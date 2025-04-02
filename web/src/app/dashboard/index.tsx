@@ -108,7 +108,7 @@ export default function DashboardPage() {
     <React.Fragment>
       <header className="px-5 flex justify-between py-4">
         <img alt="Synapse" src="/T&W@2x.png" className="object-contain h-10" />
-        <div className="flex gap-x-3">
+        <div className="flex items-center gap-x-3">
           {user?.role == "admin" || user?.role == "streamer" ? (
             <button
               onClick={() => setDialogOpen(!dialogOpen)}
@@ -117,6 +117,7 @@ export default function DashboardPage() {
               Start new stream
             </button>
           ) : null}
+          <hr className="h-full border border-neutral-700"/>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex gap-x-3 bg-neutral-800 cursor-pointer items-center rounded-lg p-2 pr-10">

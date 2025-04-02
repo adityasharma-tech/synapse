@@ -50,7 +50,8 @@ interface DashStreamReducer {
   premiumChats: PremiumChatT[];
   stream: any;
   typerNames: TypingEventPayloadT[];
-  userRole: "streamer" | "viewer" | "admin"
+  userRole: "streamer" | "viewer" | "admin";
+  totalQuestions: number;
 }
 
 // Define the initial state using that type
@@ -61,7 +62,8 @@ const initialState: DashStreamReducer = {
   premiumChats: [],
   stream: {},
   typerNames: [],
-  userRole: "viewer"
+  userRole: "viewer",
+  totalQuestions: 0
 };
 
 export const streamSlice = createSlice({
@@ -83,6 +85,7 @@ export const streamSlice = createSlice({
     // add basic chat
     addBasicChat: (state, action: PayloadAction<BasicChatT>) => {
       state.basicChats.push(action.payload);
+      state.totalQuestions++
     },
 
     // remove basic chat
@@ -94,11 +97,13 @@ export const streamSlice = createSlice({
         return console.error(`Cann't find message to be updated.`);
 
       state.basicChats.splice(deleteIndex, 1);
+      state.totalQuestions--
     },
 
     // add a premium (payment chat)
     addPremiumChat: (state, action: PayloadAction<PremiumChatT>) => {
       state.premiumChats.push(action.payload);
+      state.totalQuestions++
     },
 
     // message update of basic chat
@@ -218,6 +223,8 @@ export const streamSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(setAllPreChats.fulfilled, (state, action) => {
       if (action.payload.length <= 0) return;
+
+      state.totalQuestions = action.payload.length;
 
       state.premiumChats = []
       state.basicChats = []
