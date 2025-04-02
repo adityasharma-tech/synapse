@@ -8,7 +8,7 @@ const errorHandler = (
   res: Response,
   __: NextFunction
 ) => {
-  console.log("Thisis err")
+  console.log("Thisis err");
   const errStatus = err.statusCode ?? 500;
   const errMsg = err.message || "Internal server error";
   const errType = err.errType || ErrCodes.DEFAULT_RES;

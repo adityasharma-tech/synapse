@@ -108,7 +108,6 @@ const handleVerifyCfOrder = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, "Webhook success"));
 });
 
-
 /**
  * Razorpay Verfiy Order
  */
@@ -117,7 +116,7 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
   const body = req.body;
 
   // create a signature using the razorpay webhook secret and the payload
-  // data and match with the header signature to make sure to accept only 
+  // data and match with the header signature to make sure to accept only
   // requests from razorpay side
   const generatedSignature = crypto
     .createHmac("sha256", process.env.RAZORPAY_WEBHOOK_SECRET!)
@@ -157,13 +156,12 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
       .returning()
       .execute();
 
-
-      /**
-       * const payload = JSON.stringify({
-       * orderId
-       * })
-       * payoutChannel.sendToQueue(RMQ_PAYOUT_QUEUE, Buffer.from(payload));
-       */
+    /**
+     * const payload = JSON.stringify({
+     * orderId
+     * })
+     * payoutChannel.sendToQueue(RMQ_PAYOUT_QUEUE, Buffer.from(payload));
+     */
 
     // ...
     if (order.status === "paid") {
@@ -206,7 +204,6 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Failed to get user or chatMessage");
 
       if (chatMessage.streamUid) {
-
         // send the message to the sockets if not send
         const io = global.io as Server;
         io.to(chatMessage.streamUid).emit(

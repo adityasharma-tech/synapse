@@ -4,7 +4,7 @@ import crypto from "crypto";
 import base64 from "base-64";
 import OrderId from "order-id";
 import Razorpay from "razorpay";
-import lodash from 'lodash'
+import lodash from "lodash";
 import StreamerRequest from "../schemas/streamerRequest.sql";
 
 import { eq } from "drizzle-orm";
@@ -238,12 +238,15 @@ const createRazorpayOrder: (
     transfers: [
       {
         account: props.transferAccountId,
-        amount: lodash.multiply(lodash.multiply(props.orderAmount, 100), lodash.toNumber(process.env.STREAMER_PAYOUT_CUT!)),
+        amount: lodash.multiply(
+          lodash.multiply(props.orderAmount, 100),
+          lodash.toNumber(process.env.STREAMER_PAYOUT_CUT!)
+        ),
         currency: "INR",
         on_hold: 1,
-        on_hold_until: Math.floor((Date.now()/1000) + (60 * 60 * 3))
-      }
-    ]
+        on_hold_until: Math.floor(Date.now() / 1000 + 60 * 60 * 3),
+      },
+    ],
   };
 
   try {
@@ -505,7 +508,7 @@ const setupRazorpayAccount = async function (
 ) {
   // create new linked account
   if (requestStatus == "pending") {
-    accountData.accountId = await createAccount({...options, legal_info: {}});
+    accountData.accountId = await createAccount({ ...options, legal_info: {} });
     requestStatus = "account_created";
   }
   // check if account id is available

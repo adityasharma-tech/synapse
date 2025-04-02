@@ -2,7 +2,7 @@ import React, { MouseEventHandler } from "react";
 import LoadingComp from "../../components/loading";
 // import { load as loadCashfree } from "@cashfreepayments/cashfree-js";
 
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useSocket } from "../../hooks/socket.hook";
 import { createPremiumChatOrder, getStreamById } from "../../lib/apiClient";
 import { requestHandler } from "../../lib/requestHandler";
@@ -43,6 +43,7 @@ export default function Stream() {
   const dispatch = useAppDispatch();
   const throttle = useThrottle();
   const debounce = useDebounce();
+  const navigate = useNavigate();
   // state hooks
   const streamState = useAppSelector((state) => state.stream);
 
@@ -55,6 +56,8 @@ export default function Stream() {
   const [loading, setLoading] = useState(false);
   const [paymentLoding, setPaymentLoading] = useState(false);
   const [streaming, setStreaming] = useState(false); // TODO: need to update this one (remove)
+  const [videoUrl, setVideoUrl] = useState('');
+
   const [dialogPayOpen, setPayDialogOpen] = useState(false);
   const [premiumChatForm, setPremiumChatForm] = useState<{
     paymentAmount: number;
@@ -332,8 +335,12 @@ export default function Stream() {
           setLoading,
           (result) => {
             dispatch(updateUserRole(result.data.userRole));
+            if(result.data.stream.youtubeVideoUrl) setVideoUrl(result.data.stream.youtubeVideoUrl)
+              console.log(result.data.stream.youtubeVideoUrl)
           },
-          undefined,
+          ()=>{
+            navigate('/dashboard')
+          },
           false
         );
         dispatch(updateStreamId(streamId));
@@ -468,17 +475,17 @@ export default function Stream() {
       <main className="grid grid-cols-2 w-full h-[calc(100vh-82px)] px-5">
         <div className="h-full">
           <div className="w-full min-h-[450px]" ref={videoContainerRef}>
-            <iframe
+            {(videoUrl && videoUrl.trim() != "") ? <iframe
               width={videoContainerRef.current?.clientWidth ? videoContainerRef.current.clientWidth-10 : 500}
               height={videoContainerRef.current?.clientHeight}
-              src="https://www.youtube.com/embed/5W3niGQWM10?si=xscm8h-BRJmNC0_r&amp;autoplay=1&amp;mute=1"
+              src={`https://www.youtube.com/embed/${new URL(videoUrl).searchParams.get('v')}?&amp;autoplay=1&amp;mute=1`}
               title="YouTube video player"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               referrerPolicy="strict-origin-when-cross-origin"
               allowFullScreen
               className="rounded-lg overflow-hidden"
-            ></iframe>
+            ></iframe> : null}
           </div>
           <div className="grid grid-cols-3 gap-3 p-4">
             <div className="bg-neutral-950 rounded-lg py-4 flex items-center justify-between px-5">

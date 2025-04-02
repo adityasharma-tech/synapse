@@ -18,6 +18,7 @@ interface ResendEmailVerificationPayloadT {
 
 interface StartNewStreamPayloadT {
   title: string;
+  youtubeVideoUrl: string;
 }
 
 interface VerifyEmailPayloadT {

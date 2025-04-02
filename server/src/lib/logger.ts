@@ -20,9 +20,7 @@ if (process.env.NODE_ENV !== "production") {
       format: combine(
         colorize(),
         label({ label: "LOG" }),
-        timestamp({
-          format: 'YYYY-MM-DD HH:mm:ss'
-        }),
+        timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
         myFormat
       ),
     })

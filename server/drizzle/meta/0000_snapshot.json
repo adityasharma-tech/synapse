@@ -121,12 +121,8 @@
           "tableFrom": "chats",
           "tableTo": "users",
           "schemaTo": "upgrade",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -245,12 +241,8 @@
           "tableFrom": "orders",
           "tableTo": "users",
           "schemaTo": "upgrade",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -363,12 +355,8 @@
           "tableFrom": "payouts",
           "tableTo": "users",
           "schemaTo": "upgrade",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -461,12 +449,8 @@
           "tableFrom": "streams",
           "tableTo": "users",
           "schemaTo": "upgrade",
-          "columnsFrom": [
-            "streamer_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["streamer_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -676,12 +660,8 @@
           "tableFrom": "streamer_request",
           "tableTo": "users",
           "schemaTo": "upgrade",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -778,12 +758,8 @@
           "tableFrom": "token_table",
           "tableTo": "users",
           "schemaTo": "upgrade",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -930,16 +906,12 @@
         "users_username_unique": {
           "name": "users_username_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "username"
-          ]
+          "columns": ["username"]
         },
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -980,23 +952,13 @@
     "upgrade.roles": {
       "name": "roles",
       "schema": "upgrade",
-      "values": [
-        "streamer",
-        "viewer",
-        "admin"
-      ]
+      "values": ["streamer", "viewer", "admin"]
     }
   },
-  "schemas": {
-    "upgrade": "upgrade"
-  },
+  "schemas": { "upgrade": "upgrade" },
   "sequences": {},
   "roles": {},
   "policies": {},
   "views": {},
-  "_meta": {
-    "columns": {},
-    "schemas": {},
-    "tables": {}
-  }
+  "_meta": { "columns": {}, "schemas": {}, "tables": {} }
 }

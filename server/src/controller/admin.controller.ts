@@ -10,7 +10,6 @@ import { asyncHandler } from "../lib/asyncHandler";
 import { setupRazorpayAccount } from "../services/payments.service";
 import { signStreamerVerficationToken } from "../lib/utils";
 
-
 /**
  * Controller to get all stream applications and send all required data to the admin dashboard
  * so that admin can approve or disapprove
@@ -37,7 +36,6 @@ const getAllStreamApplications = asyncHandler(async (req, res) => {
 
   res.status(200).json(new ApiResponse(200, { applications }));
 });
-
 
 /**
  * A controller to download all application who applied for streamer including their
@@ -66,7 +64,6 @@ const downloadStreamAsCsv = asyncHandler(async (req, res) => {
     beneficiary_name: application.accountName,
   }));
 
-
   // converting the json data to csv format as razorpay accepts on their dashbaord
   const csvFormatDataArray = csvFormatDataJson
     .map((application) => Object.values(application).join(","))
@@ -77,7 +74,6 @@ const downloadStreamAsCsv = asyncHandler(async (req, res) => {
 
   res.download(filepath);
 });
-
 
 /**
  * @description VERY IMPORTANT!
@@ -152,8 +148,8 @@ const acceptFormData = asyncHandler(async (req, res) => {
       .where(eq(StreamerRequest.accountEmail, application.accountEmail))
       .execute();
 
-      // sign a token for each streamer to verify each time.
-      // TODO: I don't think this is required but I will fix it later
+    // sign a token for each streamer to verify each time.
+    // TODO: I don't think this is required but I will fix it later
     await db
       .update(TokenTable)
       .set({
@@ -167,7 +163,7 @@ const acceptFormData = asyncHandler(async (req, res) => {
       .where(eq(TokenTable.userId, application.userId))
       .execute();
 
-      // update the user role to streamer
+    // update the user role to streamer
     await db
       .update(User)
       .set({

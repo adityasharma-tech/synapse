@@ -20,7 +20,7 @@ import { Role } from "../lib/utils";
  * Controller for streamers to start a new stream
  */
 const createNewStream = asyncHandler(async (req, res) => {
-  const { title } = req.body;
+  const { title, youtubeVideoUrl } = req.body;
   const user = req.user;
 
   if (!title || !user)
@@ -43,6 +43,7 @@ const createNewStream = asyncHandler(async (req, res) => {
       streamingUid: uuidv4().toString(),
       streamerId: user.id,
       streamingToken,
+      youtubeVideoUrl,
       updatedAt: new Date(),
     })
     .returning()
@@ -154,40 +155,44 @@ const getAllStreams = asyncHandler(async (req, res) => {
  */
 const getStreamById = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  
+
   let userRole: Role = "viewer";
 
-  if(req.user.role == "admin") userRole = "admin"; 
+  if (req.user.role == "admin") userRole = "admin";
 
   logger.info(`Id of stream: ${id}`);
   const [stream] = await db
-    .select({ streamTitle: Stream.streamTitle, streamUid: Stream.streamingUid, streamerId: Stream.streamerId, id: Stream.id })
+    .select({
+      streamTitle: Stream.streamTitle,
+      streamUid: Stream.streamingUid,
+      streamerId: Stream.streamerId,
+      id: Stream.id,
+      youtubeVideoUrl: Stream.youtubeVideoUrl,
+    })
     .from(Stream)
     .where(eq(Stream.streamingUid, id))
     .execute();
 
   if (!stream) throw new ApiError(400, "Stream not found.");
 
-  stream.streamerId == req.user.id ? userRole = "streamer" : null;
+  stream.streamerId == req.user.id ? (userRole = "streamer") : null;
 
-  if(userRole != "streamer"){
+  if (userRole != "streamer") {
     const [usr] = await db
       .select({ watchHistory: User.watchHistory })
       .from(User)
       .where(eq(User.id, req.user.id))
-      .execute()
-    if(!usr) throw new ApiError(400, "Failed to get user details.");
+      .execute();
+    if (!usr) throw new ApiError(400, "Failed to get user details.");
 
     const { watchHistory } = usr;
 
-    if(!watchHistory.includes(stream.id))
+    if (!watchHistory.includes(stream.id))
       await db
         .update(User)
-        .set({
-          watchHistory: [...watchHistory, stream.id]
-        })
+        .set({ watchHistory: [...watchHistory, stream.id] })
         .where(eq(User.id, req.user.id))
-        .execute()
+        .execute();
   }
 
   res.status(200).json(new ApiResponse(200, { stream, userRole }));

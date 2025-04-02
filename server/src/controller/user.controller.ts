@@ -41,7 +41,6 @@ const getUserHandler = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, { user }));
 });
 
-
 /**
  * Update user specific info
  */
@@ -71,7 +70,6 @@ const updateUserHandler = asyncHandler(async (req, res) => {
 
   res.status(200).json(new ApiResponse(200, null, "User updated success."));
 });
-
 
 /**
  * IMPORTANT (deprecated) => This controller is for cashfree payouts which we
@@ -149,9 +147,6 @@ const applyForStreamer = asyncHandler(async (req, res) => {
   res.status(201).json(new ApiResponse(201, null));
 });
 
-
-
-
 /**
  * Controller to apply for streamer with razorpay route payments
  * - this will submit an application which will be reviewed by admin
@@ -171,12 +166,13 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
     postalCode,
     youtubeChannelName,
     authToken,
-    panNumber
+    panNumber,
   } = req.body;
 
   const documentFilePath = req.file?.path;
 
-  if(!documentFilePath) throw new ApiError(400, "required document not attached yet.");
+  if (!documentFilePath)
+    throw new ApiError(400, "required document not attached yet.");
 
   if (
     [
@@ -189,7 +185,7 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
       postalCode,
       youtubeChannelName,
       authToken,
-      panNumber
+      panNumber,
     ].some((value) => (value ? value.trim() == "" : true))
   ) {
     throw new ApiError(400, "Validation error", ErrCodes.VALIDATION_ERR);
@@ -211,7 +207,7 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
   });
   const result = await response.json();
 
-  // TODO:  Some failure in verifying the phone auth token to double check btw 
+  // TODO:  Some failure in verifying the phone auth token to double check btw
   //        it is already checked in frontend but 'frontend ke code par barosa nai karna'
   console.log(result);
 
@@ -225,18 +221,21 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
     .where(eq(StreamerRequest.userId, user.id))
     .execute();
 
-    // check if it is already done or not
+  // check if it is already done or not
   if (preRequest && preRequest.requestStatus == "done")
     throw new ApiError(400, "You application is already fulfilled.");
 
   if (preRequest)
     throw new ApiError(400, "You already applied for streamer request.");
 
-
   // pan/aadhar document upload to cloudinary database
-  const docUploadResult = await uploadDocumentOnCloudinary(documentFilePath);  
+  const docUploadResult = await uploadDocumentOnCloudinary(documentFilePath);
 
-  if(!docUploadResult) throw new ApiError(400, "Failed to upload document to cloudinary resources.");
+  if (!docUploadResult)
+    throw new ApiError(
+      400,
+      "Failed to upload document to cloudinary resources."
+    );
 
   // Adding new application to our database
   const [request] = await db
@@ -254,7 +253,7 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
       state,
       streetAddress,
       panCard: panNumber.toUpperCase().trim(),
-      kycDocumentUrl: docUploadResult
+      kycDocumentUrl: docUploadResult,
     })
     .returning()
     .execute();
@@ -266,25 +265,21 @@ const applyForStreamerV2 = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, "Your application is submitted succesfully."));
 });
 
-
-const getAllWatchHistory = asyncHandler(async (req, res)=>{
+const getAllWatchHistory = asyncHandler(async (req, res) => {
   const user = req.user;
 
   const [dbUser] = await db
-    .select({
-      watchHistory: User.watchHistory
-    })
+    .select({ watchHistory: User.watchHistory })
     .from(User)
     .where(eq(User.id, user.id))
-    .execute()
+    .execute();
 
-  if(!dbUser)
-    throw new ApiError(400, "Failed to get user info.");
+  if (!dbUser) throw new ApiError(400, "Failed to get user info.");
 
-  res.status(200).json(new ApiResponse(200, {
-    watchHistory: dbUser.watchHistory
-  }))
-})
+  res
+    .status(200)
+    .json(new ApiResponse(200, { watchHistory: dbUser.watchHistory }));
+});
 
 export {
   logoutHandler,
@@ -292,5 +287,5 @@ export {
   updateUserHandler,
   applyForStreamer,
   applyForStreamerV2,
-  getAllWatchHistory
+  getAllWatchHistory,
 };

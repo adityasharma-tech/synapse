@@ -43,9 +43,9 @@ export const userRoles = Object.keys(ROLES);
 
 /**
  * Function to check user role permissions
- * @param user 
- * @param permission 
- * @returns 
+ * @param user
+ * @param permission
+ * @returns
  */
 function hasPermission(user: MiddlewareUserT, permission: Permission) {
   if (user.role == "streamer" && user.streamerToken) {

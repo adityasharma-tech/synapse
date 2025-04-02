@@ -50,6 +50,7 @@ export default function DashboardPage() {
             title: videoInputRef.current.value.trim().startsWith("https://")
               ? videoData?.title ?? ""
               : videoInputRef.current.value.trim(),
+              youtubeVideoUrl: videoInputRef.current.value.trim().startsWith("https://") ? videoInputRef.current.value.trim() : ''
           }),
           setLoading,
           (res) => {

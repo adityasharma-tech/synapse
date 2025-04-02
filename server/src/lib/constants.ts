@@ -12,7 +12,7 @@ const corsOrigins = [
 ];
 
 // RabbitMQ Channels
-const RMQ_PAYOUT_QUEUE = 'payout_queue' 
+const RMQ_PAYOUT_QUEUE = "payout_queue";
 
 // socket events
 const SocketEventEnum = Object.freeze({
@@ -39,5 +39,5 @@ export {
   msg91AuthKey,
   corsOrigins,
   SocketEventEnum,
-  RMQ_PAYOUT_QUEUE
+  RMQ_PAYOUT_QUEUE,
 };

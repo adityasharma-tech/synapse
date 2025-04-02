@@ -1,6 +1,5 @@
 import axios, { CreateAxiosDefaults } from "axios";
 import {
-  ApplyForStreamerPayloadT,
   GetAllStreamsPayloadT,
   GetStreamByIdPayloadT,
   LoginUserPayloadT,

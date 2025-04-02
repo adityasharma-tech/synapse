@@ -3,7 +3,6 @@ import { asyncHandler } from "../lib/asyncHandler";
 import { ApiError, ErrCodes } from "../lib/ApiError";
 import { body, query, validationResult } from "express-validator";
 
-
 /**
  * TODO: Too much validators are still left
  */

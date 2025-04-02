@@ -4,7 +4,7 @@ import { ApiResponse } from "../lib/ApiResponse";
 const healthCheck = asyncHandler((_, res) => {
   const headers = new Headers();
 
-  // removing the default cors policy so that anyone can make request to /heathCheck path 
+  // removing the default cors policy so that anyone can make request to /heathCheck path
   headers.set("Access-Control-Allow-Origin", "*");
   res.setHeaders(headers);
 
