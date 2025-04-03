@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import StreamerRequest from "../schemas/streamerRequest.sql";
 
+import { Role } from "../lib/utils";
 import { User } from "../schemas/user.sql";
 import { Order } from "../schemas/order.sql";
 import { google } from "googleapis";
@@ -14,7 +15,6 @@ import { MiddlewareUserT } from "../lib/types";
 import { ApiError, ErrCodes } from "../lib/ApiError";
 import { createRazorpayOrder } from "../services/payments.service";
 import { and, count, eq, or, sql } from "drizzle-orm";
-import { Role } from "../lib/utils";
 
 /**
  * Controller for streamers to start a new stream
