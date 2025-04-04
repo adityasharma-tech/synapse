@@ -1,7 +1,7 @@
-import { logger } from "../lib/logger";
-import { asyncHandler } from "../lib/asyncHandler";
-import { ApiError, ErrCodes } from "../lib/ApiError";
 import { body, query, validationResult } from "express-validator";
+import { ApiError, ErrCodes } from "../lib/ApiError";
+import { asyncHandler } from "../lib/asyncHandler";
+import { logger } from "../lib/logger";
 
 /**
  * TODO: Too much validators are still left
@@ -223,4 +223,4 @@ const streamRouteValidators = {
   ],
 };
 
-export { authRouteValidators, userRouteValidators, streamRouteValidators };
+export { authRouteValidators, streamRouteValidators, userRouteValidators };

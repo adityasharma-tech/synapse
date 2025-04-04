@@ -50,13 +50,12 @@ export default function Stream() {
   // special state for basic message type
   // const [optimisticMessages, setOptimisticMessages] = useOptimistic(streamState.basicChats)
 
-
   // local states
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [paymentLoding, setPaymentLoading] = useState(false);
   const [streaming, setStreaming] = useState(false); // TODO: need to update this one (remove)
-  const [videoUrl, setVideoUrl] = useState('');
+  const [videoUrl, setVideoUrl] = useState("");
 
   const [dialogPayOpen, setPayDialogOpen] = useState(false);
   const [premiumChatForm, setPremiumChatForm] = useState<{
@@ -70,7 +69,6 @@ export default function Stream() {
 
   // cashfree states
   const [cashfree] = useState<any>(null);
-
 
   // refs
   const lastMessageRef = useRef<HTMLDivElement | null>(null);
@@ -335,11 +333,12 @@ export default function Stream() {
           setLoading,
           (result) => {
             dispatch(updateUserRole(result.data.userRole));
-            if(result.data.stream.youtubeVideoUrl) setVideoUrl(result.data.stream.youtubeVideoUrl)
-              console.log(result.data.stream.youtubeVideoUrl)
+            if (result.data.stream.youtubeVideoUrl)
+              setVideoUrl(result.data.stream.youtubeVideoUrl);
+            console.log(result.data.stream.youtubeVideoUrl);
           },
-          ()=>{
-            navigate('/dashboard')
+          () => {
+            navigate("/dashboard");
           },
           false
         );
@@ -438,10 +437,7 @@ export default function Stream() {
       <header className="justify-between w-full flex py-5 px-6 items-center">
         <div>
           <img className="h-8 w-auto dark:hidden" src="/T&B@2x.png" />
-          <img
-            className="h-8 w-auto not-dark:hidden"
-            src="/T&W@2x.png"
-          />
+          <img className="h-8 w-auto not-dark:hidden" src="/T&W@2x.png" />
         </div>
         <div className="flex gap-x-3">
           <div className="bg-[#222] rounded-lg py-1 text-sm flex items-center gap-x-3 px-3">
@@ -475,17 +471,25 @@ export default function Stream() {
       <main className="grid grid-cols-2 w-full h-[calc(100vh-82px)] px-5">
         <div className="h-full">
           <div className="w-full min-h-[450px]" ref={videoContainerRef}>
-            {(videoUrl && videoUrl.trim() != "") ? <iframe
-              width={videoContainerRef.current?.clientWidth ? videoContainerRef.current.clientWidth-10 : 500}
-              height={videoContainerRef.current?.clientHeight}
-              src={`https://www.youtube.com/embed/${new URL(videoUrl).searchParams.get('v')}?&amp;autoplay=1&amp;mute=1`}
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen
-              className="rounded-lg overflow-hidden"
-            ></iframe> : null}
+            {videoUrl && videoUrl.trim() != "" ? (
+              <iframe
+                width={
+                  videoContainerRef.current?.clientWidth
+                    ? videoContainerRef.current.clientWidth - 10
+                    : 500
+                }
+                height={videoContainerRef.current?.clientHeight}
+                src={`https://www.youtube.com/embed/${new URL(
+                  videoUrl
+                ).searchParams.get("v")}?&amp;autoplay=1&amp;mute=1`}
+                title="YouTube video player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+                className="rounded-lg overflow-hidden"
+              ></iframe>
+            ) : null}
           </div>
           <div className="grid grid-cols-3 gap-3 p-4">
             <div className="bg-neutral-950 rounded-lg py-4 flex items-center justify-between px-5">
@@ -609,39 +613,41 @@ function BasicChatComp(props: PropsWithChildren<BasicChatCompPropT>) {
           ) : null}
         </div>
         {props.role == "viewer" ? (
-          <div className="flex gap-x-3 items-center">
-            <button
-              onClick={props.handleUpVoteChat}
-              className="button border text-sm pl-2 text-green-600 bg-green-50 active:ring-green-400 ring-transparent px-1 py-0.5 rounded-md border-green-600 ring"
-            >
-              <span>{props.upVotes}</span>
-              <svg width="1em" height="1em" viewBox="0 0 20 20" fill="none">
-                <path
-                  d="M11.272 5.205l5 8A1.5 1.5 0 0115 15.5H5a1.5 1.5 0 01-1.272-2.295l5-8a1.5 1.5 0 012.544 0z"
-                  className="fill-green-600"
-                />
-              </svg>
-            </button>
-
-            <button
-              onClick={props.handleDownVoteChat}
-              className="button border text-sm pl-2 text-amber-600 bg-amber-50 active:ring-amber-400 ring-transparent px-1 py-0.5 rounded-md border-amber-600 ring"
-            >
-              <span>{props.downVotes}</span>
-              <svg
-                width="1em"
-                height="1em"
-                viewBox="0 0 20 20"
-                fill="none"
-                className="rotate-180"
+          props.orderId ? null : <React.Fragment>
+            <div className="flex gap-x-3 items-center">
+              <button
+                onClick={props.handleUpVoteChat}
+                className="button border text-sm pl-2 text-green-600 bg-green-50 active:ring-green-400 ring-transparent px-1 py-0.5 rounded-md border-green-600 ring"
               >
-                <path
-                  d="M11.272 5.205l5 8A1.5 1.5 0 0115 15.5H5a1.5 1.5 0 01-1.272-2.295l5-8a1.5 1.5 0 012.544 0z"
-                  className="fill-amber-600"
-                />
-              </svg>
-            </button>
-          </div>
+                <span>{props.upVotes}</span>
+                <svg width="1em" height="1em" viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M11.272 5.205l5 8A1.5 1.5 0 0115 15.5H5a1.5 1.5 0 01-1.272-2.295l5-8a1.5 1.5 0 012.544 0z"
+                    className="fill-green-600"
+                  />
+                </svg>
+              </button>
+
+              <button
+                onClick={props.handleDownVoteChat}
+                className="button border text-sm pl-2 text-amber-600 bg-amber-50 active:ring-amber-400 ring-transparent px-1 py-0.5 rounded-md border-amber-600 ring"
+              >
+                <span>{props.downVotes}</span>
+                <svg
+                  width="1em"
+                  height="1em"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  className="rotate-180"
+                >
+                  <path
+                    d="M11.272 5.205l5 8A1.5 1.5 0 0115 15.5H5a1.5 1.5 0 01-1.272-2.295l5-8a1.5 1.5 0 012.544 0z"
+                    className="fill-amber-600"
+                  />
+                </svg>
+              </button>
+            </div>
+          </React.Fragment>
         ) : props.role === "streamer" ? (
           <div className="gap-x-2 flex items-center">
             <span className="p-0.5 text-xs border border-green-500 rounded px-1.5">

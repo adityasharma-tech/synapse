@@ -200,6 +200,7 @@ const getStreamById = asyncHandler(async (req, res) => {
 
 /**
  * Fetch any chats by specific streaming uid
+ * TODO: have to add pagination like features
  */
 const getAllChatsByStreamingId = asyncHandler(async (req, res) => {
   const { streamId } = req.params;
