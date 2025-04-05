@@ -271,6 +271,14 @@ const createRazorpayOrder: (
       .returning()
       .execute();
 
+    logger.info(
+      `Creating razorpay order with data: ${JSON.stringify({
+        orderId: String(dbOrder.cfOrderId),
+        paymentSessionId: "",
+        paymentStatus: order.status,
+      })}`
+    );
+
     return {
       orderId: String(dbOrder.cfOrderId),
       paymentSessionId: "",

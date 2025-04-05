@@ -164,7 +164,7 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
      */
 
     // ...
-    if (order.status === "paid") {
+    if (order.status == "paid") {
       const [preChatMessage] = await db
         .select({ paymentStatus: ChatMessage.paymentStatus })
         .from(ChatMessage)
@@ -172,8 +172,12 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
         .execute();
 
       // if it is already settled to paid don't need to proceed further
-      if (preChatMessage.paymentStatus === "paid")
+      if (preChatMessage.paymentStatus === "paid") {
+        logger.info(
+          `Payment is already send through sockets., ${preChatMessage.paymentStatus}`
+        );
         return res.status(200).json(new ApiResponse(200, "Webhook success"));
+      }
 
       // update the chat message status to make sure it will be shown in the chat box
       const [chatMessage] = await db
