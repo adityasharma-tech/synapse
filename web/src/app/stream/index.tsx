@@ -85,7 +85,7 @@ export default function Stream() {
         });
       setMessage("");
     },
-    [socket, SocketEventEnum, message, streamId, setMessage]
+    [socket, SocketEventEnum, message, streamId, setMessage],
   );
 
   // need to remove this if role==="viewer"
@@ -97,7 +97,7 @@ export default function Stream() {
           id: messageId,
         });
     },
-    [socket, streamId, SocketEventEnum, streamState]
+    [socket, streamId, SocketEventEnum, streamState],
   );
 
   // need to remoe this if role==="streamer"
@@ -109,7 +109,7 @@ export default function Stream() {
           id: messageId,
         });
     },
-    [socket, streamId, SocketEventEnum, streamState]
+    [socket, streamId, SocketEventEnum, streamState],
   );
 
   // send event to db to update the mark done of that specific chat
@@ -123,10 +123,10 @@ export default function Stream() {
       dispatch(
         markDoneChat({
           id: messageId,
-        })
+        }),
       );
     },
-    [streamId, socket, SocketEventEnum.CHAT_MARK_DONE, dispatch, markDoneChat]
+    [streamId, socket, SocketEventEnum.CHAT_MARK_DONE, dispatch, markDoneChat],
   );
 
   /**
@@ -154,7 +154,7 @@ export default function Stream() {
         if (result.error) {
           // This will be true whenever user clicks on close icon inside the modal or any error happens during the payment
           console.log(
-            "User has closed the popup or there is some payment error, Check for Payment Status"
+            "User has closed the popup or there is some payment error, Check for Payment Status",
           );
           console.log(result.error);
           toast(result.error.message);
@@ -173,7 +173,7 @@ export default function Stream() {
         }
       });
     },
-    [cashfree, paymentSessionId, toast, setPayDialogOpen]
+    [cashfree, paymentSessionId, toast, setPayDialogOpen],
   );
 
   const handleRazorpayPayment = useCallback(async (orderId: string) => {
@@ -214,7 +214,7 @@ export default function Stream() {
           async (data) => {
             const orderId = data.data.orderId;
             await handleRazorpayPayment(orderId);
-          }
+          },
         );
     },
     [
@@ -226,7 +226,7 @@ export default function Stream() {
       setPaymentSessionId,
       toast,
       handleCheckout,
-    ]
+    ],
   );
 
   // handler to register all the socket events/listeners
@@ -235,32 +235,32 @@ export default function Stream() {
 
     // create new chats handler
     socket.on(SocketEventEnum.CHAT_CREATE_EVENT, (chatObject) =>
-      dispatch(addBasicChat(chatObject))
+      dispatch(addBasicChat(chatObject)),
     );
 
     // update chats handler
     socket.on(SocketEventEnum.CHAT_UPDATE_EVENT, (chatObject) =>
-      dispatch(updateBasicChat(chatObject))
+      dispatch(updateBasicChat(chatObject)),
     );
 
     // delete basic chat handler
     socket.on(SocketEventEnum.CHAT_DELETE_EVENT, (chatObject) =>
-      dispatch(removeBasicChat(chatObject))
+      dispatch(removeBasicChat(chatObject)),
     );
 
     // premium chat listener
     socket.on(SocketEventEnum.PAYMENT_CHAT_CREATE_EVENT, (chatObject) =>
-      dispatch(addPremiumChat(chatObject))
+      dispatch(addPremiumChat(chatObject)),
     );
 
     // specific chat is upvoted
     socket.on(SocketEventEnum.CHAT_UPVOTE_EVENT, (chatObject) =>
-      dispatch(upVoteBasicChat(chatObject))
+      dispatch(upVoteBasicChat(chatObject)),
     );
 
     // specific chat is down voted
     socket.on(SocketEventEnum.CHAT_DOWNVOTE_EVENT, (chatObject) =>
-      dispatch(downVoteBasicChat(chatObject))
+      dispatch(downVoteBasicChat(chatObject)),
     );
 
     // if someone is typing listen events to them
@@ -340,7 +340,7 @@ export default function Stream() {
           () => {
             navigate("/dashboard");
           },
-          false
+          false,
         );
         dispatch(updateStreamId(streamId));
         dispatch(setAllPreChats({ streamId }));
@@ -361,7 +361,7 @@ export default function Stream() {
     // handleInitializeCashfree();
     (async () => {
       const res = await loadScript(
-        "https://checkout.razorpay.com/v1/checkout.js"
+        "https://checkout.razorpay.com/v1/checkout.js",
       );
       if (!res) alert("Failed to load razorpay api.");
     })();
@@ -447,7 +447,7 @@ export default function Stream() {
             <button
               onClick={() => {
                 window.navigator.clipboard.writeText(
-                  window.location.toString()
+                  window.location.toString(),
                 );
               }}
               className="size-8 rounded-full bg-neutral-900 flex items-center justify-center cursor-pointer"
@@ -480,7 +480,7 @@ export default function Stream() {
                 }
                 height={videoContainerRef.current?.clientHeight}
                 src={`https://www.youtube.com/embed/${new URL(
-                  videoUrl
+                  videoUrl,
                 ).searchParams.get("v")}?&amp;autoplay=1&amp;mute=1`}
                 title="YouTube video player"
                 frameBorder="0"
@@ -613,41 +613,43 @@ function BasicChatComp(props: PropsWithChildren<BasicChatCompPropT>) {
           ) : null}
         </div>
         {props.role == "viewer" ? (
-          props.orderId ? null : <React.Fragment>
-            <div className="flex gap-x-3 items-center">
-              <button
-                onClick={props.handleUpVoteChat}
-                className="button border text-sm pl-2 text-green-600 bg-green-50 active:ring-green-400 ring-transparent px-1 py-0.5 rounded-md border-green-600 ring"
-              >
-                <span>{props.upVotes}</span>
-                <svg width="1em" height="1em" viewBox="0 0 20 20" fill="none">
-                  <path
-                    d="M11.272 5.205l5 8A1.5 1.5 0 0115 15.5H5a1.5 1.5 0 01-1.272-2.295l5-8a1.5 1.5 0 012.544 0z"
-                    className="fill-green-600"
-                  />
-                </svg>
-              </button>
-
-              <button
-                onClick={props.handleDownVoteChat}
-                className="button border text-sm pl-2 text-amber-600 bg-amber-50 active:ring-amber-400 ring-transparent px-1 py-0.5 rounded-md border-amber-600 ring"
-              >
-                <span>{props.downVotes}</span>
-                <svg
-                  width="1em"
-                  height="1em"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  className="rotate-180"
+          props.orderId ? null : (
+            <React.Fragment>
+              <div className="flex gap-x-3 items-center">
+                <button
+                  onClick={props.handleUpVoteChat}
+                  className="button border text-sm pl-2 text-green-600 bg-green-50 active:ring-green-400 ring-transparent px-1 py-0.5 rounded-md border-green-600 ring"
                 >
-                  <path
-                    d="M11.272 5.205l5 8A1.5 1.5 0 0115 15.5H5a1.5 1.5 0 01-1.272-2.295l5-8a1.5 1.5 0 012.544 0z"
-                    className="fill-amber-600"
-                  />
-                </svg>
-              </button>
-            </div>
-          </React.Fragment>
+                  <span>{props.upVotes}</span>
+                  <svg width="1em" height="1em" viewBox="0 0 20 20" fill="none">
+                    <path
+                      d="M11.272 5.205l5 8A1.5 1.5 0 0115 15.5H5a1.5 1.5 0 01-1.272-2.295l5-8a1.5 1.5 0 012.544 0z"
+                      className="fill-green-600"
+                    />
+                  </svg>
+                </button>
+
+                <button
+                  onClick={props.handleDownVoteChat}
+                  className="button border text-sm pl-2 text-amber-600 bg-amber-50 active:ring-amber-400 ring-transparent px-1 py-0.5 rounded-md border-amber-600 ring"
+                >
+                  <span>{props.downVotes}</span>
+                  <svg
+                    width="1em"
+                    height="1em"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    className="rotate-180"
+                  >
+                    <path
+                      d="M11.272 5.205l5 8A1.5 1.5 0 0115 15.5H5a1.5 1.5 0 01-1.272-2.295l5-8a1.5 1.5 0 012.544 0z"
+                      className="fill-amber-600"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </React.Fragment>
+          )
         ) : props.role === "streamer" ? (
           <div className="gap-x-2 flex items-center">
             <span className="p-0.5 text-xs border border-green-500 rounded px-1.5">

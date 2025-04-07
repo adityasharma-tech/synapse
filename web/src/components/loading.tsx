@@ -1,5 +1,5 @@
 /**
- * React component for show loading screen with basic animation 
+ * React component for show loading screen with basic animation
  */
 export default function LoadingComp() {
   return (
@@ -11,5 +11,5 @@ export default function LoadingComp() {
         </div>
       </div>
     </div>
-  )
+  );
 }

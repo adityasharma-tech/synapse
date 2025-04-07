@@ -81,7 +81,7 @@ export default function ApplyForStreamer() {
           bodyFormData.append("streetAddress", inputData.address);
           bodyFormData.append(
             "youtubeChannelName",
-            inputData.youtubeChannelName
+            inputData.youtubeChannelName,
           );
           bodyFormData.append("authToken", data.message);
 
@@ -90,7 +90,7 @@ export default function ApplyForStreamer() {
             setLoading,
             () => {
               navigate("/dashboard");
-            }
+            },
           );
         },
         failure: (error: any) => {
@@ -113,13 +113,13 @@ export default function ApplyForStreamer() {
       navigate,
       msgAuthToken,
       msgWidgetId,
-    ]
+    ],
   );
 
   React.useEffect(() => {
     (async () => {
       const res = await loadScript(
-        "https://control.msg91.com/app/assets/otp-provider/otp-provider.js"
+        "https://control.msg91.com/app/assets/otp-provider/otp-provider.js",
       );
       if (!res) throw Error("Failed to load msg91 script.");
     })();

@@ -11,13 +11,13 @@ export default function SocketLayout() {
 
   React.useEffect(() => {
     if (!user) {
-      const searchParams = new URLSearchParams()
-      searchParams.set('redirect_uri', window.location.pathname)
+      const searchParams = new URLSearchParams();
+      searchParams.set("redirect_uri", window.location.pathname);
       navigate(`/auth/login?${searchParams.toString()}`);
     }
   }, [user]);
 
-  if(!streamId) return <LoadingComp/>;
+  if (!streamId) return <LoadingComp />;
 
   if (!user) return;
 

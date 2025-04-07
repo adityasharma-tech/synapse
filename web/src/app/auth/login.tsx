@@ -40,7 +40,7 @@ export default function LoginPage() {
           const redirectUri = searchParams.get("redirect_uri");
           if (redirectUri) navigate(redirectUri);
           else navigate("/dashboard");
-        }
+        },
       );
     },
     [
@@ -51,7 +51,7 @@ export default function LoginPage() {
       dispatch,
       fetchUser,
       navigate,
-    ]
+    ],
   );
 
   return (
