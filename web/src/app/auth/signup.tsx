@@ -2,10 +2,11 @@ import React from "react";
 import TextInput from "../../components/cui/TextInput";
 
 import { toast } from "sonner";
+import { signupUser } from "../../lib/apiClient";
+import { requestHandler } from "../../lib/requestHandler";
 import { Link, useNavigate } from "react-router";
 import { FormEventHandler, useCallback, useState } from "react";
-import { requestHandler } from "../../lib/requestHandler";
-import { signupUser } from "../../lib/apiClient";
+import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 
 export default function SignupPage() {
   const navigate = useNavigate();
@@ -40,6 +41,14 @@ export default function SignupPage() {
       );
     },
     [formData, toast, requestHandler, signupUser, navigate],
+  );
+
+  const handleGoogleLoginSuccess = useCallback(
+    (credentialResponse: CredentialResponse) => {
+      console.log("Credential Response");
+      console.log(credentialResponse);
+    },
+    [],
   );
 
   return (
@@ -145,6 +154,14 @@ export default function SignupPage() {
               ></span>
               Create account
             </button>
+          </div>
+
+          <div className="w-full py-10 flex justify-center items-center">
+            <div className="w-full border-b max-w-[80%] border-neutral-600" />
+          </div>
+          <div className="flex items-center justify-center">
+            {/* Google Account */}
+            <GoogleLogin onSuccess={handleGoogleLoginSuccess}></GoogleLogin>
           </div>
         </form>
         <div className="mt-auto">
