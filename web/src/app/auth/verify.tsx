@@ -23,7 +23,7 @@ export default function VerifyPage() {
         () => {
           navigator("/dashboard");
         },
-        setLoading
+        setLoading,
       );
     }
   }
@@ -35,7 +35,7 @@ export default function VerifyPage() {
         resendEmailVerification({
           email,
         }),
-        setLoading
+        setLoading,
       );
     }
   }

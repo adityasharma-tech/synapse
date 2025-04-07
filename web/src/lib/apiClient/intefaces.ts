@@ -47,9 +47,9 @@ interface GetStreamByIdPayloadT {
 }
 
 interface MakePremiumChatOrderPayloadT {
-    streamId: string;
-    message: string;
-    paymentAmount: number;
+  streamId: string;
+  message: string;
+  paymentAmount: number;
 }
 
 export type {
@@ -61,5 +61,5 @@ export type {
   GetAllStreamsPayloadT,
   ApplyForStreamerPayloadT,
   GetStreamByIdPayloadT,
-  MakePremiumChatOrderPayloadT
+  MakePremiumChatOrderPayloadT,
 };

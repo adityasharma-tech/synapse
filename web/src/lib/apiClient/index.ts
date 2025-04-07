@@ -26,7 +26,7 @@ const axiosConfig: CreateAxiosDefaults = {
 const apiClient = axios.create(axiosConfig);
 
 // interceptors in axios is like middleware
-// here I am using response middlware which will run after making a request but 
+// here I am using response middlware which will run after making a request but
 // before returning the reponse data
 apiClient.interceptors.response.use(
   (response) => Promise.resolve(response),
@@ -44,7 +44,7 @@ apiClient.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // get user info
@@ -58,7 +58,7 @@ function logoutUser() {
 }
 
 /**
- * @description makes an api request with email & password as payload and 
+ * @description makes an api request with email & password as payload and
  * login user by setting accessToken & refreshToken
  * @param {LoginUserPayloadT} payload - take email/password as payload
  * @returns {Promise} - promise with some data
@@ -77,7 +77,7 @@ function resendEmailVerification(payload: ResendEmailVerificationPayloadT) {
 
 function verifyEmail(payload: VerifyEmailPayloadT) {
   return apiClient.get(
-    `/auth/verify?verificationToken=${payload.verificationToken}`
+    `/auth/verify?verificationToken=${payload.verificationToken}`,
   );
 }
 
@@ -95,8 +95,8 @@ function getAllStreams(payload?: GetAllStreamsPayloadT) {
 function applyForStreamer(payload: FormData) {
   return apiClient.post("/user/apply-streamer", payload, {
     headers: {
-      "Content-Type": "multipart/form-data"
-    }
+      "Content-Type": "multipart/form-data",
+    },
   });
 }
 
@@ -104,32 +104,32 @@ function getStreamById(payload: GetStreamByIdPayloadT) {
   return apiClient.get(`/streams/${payload.streamId}`);
 }
 
-function getAllChatByStreamId(payload: GetStreamByIdPayloadT){
-  return apiClient.get(`/streams/${payload.streamId}/chats`)
+function getAllChatByStreamId(payload: GetStreamByIdPayloadT) {
+  return apiClient.get(`/streams/${payload.streamId}/chats`);
 }
 
-function createPremiumChatOrder(payload: MakePremiumChatOrderPayloadT){
-  return apiClient.post(`/streams/${payload.streamId}/premium-chat`, payload)
+function createPremiumChatOrder(payload: MakePremiumChatOrderPayloadT) {
+  return apiClient.post(`/streams/${payload.streamId}/premium-chat`, payload);
 }
 
-function fetchAllApplications(){
-  return apiClient.get(`/admin/streamer-applications`)
+function fetchAllApplications() {
+  return apiClient.get(`/admin/streamer-applications`);
 }
 
-function downloadApplicationAsCsv(){
-  return apiClient.get(`/admin/applications-csv`)
+function downloadApplicationAsCsv() {
+  return apiClient.get(`/admin/applications-csv`);
 }
 
-function acceptApplication(email: string){
-  return apiClient.post('/admin/accept-application', {
-    email
-  })
+function acceptApplication(email: string) {
+  return apiClient.post("/admin/accept-application", {
+    email,
+  });
 }
 
-function getYoutubeVideoData(videoUrl: string){
-  const searchParams = new URLSearchParams()
-  searchParams.set('videoUrl', videoUrl)
-  return apiClient.post(`/streams/fetchYoutubeData?${searchParams.toString()}`)
+function getYoutubeVideoData(videoUrl: string) {
+  const searchParams = new URLSearchParams();
+  searchParams.set("videoUrl", videoUrl);
+  return apiClient.post(`/streams/fetchYoutubeData?${searchParams.toString()}`);
 }
 
 export {
@@ -149,5 +149,5 @@ export {
   getAllChatByStreamId,
   createPremiumChatOrder,
   resendEmailVerification,
-  downloadApplicationAsCsv
+  downloadApplicationAsCsv,
 };

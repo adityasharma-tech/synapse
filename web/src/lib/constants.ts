@@ -3,14 +3,14 @@ const msgWidgetId = import.meta.env.VITE_WIDGET_ID!;
 const msgAuthToken = import.meta.env.VITE_TOKEN_AUTH!;
 
 //
-const hostBaseUrl = import.meta.env.VITE_BACKEND_HOST + '/api/v1'
-const githubUrl = "https://github.com/adityasharma-tech/synapse.git"
+const hostBaseUrl = import.meta.env.VITE_BACKEND_HOST + "/api/v1";
+const githubUrl = "https://github.com/adityasharma-tech/synapse.git";
 
 // razorpay key id import only
 const razorpayKeyId = import.meta.env.VITE_RAZORPAY_KEY_ID!;
 
-// socket events both on server side and client side, I also need to fix that so that 
-// we can only need to update one time thte SocketEventEnum 
+// socket events both on server side and client side, I also need to fix that so that
+// we can only need to update one time thte SocketEventEnum
 // so that it will sync to the server and client side both.
 const SocketEventEnum = Object.freeze({
   CONNECTED_EVENT: "connected",
@@ -31,4 +31,11 @@ const SocketEventEnum = Object.freeze({
   CHAT_DOWNVOTE_DOWN_EVENT: "stream:chat:downvote-down",
 });
 
-export { msgAuthToken, msgWidgetId,hostBaseUrl, SocketEventEnum, razorpayKeyId, githubUrl };
+export {
+  msgAuthToken,
+  msgWidgetId,
+  hostBaseUrl,
+  SocketEventEnum,
+  razorpayKeyId,
+  githubUrl,
+};

@@ -15,9 +15,8 @@ async function requestHandler<T extends ServerResT | any = ServerResT>(
   setLoading?: (loading: boolean) => void,
   onSuccess?: (data: T) => void,
   onError?: (error: ServerErrResponseT | any) => void,
-  showToast: boolean = true
+  showToast: boolean = true,
 ) {
-
   setLoading && setLoading(true);
 
   try {
@@ -38,12 +37,12 @@ async function requestHandler<T extends ServerResT | any = ServerResT>(
     // calling the callback function with the server result;
     if (result.success && onSuccess) onSuccess(result);
   } catch (error: any) {
-
     // check if response is fromt he server or from the client;
     if (error.response) {
-        // showing toast error message
-        console.error(error.response)
-      showToast && toast &&
+      // showing toast error message
+      console.error(error.response);
+      showToast &&
+        toast &&
         toast(error.response.data.message, {
           style: {
             backgroundColor: "#82181a",
@@ -53,7 +52,8 @@ async function requestHandler<T extends ServerResT | any = ServerResT>(
         });
       onError && onError(error.response.data);
     } else {
-      showToast && toast &&
+      showToast &&
+        toast &&
         toast("Internal server error.", {
           style: {
             backgroundColor: "#82181a",

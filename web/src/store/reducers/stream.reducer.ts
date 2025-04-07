@@ -63,7 +63,7 @@ const initialState: DashStreamReducer = {
   stream: {},
   typerNames: [],
   userRole: "viewer",
-  totalQuestions: 0
+  totalQuestions: 0,
 };
 
 export const streamSlice = createSlice({
@@ -78,41 +78,44 @@ export const streamSlice = createSlice({
     },
 
     // update role
-    updateUserRole: (state, action: PayloadAction<"viewer" | "streamer" | "admin">) => {
-      state.userRole = action.payload
+    updateUserRole: (
+      state,
+      action: PayloadAction<"viewer" | "streamer" | "admin">,
+    ) => {
+      state.userRole = action.payload;
     },
 
     // add basic chat
     addBasicChat: (state, action: PayloadAction<BasicChatT>) => {
       state.basicChats.push(action.payload);
-      state.totalQuestions++
+      state.totalQuestions++;
     },
 
     // remove basic chat
     removeBasicChat: (state, action: PayloadAction<RemoveBasicChatT>) => {
       const deleteIndex = state.basicChats.findIndex(
-        (value) => value.id == action.payload.id
+        (value) => value.id == action.payload.id,
       );
       if (deleteIndex <= -1)
         return console.error(`Cann't find message to be updated.`);
 
       state.basicChats.splice(deleteIndex, 1);
-      state.totalQuestions--
+      state.totalQuestions--;
     },
 
     // add a premium (payment chat)
     addPremiumChat: (state, action: PayloadAction<PremiumChatT>) => {
       state.premiumChats.push(action.payload);
-      state.totalQuestions++
+      state.totalQuestions++;
     },
 
     // message update of basic chat
     updateBasicChat: (
       state,
-      action: PayloadAction<UpdateBasicChatPayloadT>
+      action: PayloadAction<UpdateBasicChatPayloadT>,
     ) => {
       const updateIndex = state.basicChats.findIndex(
-        (value) => value.id == action.payload.id
+        (value) => value.id == action.payload.id,
       );
       if (updateIndex <= -1)
         return console.error(`Cann't find message to be updated.`);
@@ -127,7 +130,7 @@ export const streamSlice = createSlice({
     // increasing the upvoting of a basic chat
     upVoteBasicChat: (state, action: PayloadAction<UpVoteBasicChatT>) => {
       const updateIndex = state.basicChats.findIndex(
-        (value) => value.id == action.payload.id
+        (value) => value.id == action.payload.id,
       );
       if (updateIndex <= -1)
         return console.error(`Cann't find message to be updated.`);
@@ -135,14 +138,14 @@ export const streamSlice = createSlice({
       state.basicChats[updateIndex].upVotes++;
       state.basicChats = state.basicChats.sort(
         (pre, post) =>
-          post.upVotes - post.downVotes - (pre.upVotes - pre.downVotes)
+          post.upVotes - post.downVotes - (pre.upVotes - pre.downVotes),
       );
     },
 
     // removing the upvotings of the basic chat
     upVoteDownBasicChat: (state, action: PayloadAction<UpVoteBasicChatT>) => {
       const updateIndex = state.basicChats.findIndex(
-        (value) => value.id == action.payload.id
+        (value) => value.id == action.payload.id,
       );
       if (updateIndex <= -1)
         return console.error(`Cann't find message to be updated.`);
@@ -150,14 +153,14 @@ export const streamSlice = createSlice({
       state.basicChats[updateIndex].upVotes--;
       state.basicChats = state.basicChats.sort(
         (pre, post) =>
-          post.upVotes - post.downVotes - (pre.upVotes - pre.downVotes)
+          post.upVotes - post.downVotes - (pre.upVotes - pre.downVotes),
       );
     },
 
     // downvoting a basic chat
     downVoteBasicChat: (state, action: PayloadAction<DownVoteBasicChatT>) => {
       const updateIndex = state.basicChats.findIndex(
-        (value) => value.id == action.payload.id
+        (value) => value.id == action.payload.id,
       );
       if (updateIndex <= -1)
         return console.error(`Cann't find message to be updated.`);
@@ -165,14 +168,17 @@ export const streamSlice = createSlice({
       state.basicChats[updateIndex].downVotes++;
       state.basicChats = state.basicChats.sort(
         (pre, post) =>
-          post.upVotes - post.downVotes - (pre.upVotes - pre.downVotes)
+          post.upVotes - post.downVotes - (pre.upVotes - pre.downVotes),
       );
     },
 
     // removing the down voted basic chat
-    downVoteDownBasicChat: (state, action: PayloadAction<DownVoteBasicChatT>) => {
+    downVoteDownBasicChat: (
+      state,
+      action: PayloadAction<DownVoteBasicChatT>,
+    ) => {
       const updateIndex = state.basicChats.findIndex(
-        (value) => value.id == action.payload.id
+        (value) => value.id == action.payload.id,
       );
       if (updateIndex <= -1)
         return console.error(`Cann't find message to be updated.`);
@@ -180,18 +186,18 @@ export const streamSlice = createSlice({
       state.basicChats[updateIndex].downVotes--;
       state.basicChats = state.basicChats.sort(
         (pre, post) =>
-          post.upVotes - post.downVotes - (pre.upVotes - pre.downVotes)
+          post.upVotes - post.downVotes - (pre.upVotes - pre.downVotes),
       );
     },
 
     // mark read done
     markDoneChat: (state, action: PayloadAction<MarkReadDoneChatT>) => {
       let updateBChat = state.basicChats.findIndex(
-        (value) => value.id == action.payload.id
+        (value) => value.id == action.payload.id,
       );
       if (updateBChat <= -1) {
         const updatePChat = state.premiumChats.findIndex(
-          (value) => value.id == action.payload.id
+          (value) => value.id == action.payload.id,
         );
         if (updateBChat >= 0) state.premiumChats[updatePChat].markRead = true;
       } else {
@@ -202,10 +208,10 @@ export const streamSlice = createSlice({
     // if someone is typeing add their payload data
     registerTypingEvent: (
       state,
-      action: PayloadAction<TypingEventPayloadT>
+      action: PayloadAction<TypingEventPayloadT>,
     ) => {
       const typerIndex = state.typerNames.findIndex(
-        (value) => value.userId == action.payload.userId
+        (value) => value.userId == action.payload.userId,
       );
       if (typerIndex <= -1) state.typerNames.push(action.payload);
     },
@@ -213,7 +219,7 @@ export const streamSlice = createSlice({
     // remove their typing event from typers data
     removeTypingEvent: (state, action: PayloadAction<TypingEventPayloadT>) => {
       const typerIndex = state.typerNames.findIndex(
-        (value) => value.userId == action.payload.userId
+        (value) => value.userId == action.payload.userId,
       );
       if (typerIndex >= 0) state.typerNames.splice(typerIndex, 1);
     },
@@ -226,8 +232,8 @@ export const streamSlice = createSlice({
 
       state.totalQuestions = action.payload.length;
 
-      state.premiumChats = []
-      state.basicChats = []
+      state.premiumChats = [];
+      state.basicChats = [];
 
       action.payload.forEach((chat: any) => {
         chat.orderId
@@ -251,7 +257,7 @@ export const {
   markDoneChat,
   upVoteDownBasicChat,
   downVoteDownBasicChat,
-  updateUserRole
+  updateUserRole,
 } = streamSlice.actions;
 
 export default streamSlice.reducer;

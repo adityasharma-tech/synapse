@@ -80,25 +80,29 @@ export default function Home() {
               />
             </svg>
           </button>
-          {user ? <button
+          {user ? (
+            <button
               onClick={() => navigate("/dashboard")}
               className="button btn-solid"
             >
               Dashboard
-            </button> :<React.Fragment>
-            <button
-              onClick={() => navigate("/auth/login")}
-              className="button btn-outline"
-            >
-              Log in
             </button>
-            <button
-              onClick={() => navigate("/auth/signup")}
-              className="button btn-solid"
-            >
-              Sign up
-            </button>
-          </React.Fragment>}
+          ) : (
+            <React.Fragment>
+              <button
+                onClick={() => navigate("/auth/login")}
+                className="button btn-outline"
+              >
+                Log in
+              </button>
+              <button
+                onClick={() => navigate("/auth/signup")}
+                className="button btn-solid"
+              >
+                Sign up
+              </button>
+            </React.Fragment>
+          )}
         </div>
       </header>
       <main>

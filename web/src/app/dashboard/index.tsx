@@ -48,14 +48,18 @@ export default function DashboardPage() {
         await requestHandler(
           startNewStream({
             title: videoInputRef.current.value.trim().startsWith("https://")
-              ? videoData?.title ?? ""
+              ? (videoData?.title ?? "")
               : videoInputRef.current.value.trim(),
-              youtubeVideoUrl: videoInputRef.current.value.trim().startsWith("https://") ? videoInputRef.current.value.trim() : ''
+            youtubeVideoUrl: videoInputRef.current.value
+              .trim()
+              .startsWith("https://")
+              ? videoInputRef.current.value.trim()
+              : "",
           }),
           setLoading,
           (res) => {
             navigate(`/stream/${res.data.stream.streamingUid}`);
-          }
+          },
         );
     },
     [
@@ -65,7 +69,7 @@ export default function DashboardPage() {
       setLoading,
       navigate,
       videoData,
-    ]
+    ],
   );
 
   const handleFetchStreams = useCallback(async () => {
@@ -75,7 +79,7 @@ export default function DashboardPage() {
       (result) => {
         setPreviousStreams(result.data.data);
       },
-      undefined
+      undefined,
     );
   }, [requestHandler, getAllStreams, setPreviousStreams]);
 
@@ -95,10 +99,10 @@ export default function DashboardPage() {
         undefined,
         (data) => {
           setVideoData(data.data);
-        }
+        },
       );
     },
-    [requestHandler, getYoutubeVideoData, setVideoData]
+    [requestHandler, getYoutubeVideoData, setVideoData],
   );
 
   React.useEffect(() => {
@@ -118,7 +122,7 @@ export default function DashboardPage() {
               Start new stream
             </button>
           ) : null}
-          <hr className="h-full border border-neutral-700"/>
+          <hr className="h-full border border-neutral-700" />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex gap-x-3 bg-neutral-800 cursor-pointer items-center rounded-lg p-2 pr-10">
@@ -280,7 +284,7 @@ export default function DashboardPage() {
                     type="button"
                     onClick={() =>
                       window.navigator.clipboard.writeText(
-                        `https://${window.location.host}/stream/${str.streamingUid}`
+                        `https://${window.location.host}/stream/${str.streamingUid}`,
                       )
                     }
                     className="px-2 cursor-pointer bg-neutral-900 active:bg-neutral-800 transition-colors rounded-md py-2"
