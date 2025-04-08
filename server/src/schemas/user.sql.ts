@@ -8,6 +8,8 @@ export const userRolesEnum = schema.enum("roles", [
   "admin",
 ]);
 
+export const lastLoginMethod = schema.enum("last_login_method", ["email-password", "sso/google", "sso/github"])
+
 const User = schema.table(
   "users",
   {
@@ -28,6 +30,7 @@ const User = schema.table(
       .notNull()
       .default(sql`ARRAY[]::integer[]`),
     ...timestamps,
+    lastLoginMethod: lastLoginMethod().default("email-password")
   },
   (table) => [
     t.uniqueIndex("emailIdx").on(table.email),

@@ -1,0 +1,4 @@
+-- ALTER TABLE "upgrade"."token_table" ALTER COLUMN "reset_password_token_expiry" SET DEFAULT '2025-04-08 07:44:14.858';--> statement-breakpoint
+-- ALTER TABLE "upgrade"."token_table" ALTER COLUMN "email_verification_token_expiry" SET DEFAULT '2025-04-08 07:44:14.858';--> statement-breakpoint
+-- ALTER TABLE "upgrade"."streams" ADD COLUMN "youtube_video_url" varchar;--> statement-breakpoint
+-- ALTER TABLE "upgrade"."users" ADD COLUMN "watch_history" integer[] DEFAULT ARRAY[]::integer[] NOT NULL;

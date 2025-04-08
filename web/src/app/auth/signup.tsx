@@ -2,14 +2,17 @@ import React from "react";
 import TextInput from "../../components/cui/TextInput";
 
 import { toast } from "sonner";
-import { signupUser } from "../../lib/apiClient";
+import { signupUser, ssoGoogleRegister } from "../../lib/apiClient";
 import { requestHandler } from "../../lib/requestHandler";
 import { Link, useNavigate } from "react-router";
 import { FormEventHandler, useCallback, useState } from "react";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
+import { useAppDispatch } from "../../store";
+import { fetchUser } from "../../store/actions/user.actions";
 
 export default function SignupPage() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch()
 
   const [loading, setLoading] = useState(false);
 
@@ -43,12 +46,17 @@ export default function SignupPage() {
     [formData, toast, requestHandler, signupUser, navigate],
   );
 
-  const handleGoogleLoginSuccess = useCallback(
-    (credentialResponse: CredentialResponse) => {
-      console.log("Credential Response");
-      console.log(credentialResponse);
+  const handleGoogleRegisterSuccess = useCallback(
+    async (credentialResponse: CredentialResponse) => {
+      console.log("Credential Response", credentialResponse);
+      await requestHandler(ssoGoogleRegister({
+        clientId: credentialResponse.clientId ?? "",
+        credential: credentialResponse.credential ?? "",
+        select_by: credentialResponse.select_by ?? "btn"
+      }))
+      dispatch(fetchUser())
     },
-    [],
+    [requestHandler, ssoGoogleRegister],
   );
 
   return (
@@ -161,7 +169,7 @@ export default function SignupPage() {
           </div>
           <div className="flex items-center justify-center">
             {/* Google Account */}
-            <GoogleLogin onSuccess={handleGoogleLoginSuccess}></GoogleLogin>
+            <GoogleLogin  size="large" theme="outline" onSuccess={handleGoogleRegisterSuccess}></GoogleLogin>
           </div>
         </form>
         <div className="mt-auto">

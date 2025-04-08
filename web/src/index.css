@@ -5,7 +5,7 @@
 :root {
   font-family: "Poppins", sans-serif;
   font-style: normal;
-  @apply text-neutral-900;
+  @apply text-neutral-900 overflow-hidden;
 }
 
 .button {

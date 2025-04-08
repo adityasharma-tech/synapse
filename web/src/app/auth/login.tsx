@@ -6,7 +6,8 @@ import { useAppDispatch } from "../../store";
 import { Link, useNavigate } from "react-router";
 import { FormEventHandler, useCallback, useState } from "react";
 import { requestHandler } from "../../lib/requestHandler";
-import { loginUser } from "../../lib/apiClient";
+import { loginUser, ssoGoogleLogin } from "../../lib/apiClient";
+import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -54,6 +55,19 @@ export default function LoginPage() {
     ],
   );
 
+  const handleGoogleLoginSuccess = useCallback(
+    async (credentialResponse: CredentialResponse) => {
+      console.log("Credential Response", credentialResponse);
+      await requestHandler(ssoGoogleLogin({
+        clientId: credentialResponse.clientId ?? "",
+        credential: credentialResponse.credential ?? "",
+        select_by: credentialResponse.select_by ?? "btn"
+      }))
+      dispatch(fetchUser())
+    },
+    [requestHandler, ssoGoogleLogin],
+  );
+
   return (
     <React.Fragment>
       <header className="px-5 flex justify-between py-4">
@@ -99,6 +113,13 @@ export default function LoginPage() {
               ></span>
               Login
             </button>
+          </div>
+          <div className="w-full py-10 flex justify-center items-center">
+            <div className="w-full border-b max-w-[80%] border-neutral-600" />
+          </div>
+          <div className="flex items-center justify-center">
+            {/* Google Account */}
+            <GoogleLogin  size="large" theme="outline" onSuccess={handleGoogleLoginSuccess}></GoogleLogin>
           </div>
         </form>
         <div className="mt-auto">

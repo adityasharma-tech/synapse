@@ -52,6 +52,12 @@ interface MakePremiumChatOrderPayloadT {
   paymentAmount: number;
 }
 
+interface SSOGoogleAuthPayloadT {
+  credential: string;
+  clientId: string;
+  select_by: string;
+}
+
 export type {
   LoginUserPayloadT,
   SignupUserPayloadT,
@@ -62,4 +68,5 @@ export type {
   ApplyForStreamerPayloadT,
   GetStreamByIdPayloadT,
   MakePremiumChatOrderPayloadT,
+  SSOGoogleAuthPayloadT
 };

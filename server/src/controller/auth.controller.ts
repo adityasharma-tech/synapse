@@ -12,7 +12,9 @@ import {
   sendResetPasswordMail,
 } from "../services/mail.service";
 
+import axios from "axios";
 import crpyto from "crypto";
+import jose from "node-jose"
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -76,8 +78,20 @@ const loginHandler = asyncHandler(async (req, res) => {
   });
 
   if (!isPasswordCorrect) {
+
+    if(user.lastLoginMethod != "email-password")
+      throw new ApiError(400, "Try sso login.", ErrCodes.INVALID_CREDS);
+
     throw new ApiError(401, "Invalid credentials!", ErrCodes.INVALID_CREDS);
   }
+
+  await db
+    .update(User)
+    .set({
+      lastLoginMethod: "email-password"
+    })
+    .where(eq(User.id, user.id))
+    .execute()
 
   await db
     .update(TokenTable)
@@ -132,7 +146,7 @@ const registerHandler = asyncHandler(async (req, res) => {
 
   const emailVerificationToken = crpyto.randomBytes(20).toString("hex");
 
-  const username = `${firstName.trim().toLowerCase()}-${generateUsername()}`;
+  const username = `${firstName.trim().toLowerCase().replace(" ", "")}-${generateUsername()}`;
 
   const result = await db
     .insert(User)
@@ -468,6 +482,189 @@ const resetPasswordHandler = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, null, "Email verified successfully."));
 });
 
+const googleSignupHandler = asyncHandler(async (req, res) => {
+  const reqBody = req.body as {
+    credential: string;
+    clientId: string;
+    select_by: string;
+  };
+
+  logger.debug(`Req body: ${JSON.stringify(reqBody)}`);
+
+  const { data } = await axios.get(
+    "https://www.googleapis.com/oauth2/v3/certs"
+  );
+  if (!data) throw new ApiError(500, `Internal Server Error`);
+
+  logger.debug(`Google public key request: ${JSON.stringify(data)}`);
+
+  const publicKey = await jose.JWK.asKeyStore(data);
+  
+  logger.debug(`Google pub key: ${publicKey}`)
+  
+  const result = await jose.JWS.createVerify(publicKey).verify(reqBody.credential)
+  const payload = JSON.parse(result.payload.toString("utf-8")) as {
+    aud: string;
+    email: string;
+    picture: string;
+    given_name: string;
+    family_name: string;
+    exp: number;
+  };
+
+  if(payload.exp * 1000 < Date.now()) throw new ApiError(401, "You are late. Token already expired.", ErrCodes.ACCESS_TOKEN_EXPIRED);
+
+  if (payload.aud != process.env.GOOGLE_CLIENT_ID?.trim())
+    throw new ApiError(401, "Failed to authorize!");
+
+  const [usr] = await db
+    .select()
+    .from(User)
+    .where(eq(User.email, payload.email))
+    .execute();
+
+  if (usr) throw new ApiError(400, "User already exists. Please login.", ErrCodes.USER_EXISTS);
+
+  const username = `${payload.given_name.trim().replace(" ", "").toLowerCase()}-${generateUsername()}`;
+
+  const [newUsr] = await db
+    .insert(User)
+    .values({
+      firstName: payload.given_name,
+      lastName: payload.family_name,
+      username,
+      email: payload.email,
+      phoneNumber: "",
+      passwordHash: "",
+      profilePicture: payload.picture,
+      emailVerified: true,
+      lastLoginMethod: "sso/google",
+      updatedAt: new Date(),
+    })
+    .returning()
+    .execute();
+
+  if (!newUsr) throw new ApiError(401, "Failed to create new user");
+
+  const { accessToken, refreshToken, cookieOptions } = getSigningTokens({
+    id: newUsr.id,
+    firstName: newUsr.firstName,
+    lastName: newUsr.lastName,
+    email: newUsr.email,
+    role: newUsr.role ?? "viewer",
+    username: newUsr.username,
+    profilePicture: newUsr.profilePicture ?? "",
+    emailVerified: newUsr.emailVerified,
+  });
+
+  await db
+    .update(TokenTable)
+    .set({ userRefreshToken: refreshToken, updatedAt: new Date() })
+    .where(eq(TokenTable.userId, newUsr.id))
+    .execute();
+
+  const headers = new Headers();
+  headers.append("accessToken", accessToken);
+  headers.append("refreshToken", refreshToken);
+
+  res.setHeaders(headers);
+
+  res.cookie("accessToken", accessToken, cookieOptions);
+  res.cookie("refreshToken", refreshToken, cookieOptions);
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, { user: newUsr }, "User logged in successfully")
+    );
+});
+
+const googleLoginHandler = asyncHandler(async (req, res) => {
+  const reqBody = req.body as {
+    credential: string;
+    clientId: string;
+    select_by: string;
+  };
+
+  if(!reqBody.credential || !reqBody.clientId || !reqBody.select_by) throw new ApiError(400, "Validation Error", ErrCodes.VALIDATION_ERR);
+
+  logger.debug(`Req body: ${JSON.stringify(reqBody)}`);
+
+  const { data } = await axios.get(
+    "https://www.googleapis.com/oauth2/v3/certs"
+  );
+  if (!data) throw new ApiError(500, `Internal Server Error`);
+
+  logger.debug(`Google public key request: ${JSON.stringify(data)}`);
+
+  const publicKey = await jose.JWK.asKeyStore(data);
+  
+  logger.debug(`Google pub key: ${publicKey}`)
+  
+  const result = await jose.JWS.createVerify(publicKey).verify(reqBody.credential)
+  const payload = JSON.parse(result.payload.toString("utf-8")) as {
+    aud: string;
+    email: string;
+    picture: string;
+    given_name: string;
+    family_name: string;
+    exp: number;
+  };
+
+  if(payload.exp * 1000 < Date.now()) throw new ApiError(401, "You are late. Token already expired.", ErrCodes.ACCESS_TOKEN_EXPIRED);
+
+  if (payload.aud != process.env.GOOGLE_CLIENT_ID?.trim())
+    throw new ApiError(401, "Failed to authorize!");
+
+  const [usr] = await db
+    .select()
+    .from(User)
+    .where(eq(User.email, payload.email))
+    .execute();
+
+  if (!usr) throw new ApiError(400, "User not found. Please signup first.", ErrCodes.DB_ROW_NOT_FOUND);
+
+  await db
+    .update(User)
+    .set({
+      lastLoginMethod: "sso/google"
+    })
+    .where(eq(User.id, usr.id))
+    .execute()
+
+  const { accessToken, refreshToken, cookieOptions } = getSigningTokens({
+    id: usr.id,
+    firstName: usr.firstName,
+    lastName: usr.lastName,
+    email: usr.email,
+    role: usr.role ?? "viewer",
+    username: usr.username,
+    profilePicture: usr.profilePicture ?? "",
+    emailVerified: usr.emailVerified,
+  });
+
+  await db
+    .update(TokenTable)
+    .set({ userRefreshToken: refreshToken, updatedAt: new Date() })
+    .where(eq(TokenTable.userId, usr.id))
+    .execute();
+
+  const headers = new Headers();
+  headers.append("accessToken", accessToken);
+  headers.append("refreshToken", refreshToken);
+
+  res.setHeaders(headers);
+
+  res.cookie("accessToken", accessToken, cookieOptions);
+  res.cookie("refreshToken", refreshToken, cookieOptions);
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, { user: usr }, "User logged in successfully")
+    );
+});
+
 export {
   loginHandler,
   registerHandler,
@@ -476,4 +673,6 @@ export {
   refreshTokenHandler,
   resetPasswordEmailHandler,
   resetPasswordHandler,
+  googleSignupHandler,
+  googleLoginHandler,
 };

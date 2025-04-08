@@ -6,6 +6,7 @@ import {
   MakePremiumChatOrderPayloadT,
   ResendEmailVerificationPayloadT,
   SignupUserPayloadT,
+  SSOGoogleAuthPayloadT,
   StartNewStreamPayloadT,
   VerifyEmailPayloadT,
 } from "./intefaces";
@@ -132,6 +133,14 @@ function getYoutubeVideoData(videoUrl: string) {
   return apiClient.post(`/streams/fetchYoutubeData?${searchParams.toString()}`);
 }
 
+function ssoGoogleLogin(payload: SSOGoogleAuthPayloadT){
+  return apiClient.post(`/auth/sso/google/login`, payload)
+}
+
+function ssoGoogleRegister(payload: SSOGoogleAuthPayloadT){
+  return apiClient.post(`/auth/sso/google/register`, payload)
+}
+
 export {
   getUser,
   loginUser,
@@ -141,13 +150,15 @@ export {
   verifyEmail,
   getStreamById,
   getAllStreams,
+  ssoGoogleLogin,
   startNewStream,
   applyForStreamer,
+  ssoGoogleRegister,
   acceptApplication,
   getYoutubeVideoData,
   fetchAllApplications,
   getAllChatByStreamId,
   createPremiumChatOrder,
   resendEmailVerification,
-  downloadApplicationAsCsv,
+  downloadApplicationAsCsv
 };

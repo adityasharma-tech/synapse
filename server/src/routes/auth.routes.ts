@@ -1,5 +1,7 @@
 import { Router } from "express";
 import {
+  googleLoginHandler,
+  googleSignupHandler,
   refreshTokenHandler,
   resetPasswordEmailHandler,
   resetPasswordHandler,
@@ -48,5 +50,14 @@ router
 router
   .route("/reset-password")
   .post(authRouteValidators.resetPasswordRoute, resetPasswordHandler);
+
+  // sso router
+const ssoRouter = Router()
+
+router.use("/sso", ssoRouter)
+
+ssoRouter.route("/google/login").post(googleLoginHandler);
+
+ssoRouter.route("/google/register").post(googleSignupHandler);
 
 export default router;
