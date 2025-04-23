@@ -10,6 +10,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "drizzle-orm": "^0.42.0"
+    "drizzle-orm": "^0.42.0",
+    "zod-client": "workspace:*"
   }
 }

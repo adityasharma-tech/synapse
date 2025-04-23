@@ -1,19 +1,28 @@
-import { z } from "zod";
+import { z, type RefinementCtx } from "zod";
 import dotenv from "dotenv";
 dotenv.config({
-    // path: __dirname
-})
+  // path: __dirname
+});
 
 console.log(__dirname);
 
+const validateUrl = (val: string, ctx: RefinementCtx) => {
+    if (!val.match(/^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}$/))
+      ctx.addIssue({
+        code: z.ZodIssueCode.invalid_string,
+        message: "Invalid host url",
+        validation: "url",
+      });
+  }
+
 const serverEnvObj = z.object({
   // backend host url
-  HOST_URL: z.string(),
+  HOST_URL: z.string().superRefine(validateUrl),
 
   // Database configuration
   DB_NAME: z.string(),
   DB_HOST: z.string(),
-  DB_PORT: z.string(),
+  DB_PORT: z.coerce.number(),
   DB_USER: z.string(),
   DB_PASSWORD: z.string(),
   DB_SSL_MODE: z
@@ -24,7 +33,7 @@ const serverEnvObj = z.object({
   // Mail configuration
   MAIL_API_KEY: z.string(),
   SMTP_HOST: z.string(),
-  SMTP_PORT: z.string(),
+  SMTP_PORT: z.coerce.number(),
   SMTP_USER: z.string(),
   SMTP_PASS: z.string(),
 
@@ -57,7 +66,7 @@ const serverEnvObj = z.object({
   RAZORPAY_WEBHOOK_SECRET: z.string(),
 
   // redis service
-  EDIS_CONNECT_URI: z.string(),
+  REDIS_CONNECT_URI: z.string(),
 
   // google api services
   GOOGLE_API_KEY: z.string(),
@@ -71,11 +80,11 @@ const serverEnvObj = z.object({
   RABBITMQ_URI: z.string().optional(),
 
   // Streamer Payout Cut in percentage
-  STREAMER_PAYOUT_CUT: z.string().default("0.9"), // Example: 0.9 -> 90% of amount paid
+  STREAMER_PAYOUT_CUT: z.coerce.number().default(0.9), // Example: 0.9 -> 90% of amount paid
 });
 
 const webEnvObj = z.object({
-  VITE_BACKEND_HOST: z.string(),
+  VITE_BACKEND_HOST: z.string().superRefine(validateUrl),
 
   // config of msg91 otp service
   VITE_WIDGET_ID: z.string(),
