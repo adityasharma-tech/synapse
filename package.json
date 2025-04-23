@@ -1,15 +1,24 @@
 {
   "name": "synapse",
-  "private": true,
   "module": "index.ts",
+  "devDependencies": {
+    "lerna": "^8.2.2"
+  },
+  "private": true,
+  "scripts": {
+    "build": "lerna run build"
+  },
   "type": "module",
   "workspaces": [
     "packages/*",
     "apps/*"
   ],
-  "scripts": {},
-  "dependencies": {},
-  "devDependencies": {
-    "lerna": "^8.2.2"
+  "dependencies": {
+    "rollup": "4.39.0"
+  },
+  "overrides": {
+    "vite": {
+      "rollup": "4.39.0"
+    }
   }
 }

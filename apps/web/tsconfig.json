@@ -1,4 +1,5 @@
 {
+  // "rollup/parseAst": ["../../node_modules/rollup/dist/parseAst"],
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },

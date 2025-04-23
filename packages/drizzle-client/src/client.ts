@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
+import { serverEnv } from "zod-client"
 
 interface DrizzleClientInterface {
   db: NodePgDatabase<Record<string, never>> & {
@@ -15,15 +16,15 @@ class DrizzleClient implements DrizzleClientInterface {
   }
 
   private getDb(replicaDb: boolean) {
-    const host = replicaDb ? `replica-${process.env.DB_HOST}` : process.env.DB_HOST!;
+    const host = replicaDb ? `replica-${serverEnv.DB_HOST}` : serverEnv.DB_HOST;
 
     const pool = new Pool({
       host,
-      port: +process.env.DB_PORT!,
-      database: process.env.DB_NAME!,
-      user: process.env.DB_USER!,
-      password: process.env.DB_PASSWORD!,
-      ssl: { ca: process.env.DB_SSL_CA!, rejectUnauthorized: true },
+      port: serverEnv.DB_PORT,
+      database: serverEnv.DB_NAME,
+      user: serverEnv.DB_USER,
+      password: serverEnv.DB_PASSWORD,
+      ssl: { ca: serverEnv.DB_SSL_CA, rejectUnauthorized: true },
     });
 
     // Using casing: 'snake_case', setting this will convert all my camelCase keys to snake_case

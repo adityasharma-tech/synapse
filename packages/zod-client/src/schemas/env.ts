@@ -4,20 +4,11 @@ dotenv.config({
   // path: __dirname
 });
 
-console.log(__dirname);
-
-const validateUrl = (val: string, ctx: RefinementCtx) => {
-    if (!val.match(/^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}$/))
-      ctx.addIssue({
-        code: z.ZodIssueCode.invalid_string,
-        message: "Invalid host url",
-        validation: "url",
-      });
-  }
+console.log("From env.ts", __dirname);
 
 const serverEnvObj = z.object({
   // backend host url
-  HOST_URL: z.string().superRefine(validateUrl),
+  HOST_URL: z.string().url("Invalid Hostname"),
 
   // Database configuration
   DB_NAME: z.string(),
@@ -84,7 +75,7 @@ const serverEnvObj = z.object({
 });
 
 const webEnvObj = z.object({
-  VITE_BACKEND_HOST: z.string().superRefine(validateUrl),
+  VITE_BACKEND_HOST: z.string().url("Invalid backend hostname"),
 
   // config of msg91 otp service
   VITE_WIDGET_ID: z.string(),
@@ -97,7 +88,7 @@ const webEnvObj = z.object({
   VITE_RAZORPAY_KEY_ID: z.string(),
 });
 
-const serverEnv = serverEnvObj.safeParse(process.env);
-const webEnv = webEnvObj.safeParse(process.env);
+const serverEnv = serverEnvObj.parse(process.env);
+const webEnv = webEnvObj.parse(process.env);
 
 export { serverEnv, webEnv };
