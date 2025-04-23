@@ -16,24 +16,25 @@ import { Stakeholders } from "razorpay/dist/types/stakeholders";
 import { MiddlewareUserT } from "../lib/types";
 import { Cashfree, CreateOrderRequest } from "cashfree-pg";
 import { signStreamerVerficationToken } from "../lib/utils";
+import { serverEnv } from "zod-client";
 
 /**
  * Cashfree configuration
  */
 const cashfreeClientHeaders = new Headers();
-cashfreeClientHeaders.set("x-api-version", process.env.CF_PAYOUT_XAPI_VERSION!);
-cashfreeClientHeaders.set("x-client-id", process.env.CF_PAYOUT_CLIENT_ID!);
+cashfreeClientHeaders.set("x-api-version", serverEnv.CF_PAYOUT_XAPI_VERSION);
+cashfreeClientHeaders.set("x-client-id", serverEnv.CF_PAYOUT_CLIENT_ID);
 cashfreeClientHeaders.set(
   "x-client-secret",
-  process.env.CF_PAYOUT_CLIENT_SECRET!
+  serverEnv.CF_PAYOUT_CLIENT_SECRET
 );
 cashfreeClientHeaders.set("Content-Type", "application/json");
 
 // specifically for cashfree-pg
-Cashfree.XClientId = process.env.CF_PAYMENT_CLIENT_ID!;
-Cashfree.XClientSecret = process.env.CF_PAYMENT_CLIENT_SECRET!;
+Cashfree.XClientId = serverEnv.CF_PAYMENT_CLIENT_ID;
+Cashfree.XClientSecret = serverEnv.CF_PAYMENT_CLIENT_SECRET;
 Cashfree.XEnvironment =
-  process.env.CF_PAYMENT_MODE == "sandbox"
+  serverEnv.CF_PAYMENT_MODE == "sandbox"
     ? Cashfree.Environment.SANDBOX
     : Cashfree.Environment.PRODUCTION;
 
@@ -64,8 +65,8 @@ interface CreateOrderPropT {
 
 const getRazorpayInstance = function () {
   return new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID!,
-    key_secret: process.env.RAZORPAY_SECRET_KEY!,
+    key_id: serverEnv.RAZORPAY_KEY_ID!,
+    key_secret: serverEnv.RAZORPAY_SECRET_KEY!,
   });
 };
 
@@ -175,7 +176,7 @@ const createCfOrder: (
   try {
     // using cashfree-pg this will make an api request to create an order on cashfree service for paymentSessionId
     order = await Cashfree.PGCreateOrder(
-      process.env.CF_PAYMENT_XAPI_VERSION!, // x-api-version: cashfree api version
+      serverEnv.CF_PAYMENT_XAPI_VERSION!, // x-api-version: cashfree api version
       payload
     );
   } catch (err) {
@@ -240,7 +241,7 @@ const createRazorpayOrder: (
         account: props.transferAccountId,
         amount: lodash.multiply(
           lodash.multiply(props.orderAmount, 100),
-          lodash.toNumber(process.env.STREAMER_PAYOUT_CUT!)
+          lodash.toNumber(serverEnv.STREAMER_PAYOUT_CUT!)
         ),
         currency: "INR",
         on_hold: 1,
@@ -393,7 +394,7 @@ const updateBankAccountData = async function (
   if (!accountRequest) throw new ApiError(400, "Account request not found!");
 
   const url = `https://api.razorpay.com/v2/accounts/${accountId}/products/${accountRequest.productConfigId}`;
-  const authorizationToken = `Basic ${base64.encode(process.env.RAZORPAY_KEY_ID! + ":" + process.env.RAZORPAY_SECRET_KEY!)}`;
+  const authorizationToken = `Basic ${base64.encode(serverEnv.RAZORPAY_KEY_ID! + ":" + serverEnv.RAZORPAY_SECRET_KEY!)}`;
 
   const payload = {
     settlements: {

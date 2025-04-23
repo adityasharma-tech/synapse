@@ -5,6 +5,7 @@ import { logger } from "../lib/logger";
 import { TokenTable } from "../schemas/tokenTable.sql";
 import { asyncHandler } from "../lib/asyncHandler";
 import { ApiError, ErrCodes } from "../lib/ApiError";
+import { serverEnv } from "zod-client";
 
 /**
  * authentication middleware to use the protected/secured routes to the authorized user only
@@ -19,7 +20,7 @@ const authMiddleware = asyncHandler(async (req, _, next) => {
   try {
     const decodedUser: any = jwt.verify(
       accessToken,
-      process.env.ACCESS_SECRET_KEY!
+      serverEnv.ACCESS_SECRET_KEY
     );
     req.user = decodedUser;
   } catch (error: any) {
@@ -60,7 +61,7 @@ const streamerAuthMiddeware = asyncHandler(async (req, _, next) => {
   try {
     jwt.verify(
       tokens[0].streamerVerificationToken,
-      process.env.STREAMER_SECRET_KEY!
+      serverEnv.STREAMER_SECRET_KEY
     );
     // req.streamer = JSON.parse(JSON.stringify(streamerPayload));
   } catch (error: any) {

@@ -1,8 +1,9 @@
 import { createClient as createRedisClient } from "redis";
 import "dotenv/config";
+import { serverEnv } from "zod-client";
 
 const redisClient = createRedisClient({
-  url: process.env.REDIS_CONNECT_URI!,
+  url: serverEnv.REDIS_CONNECT_URI,
   pingInterval: 3000,
 });
 

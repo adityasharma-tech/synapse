@@ -15,6 +15,7 @@ import { MiddlewareUserT } from "../lib/types";
 import { ApiError, ErrCodes } from "../lib/ApiError";
 import { createRazorpayOrder } from "../services/payments.service";
 import { and, count, eq, or, sql } from "drizzle-orm";
+import { serverEnv } from "zod-client";
 
 /**
  * Controller for streamers to start a new stream
@@ -32,7 +33,7 @@ const createNewStream = asyncHandler(async (req, res) => {
 
   const streamingToken = jwt.sign(
     { streamerId: user.id },
-    process.env.STREAMER_SECRET_KEY!,
+    serverEnv.STREAMER_SECRET_KEY,
     { expiresIn: "6hr" }
   );
 
@@ -82,7 +83,7 @@ const fetchYoutubeData = asyncHandler(async (req, res) => {
   const result = await youtube.videos.list({
     part: ["snippet", "contentDetails", "statistics"],
     id: [videoId],
-    key: process.env.GOOGLE_API_KEY!,
+    key: serverEnv.GOOGLE_API_KEY,
   });
 
   const items = result["data"]["items"];

@@ -1,6 +1,7 @@
 import { CookieOptions } from "express";
 import jwt from "jsonwebtoken";
 import { MiddlewareUserT } from "./types";
+import { serverEnv } from "zod-client";
 // Roles
 export type Role = keyof typeof ROLES;
 type Permission = (typeof ROLES)[Role][number];
@@ -85,10 +86,10 @@ function generateUsername() {
 function getSigningTokens(payload: Partial<MiddlewareUserT>) {
   const refreshToken = jwt.sign(
     { id: payload.id },
-    process.env.REFRESH_SECRET_KEY!,
+    serverEnv.REFRESH_SECRET_KEY,
     { expiresIn: "4d" }
   );
-  const accessToken = jwt.sign(payload, process.env.ACCESS_SECRET_KEY!, {
+  const accessToken = jwt.sign(payload, serverEnv.ACCESS_SECRET_KEY, {
     expiresIn: "5min",
   });
   const cookieOptions: CookieOptions = {
@@ -112,14 +113,14 @@ function signStreamerVerficationToken(payload: {
       userId: payload["userId"],
       addedAt: payload["addedAt"],
     },
-    process.env.STREAMER_SECRET_KEY!,
+    serverEnv.STREAMER_SECRET_KEY,
     { expiresIn: "180d" }
   );
 }
 
 function verifyStreamerVerficationToken(token: string) {
   try {
-    const payload = jwt.verify(token, process.env.STREAMER_SECRET_KEY!) as {
+    const payload = jwt.verify(token, serverEnv.STREAMER_SECRET_KEY) as {
       beneficiaryId: string;
       userId: number;
       addedAt: string;

@@ -1,13 +1,14 @@
 import { logger } from "../lib/logger";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
 import nodemailer, { SendMailOptions } from "nodemailer";
+import { serverEnv } from "zod-client";
 
 // transport configuration of the smtp server which handles the mail transportation
 const transportOptions: SMTPTransport.Options = {
-  host: process.env.SMTP_HOST!,
-  port: +process.env.SMTP_PORT!,
+  host: serverEnv.SMTP_HOST,
+  port: +serverEnv.SMTP_PORT,
   secure: false,
-  auth: { user: process.env.SMTP_USER!, pass: process.env.SMTP_PASS! },
+  auth: { user: serverEnv.SMTP_USER, pass: serverEnv.SMTP_PASS },
 };
 const transporter = nodemailer.createTransport(transportOptions);
 
@@ -22,7 +23,7 @@ const sendConfirmationMail = async function (
   verificationToken: string
 ) {
   try {
-    const verificationUrl = `${process.env.FRONTEND_URL}/auth/verify/?verificationToken=${verificationToken}`;
+    const verificationUrl = `${serverEnv.FRONTEND_URL}/auth/verify/?verificationToken=${verificationToken}`;
 
     const mailOptions: SendMailOptions = {
       from: "synapse@mail.adityasharma.live",
@@ -50,7 +51,7 @@ const sendResetPasswordMail = async function (
   verificationToken: string
 ) {
   try {
-    const verificationUrl = `${process.env.FRONTEND_URL}/auth/reset-password/?verificationToken=${verificationToken}`;
+    const verificationUrl = `${serverEnv.FRONTEND_URL}/auth/reset-password/?verificationToken=${verificationToken}`;
 
     const mailOptions: SendMailOptions = {
       from: "synapse@mail.adityasharma.live",

@@ -12,10 +12,11 @@ import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
 import { RMQ_PAYOUT_QUEUE, SocketEventEnum } from "../lib/constants";
 import { getRazorpayInstance } from "../services/payments.service";
+import { serverEnv } from "zod-client";
 // import { getPayoutChannel } from "../services/queue.service"; // uncomment if you wanna use queue system
 
-Cashfree.XClientId = process.env.CF_PAYMENT_CLIENT_ID!;
-Cashfree.XClientSecret = process.env.CF_PAYMENT_CLIENT_SECRET!;
+Cashfree.XClientId = serverEnv.CF_PAYMENT_CLIENT_ID;
+Cashfree.XClientSecret = serverEnv.CF_PAYMENT_CLIENT_SECRET;
 Cashfree.XEnvironment = Cashfree.Environment.SANDBOX;
 
 const handleVerifyCfOrder = asyncHandler(async (req, res) => {
@@ -35,7 +36,7 @@ const handleVerifyCfOrder = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Access Denied!");
   }
   const order = await Cashfree.PGFetchOrder(
-    process.env.CF_PAYMENT_XAPI_VERSION!,
+    serverEnv.CF_PAYMENT_XAPI_VERSION,
     payload["data"]["order"]["order_id"]
   );
 
@@ -119,7 +120,7 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
   // data and match with the header signature to make sure to accept only
   // requests from razorpay side
   const generatedSignature = crypto
-    .createHmac("sha256", process.env.RAZORPAY_WEBHOOK_SECRET!)
+    .createHmac("sha256", serverEnv.RAZORPAY_WEBHOOK_SECRET)
     .update(JSON.stringify(body))
     .digest("hex");
 

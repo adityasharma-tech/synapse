@@ -12,5 +12,8 @@
   "dependencies": {
     "drizzle-orm": "^0.42.0",
     "zod-client": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsc"
   }
 }

@@ -17,6 +17,7 @@ import crpyto from "crypto";
 import jose from "node-jose"
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { serverEnv } from "zod-client";
 
 const loginHandler = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
@@ -351,7 +352,7 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
   }
 
   try {
-    jwt.verify(refreshToken, process.env.REFRESH_SECRET_KEY!);
+    jwt.verify(refreshToken, serverEnv.REFRESH_SECRET_KEY);
   } catch (error: any) {
     throw new ApiError(
       401,
@@ -514,7 +515,7 @@ const googleSignupHandler = asyncHandler(async (req, res) => {
 
   if(payload.exp * 1000 < Date.now()) throw new ApiError(401, "You are late. Token already expired.", ErrCodes.ACCESS_TOKEN_EXPIRED);
 
-  if (payload.aud != process.env.GOOGLE_CLIENT_ID?.trim())
+  if (payload.aud != serverEnv.GOOGLE_CLIENT_ID)
     throw new ApiError(401, "Failed to authorize!");
 
   const [usr] = await db
@@ -613,7 +614,7 @@ const googleLoginHandler = asyncHandler(async (req, res) => {
 
   if(payload.exp * 1000 < Date.now()) throw new ApiError(401, "You are late. Token already expired.", ErrCodes.ACCESS_TOKEN_EXPIRED);
 
-  if (payload.aud != process.env.GOOGLE_CLIENT_ID?.trim())
+  if (payload.aud != serverEnv.GOOGLE_CLIENT_ID)
     throw new ApiError(401, "Failed to authorize!");
 
   const [usr] = await db

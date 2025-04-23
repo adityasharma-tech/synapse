@@ -8,6 +8,7 @@ import { and, eq } from "drizzle-orm";
 import { SocketEventEnum } from "../lib/constants";
 import { ApiError, ErrCodes } from "../lib/ApiError";
 import { ExtendedError, Socket } from "socket.io";
+import { serverEnv } from "zod-client";
 
 /**
  * @description A function to emit the socket event also disconnecting it so that user can't make any socket request.
@@ -41,7 +42,7 @@ const socketAuthMiddleware = async (
 
     const decodedUser: any = jwt.verify(
       String(accessToken),
-      process.env.ACCESS_SECRET_KEY!
+      serverEnv.ACCESS_SECRET_KEY
     );
 
     const [stream] = await db

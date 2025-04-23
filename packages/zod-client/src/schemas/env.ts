@@ -1,4 +1,4 @@
-import { z, type RefinementCtx } from "zod";
+import { z } from "zod";
 import dotenv from "dotenv";
 dotenv.config({
   // path: __dirname
@@ -9,6 +9,8 @@ console.log("From env.ts", __dirname);
 const serverEnvObj = z.object({
   // backend host url
   HOST_URL: z.string().url("Invalid Hostname"),
+  PORT: z.coerce.number(),
+  FRONTEND_URL: z.string().url(),
 
   // Database configuration
   DB_NAME: z.string(),
@@ -61,6 +63,7 @@ const serverEnvObj = z.object({
 
   // google api services
   GOOGLE_API_KEY: z.string(),
+  GOOGLE_CLIENT_ID: z.string(),
 
   // Cloudinary configuration
   CLOUDINARY_CLOUD_NAME: z.string(),
@@ -86,9 +89,16 @@ const webEnvObj = z.object({
 
   // razorpay key id
   VITE_RAZORPAY_KEY_ID: z.string(),
+
+  VITE_GOOGLE_CLIENT_ID: z.string(),
 });
 
 const serverEnv = serverEnvObj.parse(process.env);
-const webEnv = webEnvObj.parse(process.env);
+let webEnv;
+try {
+  webEnv = webEnvObj.parse(import.meta.env);
+} catch (error) {
+  console.log(error);
+}
 
 export { serverEnv, webEnv };
