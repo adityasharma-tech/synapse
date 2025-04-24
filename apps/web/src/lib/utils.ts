@@ -1,13 +1,10 @@
 import { ClassValue, clsx } from "clsx";
 import { useRef } from "react";
 import { twMerge } from "tailwind-merge";
-import { zodWebEnv } from "zod-client"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-
-export const env = zodWebEnv.parse(import.meta.env);
 
 const useDebounce = () => {
   // here debounceSeed is defined to keep track of the setTimout function

@@ -1,7 +1,6 @@
 // imports
 import http from "http";
 import cors from "cors";
-import dotenv from "dotenv";
 import morgan from "morgan";
 import helmet from "helmet";
 import express from "express";
@@ -16,11 +15,6 @@ import { socketHandler } from "./services/socket.service";
 import { Server as SocketIO } from "socket.io";
 import { socketAuthMiddleware } from "./middleware/socket.middleware";
 import { corsOrigins, SocketEventEnum } from "./lib/constants";
-
-/*
- * Env support configs
- */
-dotenv.config({ debug: false });
 
 /**
  * Http Express Server

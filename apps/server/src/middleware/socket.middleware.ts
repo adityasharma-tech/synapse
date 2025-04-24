@@ -6,7 +6,7 @@ import { and, eq } from "drizzle-orm";
 import { SocketEventEnum } from "../lib/constants";
 import { ApiError, ErrCodes } from "../lib/ApiError";
 import { ExtendedError, Socket } from "socket.io";
-import { serverEnv } from "zod-client";
+import { env } from "zod-client";
 import { Stream, User } from "drizzle-client";
 
 /**
@@ -41,7 +41,7 @@ const socketAuthMiddleware = async (
 
     const decodedUser: any = jwt.verify(
       String(accessToken),
-      serverEnv.ACCESS_SECRET_KEY
+      env.ACCESS_SECRET_KEY
     );
 
     const [stream] = await db

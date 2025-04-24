@@ -6,7 +6,7 @@ import { Provider } from "react-redux";
 import { store } from "./store";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Analytics } from "@vercel/analytics/react"
-import { env } from "./lib/utils";
+import { env } from "zod-client/client";
 
 const googleClientId = env.VITE_GOOGLE_CLIENT_ID;
 

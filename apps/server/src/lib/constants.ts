@@ -1,9 +1,8 @@
-import "dotenv/config";
-import { serverEnv } from "zod-client";
+import { env } from "zod-client";
 
 const emailVerificationTokenExpiry = new Date(Date.now() + 6 * 60 * 60); // 6 hr
 
-const msg91AuthKey = serverEnv.MSG91_AUTH_KEY;
+const msg91AuthKey = env.MSG91_AUTH_KEY;
 
 const corsOrigins = [
   "https://synapse-local.adityasharma.live",

@@ -1,8 +1,8 @@
 import server from "./src/app";
 import { logger } from "./src/lib/logger";
-import { serverEnv } from "zod-client"
+import { env } from "zod-client"
 
-const PORT = serverEnv.PORT || 5174;
+const PORT = env.PORT || 5174;
 
 /**
  * start server

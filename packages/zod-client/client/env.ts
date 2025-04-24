@@ -1,4 +1,8 @@
 import { z } from "zod";
+import dotenv from "dotenv";
+dotenv.config({
+  path: "../../../.env",
+});
 
 const zodEnv = z.object({
   VITE_BACKEND_HOST: z.string().url("Invalid backend hostname"),

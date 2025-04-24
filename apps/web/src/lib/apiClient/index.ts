@@ -10,7 +10,7 @@ import {
   StartNewStreamPayloadT,
   VerifyEmailPayloadT,
 } from "./intefaces";
-import { env } from "../utils";
+import { env } from "zod-client/client";
 
 // backend host
 const baseHost = env.VITE_BACKEND_HOST;

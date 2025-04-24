@@ -1,4 +1,3 @@
-import "dotenv/config";
 import axios from "axios";
 import crypto from "crypto";
 import base64 from "base-64";
@@ -14,7 +13,7 @@ import { Stakeholders } from "razorpay/dist/types/stakeholders";
 import { MiddlewareUserT } from "../lib/types";
 import { Cashfree, CreateOrderRequest } from "cashfree-pg";
 import { signStreamerVerficationToken } from "../lib/utils";
-import { serverEnv } from "zod-client";
+import { env } from "zod-client";
 import { Order } from "drizzle-client";
 import StreamerRequest from "drizzle-client/src/schemas/streamerRequest.sql";
 
@@ -22,19 +21,19 @@ import StreamerRequest from "drizzle-client/src/schemas/streamerRequest.sql";
  * Cashfree configuration
  */
 const cashfreeClientHeaders = new Headers();
-cashfreeClientHeaders.set("x-api-version", serverEnv.CF_PAYOUT_XAPI_VERSION);
-cashfreeClientHeaders.set("x-client-id", serverEnv.CF_PAYOUT_CLIENT_ID);
+cashfreeClientHeaders.set("x-api-version", env.CF_PAYOUT_XAPI_VERSION);
+cashfreeClientHeaders.set("x-client-id", env.CF_PAYOUT_CLIENT_ID);
 cashfreeClientHeaders.set(
   "x-client-secret",
-  serverEnv.CF_PAYOUT_CLIENT_SECRET
+  env.CF_PAYOUT_CLIENT_SECRET
 );
 cashfreeClientHeaders.set("Content-Type", "application/json");
 
 // specifically for cashfree-pg
-Cashfree.XClientId = serverEnv.CF_PAYMENT_CLIENT_ID;
-Cashfree.XClientSecret = serverEnv.CF_PAYMENT_CLIENT_SECRET;
+Cashfree.XClientId = env.CF_PAYMENT_CLIENT_ID;
+Cashfree.XClientSecret = env.CF_PAYMENT_CLIENT_SECRET;
 Cashfree.XEnvironment =
-  serverEnv.CF_PAYMENT_MODE == "sandbox"
+  env.CF_PAYMENT_MODE == "sandbox"
     ? Cashfree.Environment.SANDBOX
     : Cashfree.Environment.PRODUCTION;
 
@@ -65,8 +64,8 @@ interface CreateOrderPropT {
 
 const getRazorpayInstance = function () {
   return new Razorpay({
-    key_id: serverEnv.RAZORPAY_KEY_ID!,
-    key_secret: serverEnv.RAZORPAY_SECRET_KEY!,
+    key_id: env.RAZORPAY_KEY_ID!,
+    key_secret: env.RAZORPAY_SECRET_KEY!,
   });
 };
 
@@ -176,7 +175,7 @@ const createCfOrder: (
   try {
     // using cashfree-pg this will make an api request to create an order on cashfree service for paymentSessionId
     order = await Cashfree.PGCreateOrder(
-      serverEnv.CF_PAYMENT_XAPI_VERSION!, // x-api-version: cashfree api version
+      env.CF_PAYMENT_XAPI_VERSION!, // x-api-version: cashfree api version
       payload
     );
   } catch (err) {
@@ -241,7 +240,7 @@ const createRazorpayOrder: (
         account: props.transferAccountId,
         amount: lodash.multiply(
           lodash.multiply(props.orderAmount, 100),
-          lodash.toNumber(serverEnv.STREAMER_PAYOUT_CUT!)
+          lodash.toNumber(env.STREAMER_PAYOUT_CUT!)
         ),
         currency: "INR",
         on_hold: 1,
@@ -394,7 +393,7 @@ const updateBankAccountData = async function (
   if (!accountRequest) throw new ApiError(400, "Account request not found!");
 
   const url = `https://api.razorpay.com/v2/accounts/${accountId}/products/${accountRequest.productConfigId}`;
-  const authorizationToken = `Basic ${base64.encode(serverEnv.RAZORPAY_KEY_ID! + ":" + serverEnv.RAZORPAY_SECRET_KEY!)}`;
+  const authorizationToken = `Basic ${base64.encode(env.RAZORPAY_KEY_ID! + ":" + env.RAZORPAY_SECRET_KEY!)}`;
 
   const payload = {
     settlements: {

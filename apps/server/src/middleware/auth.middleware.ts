@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { logger } from "../lib/logger";
 import { asyncHandler } from "../lib/asyncHandler";
 import { ApiError, ErrCodes } from "../lib/ApiError";
-import { serverEnv } from "zod-client";
+import { env } from "zod-client";
 import { TokenTable } from "drizzle-client";
 
 /**
@@ -20,7 +20,7 @@ const authMiddleware = asyncHandler(async (req, _, next) => {
   try {
     const decodedUser: any = jwt.verify(
       accessToken,
-      serverEnv.ACCESS_SECRET_KEY
+      env.ACCESS_SECRET_KEY
     );
     req.user = decodedUser;
   } catch (error: any) {
@@ -61,7 +61,7 @@ const streamerAuthMiddeware = asyncHandler(async (req, _, next) => {
   try {
     jwt.verify(
       tokens[0].streamerVerificationToken,
-      serverEnv.STREAMER_SECRET_KEY
+      env.STREAMER_SECRET_KEY
     );
     // req.streamer = JSON.parse(JSON.stringify(streamerPayload));
   } catch (error: any) {

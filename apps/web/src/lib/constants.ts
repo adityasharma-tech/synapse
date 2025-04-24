@@ -1,4 +1,4 @@
-import { env } from "./utils";
+import { env } from "zod-client/client";
 
 // constant declaration for msg91 configuration
 const msgWidgetId = env.VITE_WIDGET_ID;
