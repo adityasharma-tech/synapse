@@ -5,6 +5,7 @@ const emailVerificationTokenExpiry = new Date(Date.now() + 6 * 60 * 60); // 6 hr
 const msg91AuthKey = env.MSG91_AUTH_KEY;
 
 const corsOrigins = [
+  env.FRONTEND_URL,
   "https://synapse-local.adityasharma.live",
   "https://localport-3000.adityasharma.live",
   "https://alishanshowroom.vercel.app",

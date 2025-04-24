@@ -5,7 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
-  envDir: path.resolve(__dirname, "../../.env"),
+  envDir: path.resolve(__dirname, "../../"),
   plugins: [react(), tailwindcss()],
   server: {
     allowedHosts: [
