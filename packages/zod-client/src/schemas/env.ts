@@ -1,15 +1,16 @@
 import { z } from "zod";
+import path from "path"
 import dotenv from "dotenv";
 dotenv.config({
-  // path: __dirname
+  path: "../../.env"
 });
 
-console.log("From env.ts", __dirname);
+console.log("From env.ts");
 
 const serverEnvObj = z.object({
   // backend host url
   HOST_URL: z.string().url("Invalid Hostname"),
-  PORT: z.coerce.number(),
+  PORT: z.coerce.number().optional().default(5174),
   FRONTEND_URL: z.string().url(),
 
   // Database configuration
@@ -24,7 +25,7 @@ const serverEnvObj = z.object({
   DB_SSL_CA: z.string(),
 
   // Mail configuration
-  MAIL_API_KEY: z.string(),
+  MAIL_API_KEY: z.string().optional(),
   SMTP_HOST: z.string(),
   SMTP_PORT: z.coerce.number(),
   SMTP_USER: z.string(),
