@@ -94,11 +94,7 @@ const webEnvObj = z.object({
 });
 
 const serverEnv = serverEnvObj.parse(process.env);
-let webEnv;
-try {
-  webEnv = webEnvObj.parse(import.meta.env);
-} catch (error) {
-  console.log(error);
-}
+// @ts-ignore
+const webEnv = webEnvObj.parse(import.meta.env);
 
 export { serverEnv, webEnv };

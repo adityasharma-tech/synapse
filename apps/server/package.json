@@ -46,7 +46,6 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
-    "zod-client": "workspace:*",
     "@socket.io/redis-adapter": "^8.3.0",
     "@types/morgan": "^1.9.9",
     "amqplib": "^0.10.7",
@@ -59,7 +58,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "drizzle-orm": "^0.40.0",
+    "drizzle-client": "workspace:*",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
     "express-validator": "^7.2.1",
@@ -79,6 +78,7 @@
     "socket.io": "^4.8.1",
     "utf-8-validate": "^6.0.5",
     "uuid": "^11.1.0",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "zod-client": "workspace:*"
   }
 }

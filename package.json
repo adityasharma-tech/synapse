@@ -16,6 +16,8 @@
     "apps/*"
   ],
   "dependencies": {
+    "drizzle-orm": "^0.42.0",
+    "pg": "^8.15.5",
     "rollup": "4.39.0"
   },
   "overrides": {
