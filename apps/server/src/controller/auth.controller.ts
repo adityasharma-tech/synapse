@@ -1,7 +1,5 @@
-import { User } from "../schemas/user.sql";
 import { eq, or } from "drizzle-orm";
 import { logger } from "../lib/logger";
-import { TokenTable } from "../schemas/tokenTable.sql";
 import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
 import { ApiError, ErrCodes } from "../lib/ApiError";
@@ -18,6 +16,7 @@ import jose from "node-jose"
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { serverEnv } from "zod-client";
+import { TokenTable, User } from "drizzle-client";
 
 const loginHandler = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;

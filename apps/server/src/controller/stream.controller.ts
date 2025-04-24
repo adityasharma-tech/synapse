@@ -1,13 +1,8 @@
 import jwt from "jsonwebtoken";
-import StreamerRequest from "../schemas/streamerRequest.sql";
 
 import { Role } from "../lib/utils";
-import { User } from "../schemas/user.sql";
-import { Order } from "../schemas/order.sql";
 import { google } from "googleapis";
 import { logger } from "../lib/logger";
-import { Stream } from "../schemas/stream.sql";
-import { ChatMessage } from "../schemas/chats.sql";
 import { ApiResponse } from "../lib/ApiResponse";
 import { v4 as uuidv4 } from "uuid";
 import { asyncHandler } from "../lib/asyncHandler";
@@ -16,6 +11,8 @@ import { ApiError, ErrCodes } from "../lib/ApiError";
 import { createRazorpayOrder } from "../services/payments.service";
 import { and, count, eq, or, sql } from "drizzle-orm";
 import { serverEnv } from "zod-client";
+import { ChatMessage, Order, Stream, User } from "drizzle-client";
+import StreamerRequest from "drizzle-client/src/schemas/streamerRequest.sql";
 
 /**
  * Controller for streamers to start a new stream

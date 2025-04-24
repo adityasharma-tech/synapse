@@ -1,18 +1,16 @@
 import crypto from "crypto";
 
-import { User } from "../schemas/user.sql";
-import { Order } from "../schemas/order.sql";
 import { logger } from "../lib/logger";
 import { Server } from "socket.io";
 import { eq, sql } from "drizzle-orm";
 import { Cashfree } from "cashfree-pg";
 import { ApiError } from "../lib/ApiError";
-import { ChatMessage } from "../schemas/chats.sql";
 import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
 import { RMQ_PAYOUT_QUEUE, SocketEventEnum } from "../lib/constants";
 import { getRazorpayInstance } from "../services/payments.service";
 import { serverEnv } from "zod-client";
+import { ChatMessage, Order, User } from "drizzle-client";
 // import { getPayoutChannel } from "../services/queue.service"; // uncomment if you wanna use queue system
 
 Cashfree.XClientId = serverEnv.CF_PAYMENT_CLIENT_ID;

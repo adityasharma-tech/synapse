@@ -13,6 +13,6 @@
     "zod-client": "workspace:*"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc -b"
   }
 }

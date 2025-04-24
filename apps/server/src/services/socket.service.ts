@@ -1,10 +1,10 @@
 import { eq } from "drizzle-orm";
 import { logger } from "../lib/logger";
 import { ApiError } from "../lib/ApiError";
-import { ChatMessage } from "../schemas/chats.sql";
 import { Socket, Server } from "socket.io";
 import { SocketEventEnum } from "../lib/constants";
 import { hasPermission, Role } from "../lib/utils";
+import { ChatMessage } from "drizzle-client";
 
 // basic data types to support
 interface UserT {

@@ -5,10 +5,8 @@ import base64 from "base-64";
 import OrderId from "order-id";
 import Razorpay from "razorpay";
 import lodash from "lodash";
-import StreamerRequest from "../schemas/streamerRequest.sql";
 
 import { eq } from "drizzle-orm";
-import { Order } from "../schemas/order.sql";
 import { logger } from "../lib/logger";
 import { ApiError } from "../lib/ApiError";
 import { Accounts } from "razorpay/dist/types/accounts";
@@ -17,6 +15,8 @@ import { MiddlewareUserT } from "../lib/types";
 import { Cashfree, CreateOrderRequest } from "cashfree-pg";
 import { signStreamerVerficationToken } from "../lib/utils";
 import { serverEnv } from "zod-client";
+import { Order } from "drizzle-client";
+import StreamerRequest from "drizzle-client/src/schemas/streamerRequest.sql";
 
 /**
  * Cashfree configuration

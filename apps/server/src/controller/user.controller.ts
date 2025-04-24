@@ -1,14 +1,12 @@
-import StreamerRequest from "../schemas/streamerRequest.sql";
-
 import { eq } from "drizzle-orm";
-import { User } from "../schemas/user.sql";
-import { TokenTable } from "../schemas/tokenTable.sql";
 import { ApiResponse } from "../lib/ApiResponse";
 import { msg91AuthKey } from "../lib/constants";
 import { asyncHandler } from "../lib/asyncHandler";
 import { createBeneficiary } from "../services/payments.service";
 import { ApiError, ErrCodes } from "../lib/ApiError";
 import { uploadDocumentOnCloudinary } from "../lib/cloudinary";
+import { TokenTable, User } from "drizzle-client";
+import StreamerRequest from "drizzle-client/src/schemas/streamerRequest.sql";
 
 /**
  * For logout remove the cookies and clear the caches
