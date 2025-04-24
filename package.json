@@ -1,30 +1,32 @@
 {
-  "name": "synapse",
-  "module": "index.ts",
-  "devDependencies": {
-    "concurrently": "^9.1.2",
-    "husky": "^9.1.7",
-    "lerna": "^8.2.2",
-    "prettier": "^3.5.3"
-  },
-  "private": true,
-  "scripts": {
-    "build": "lerna run build",
-    "dev": "concurrently --names \"server,web\" --prefix-colors \"yellow,blue\" \"bun --cwd=apps/server dev\"  \"bun --cwd=apps/web dev\"",
-    "prepare": "husky",
-    "format": "prettier . --write"
-  },
-  "type": "module",
-  "workspaces": [
-    "packages/*",
-    "apps/*"
-  ],
-  "dependencies": {
-    "drizzle-orm": "^0.42.0",
-    "pg": "^8.15.5",
-    "rollup": "4.39.0"
-  },
-  "overrides": {
-    "rollup": "4.39.0"
-  }
+    "name": "synapse",
+    "module": "index.ts",
+    "devDependencies": {
+        "@commitlint/cli": "^19.8.0",
+        "@commitlint/config-conventional": "^19.8.0",
+        "concurrently": "^9.1.2",
+        "husky": "^9.1.7",
+        "lerna": "^8.2.2",
+        "prettier": "^3.5.3"
+    },
+    "private": true,
+    "scripts": {
+        "build": "lerna run build",
+        "dev": "concurrently --names \"server,web\" --prefix-colors \"yellow,blue\" \"bun --cwd=apps/server dev\"  \"bun --cwd=apps/web dev\"",
+        "prepare": "husky",
+        "format": "prettier . --write"
+    },
+    "type": "module",
+    "workspaces": [
+        "packages/*",
+        "apps/*"
+    ],
+    "dependencies": {
+        "drizzle-orm": "^0.42.0",
+        "pg": "^8.15.5",
+        "rollup": "4.39.0"
+    },
+    "overrides": {
+        "rollup": "4.39.0"
+    }
 }
