@@ -1,15 +1,15 @@
-import { webEnv } from "zod-client";
+import { env } from "./utils";
 
 // constant declaration for msg91 configuration
-const msgWidgetId = webEnv.VITE_WIDGET_ID;
-const msgAuthToken = webEnv.VITE_TOKEN_AUTH;
+const msgWidgetId = env.VITE_WIDGET_ID;
+const msgAuthToken = env.VITE_TOKEN_AUTH;
 
 //
-const hostBaseUrl = webEnv.VITE_BACKEND_HOST + "/api/v1";
+const hostBaseUrl = env.VITE_BACKEND_HOST + "/api/v1";
 const githubUrl = "https://github.com/adityasharma-tech/synapse.git";
 
 // razorpay key id import only
-const razorpayKeyId = webEnv.VITE_RAZORPAY_KEY_ID;
+const razorpayKeyId = env.VITE_RAZORPAY_KEY_ID;
 
 // socket events both on server side and client side, I also need to fix that so that
 // we can only need to update one time thte SocketEventEnum

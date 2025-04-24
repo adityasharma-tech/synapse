@@ -1,18 +1,21 @@
 import { ClassValue, clsx } from "clsx";
 import { useRef } from "react";
 import { twMerge } from "tailwind-merge";
+import { zodWebEnv } from "zod-client"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const env = zodWebEnv.parse(import.meta.env);
+
 const useDebounce = () => {
   // here debounceSeed is defined to keep track of the setTimout function
-  const debounceSeed = useRef<any | null>(null);
+  const debounceSeed = useRef<NodeJS.Timeout | null>(null);
   // a fucntion is created via useRef which
   // takes a function and a delay (in milliseconds) as an argument
   // which has a defalut value set to 200 , can be specified as per need
-  const debounceFunction = useRef((func: Function, timeout = 200) => {
+  const debounceFunction = useRef((func: () => void, timeout = 200) => {
     // checks if previosus timeout is present then it will clrear it
     if (debounceSeed.current) {
       clearTimeout(debounceSeed.current);
@@ -28,9 +31,9 @@ const useDebounce = () => {
 };
 
 const useThrottle = () => {
-  const throttleSeed = useRef<any>(null);
+  const throttleSeed = useRef<NodeJS.Timeout | null>(null);
 
-  const throttleFunction = useRef((func: Function, delay = 200) => {
+  const throttleFunction = useRef((func: () => void, delay = 200) => {
     if (!throttleSeed.current) {
       // Call the callback immediately for the first time only
       func();

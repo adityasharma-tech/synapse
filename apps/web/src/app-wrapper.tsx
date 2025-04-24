@@ -6,9 +6,9 @@ import { Provider } from "react-redux";
 import { store } from "./store";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Analytics } from "@vercel/analytics/react"
-import { webEnv } from "zod-client"
+import { env } from "./lib/utils";
 
-const googleClientId = webEnv.VITE_GOOGLE_CLIENT_ID!;
+const googleClientId = env.VITE_GOOGLE_CLIENT_ID;
 
 createRoot(document.getElementById("root")!).render(
   <GoogleOAuthProvider clientId={googleClientId}>

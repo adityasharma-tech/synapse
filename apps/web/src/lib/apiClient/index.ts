@@ -10,10 +10,10 @@ import {
   StartNewStreamPayloadT,
   VerifyEmailPayloadT,
 } from "./intefaces";
-import { webEnv } from "zod-client";
+import { env } from "../utils";
 
 // backend host
-const baseHost = webEnv.VITE_BACKEND_HOST;
+const baseHost = env.VITE_BACKEND_HOST;
 
 // axios configuration specifically for our backend
 const axiosConfig: CreateAxiosDefaults = {

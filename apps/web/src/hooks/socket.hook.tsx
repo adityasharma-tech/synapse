@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 import { useAppSelector } from "../store";
-import { webEnv } from "zod-client";
+import { env } from "../lib/utils";
 
 // socket context to hold the instance of sockets
 const SocketContext = createContext<{
@@ -16,7 +16,7 @@ const SocketContext = createContext<{
   socket: null,
 });
 
-const backendURL = webEnv.VITE_BACKEND_HOST;
+const backendURL = env.VITE_BACKEND_HOST;
 
 // socket provider to wrap the app to get the socket
 const SocketProvider = ({

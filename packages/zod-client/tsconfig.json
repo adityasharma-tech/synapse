@@ -7,8 +7,9 @@
     "moduleDetection": "force",
     "jsx": "react-jsx",
     "allowJs": true,
+    "noImplicitAny": false,
 
-    "rootDir": ".",
+    "rootDir": "./",
 
     "outDir": "./dist",
 

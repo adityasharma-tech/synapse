@@ -1,13 +1,10 @@
 import { z } from "zod";
-import path from "path"
 import dotenv from "dotenv";
 dotenv.config({
-  path: "../../.env"
+  path: "../../.env",
 });
 
-console.log("From env.ts");
-
-const serverEnvObj = z.object({
+const zodEnv = z.object({
   // backend host url
   HOST_URL: z.string().url("Invalid Hostname"),
   PORT: z.coerce.number().optional().default(5174),
@@ -78,24 +75,6 @@ const serverEnvObj = z.object({
   STREAMER_PAYOUT_CUT: z.coerce.number().default(0.9), // Example: 0.9 -> 90% of amount paid
 });
 
-const webEnvObj = z.object({
-  VITE_BACKEND_HOST: z.string().url("Invalid backend hostname"),
+const env = zodEnv.parse(process.env);
 
-  // config of msg91 otp service
-  VITE_WIDGET_ID: z.string(),
-  VITE_TOKEN_AUTH: z.string(),
-
-  // backend socket uri
-  VITE_SOCKET_URI: z.string().optional(),
-
-  // razorpay key id
-  VITE_RAZORPAY_KEY_ID: z.string(),
-
-  VITE_GOOGLE_CLIENT_ID: z.string(),
-});
-
-const serverEnv = serverEnvObj.parse(process.env);
-// @ts-ignore
-const webEnv = webEnvObj.parse(import.meta.env);
-
-export { serverEnv, webEnv };
+export { env };
