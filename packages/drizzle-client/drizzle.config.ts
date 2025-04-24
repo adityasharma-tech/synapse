@@ -1,16 +1,17 @@
 import { defineConfig } from "drizzle-kit";
+import { env } from "zod-client";
 
 export default defineConfig({
   out: "./drizzle",
   schema: "./src/schemas/index",
   dialect: "postgresql",
   dbCredentials: {
-    host: process.env.DB_HOST!,
-    port: +process.env.DB_PORT!,
-    database: process.env.DB_NAME!,
-    password: process.env.DB_PASSWORD!,
-    user: process.env.DB_USER!,
-    ssl: { ca: process.env.DB_SSL_CA!, rejectUnauthorized: false },
+    host: env.DB_HOST,
+    port: env.DB_PORT,
+    database: env.DB_NAME,
+    password: env.DB_PASSWORD,
+    user: env.DB_USER,
+    ssl: { ca: env.DB_SSL_CA, rejectUnauthorized: false },
   },
   casing: "snake_case",
 });

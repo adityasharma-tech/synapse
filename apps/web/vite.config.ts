@@ -1,8 +1,8 @@
-import { defineConfig } from "vite";
 import path from "path"
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-console.log(__dirname)
+
 // https://vite.dev/config/
 export default defineConfig({
   envDir: path.resolve(__dirname, "../../.env"),
@@ -17,7 +17,7 @@ export default defineConfig({
   base: "/",
   resolve: {
     alias: {
-      "zod-client": "../../../../packages/zod-client"
+      "zod-client": path.resolve(__dirname, "../../packages/zod-client")
     }
   },
 });
