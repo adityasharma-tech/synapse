@@ -3,12 +3,16 @@
   "module": "index.ts",
   "devDependencies": {
     "concurrently": "^9.1.2",
-    "lerna": "^8.2.2"
+    "husky": "^9.1.7",
+    "lerna": "^8.2.2",
+    "prettier": "^3.5.3"
   },
   "private": true,
   "scripts": {
     "build": "lerna run build",
-    "dev": "concurrently --names \"server,web\" --prefix-colors \"yellow,blue\" \"bun --cwd=apps/server dev\"  \"bun --cwd=apps/web dev\""
+    "dev": "concurrently --names \"server,web\" --prefix-colors \"yellow,blue\" \"bun --cwd=apps/server dev\"  \"bun --cwd=apps/web dev\"",
+    "prepare": "husky",
+    "format": "prettier . --write"
   },
   "type": "module",
   "workspaces": [
