@@ -1,5 +1,5 @@
 import { createClient as createRedisClient } from "redis";
-import { env } from "zod-client";
+import { env } from "@pkgs/zod-client";
 
 const redisClient = createRedisClient({
   url: env.REDIS_CONNECT_URI,

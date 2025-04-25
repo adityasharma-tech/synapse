@@ -1,6 +1,6 @@
 import fs from "fs";
 import { v2 as cloudinary } from "cloudinary";
-import { env } from "zod-client";
+import { env } from "@pkgs/zod-client";
 
 cloudinary.config({
   cloud_name: env.CLOUDINARY_CLOUD_NAME,

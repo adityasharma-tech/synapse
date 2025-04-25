@@ -6,8 +6,8 @@ import { and, eq } from "drizzle-orm";
 import { SocketEventEnum } from "../lib/constants";
 import { ApiError, ErrCodes } from "../lib/ApiError";
 import { ExtendedError, Socket } from "socket.io";
-import { env } from "zod-client";
-import { Stream, User } from "drizzle-client";
+import { env } from "@pkgs/zod-client";
+import { Stream, User } from "@pkgs/drizzle-client";
 
 /**
  * @description A function to emit the socket event also disconnecting it so that user can't make any socket request.

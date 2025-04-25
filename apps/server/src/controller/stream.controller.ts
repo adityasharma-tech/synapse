@@ -10,9 +10,9 @@ import { MiddlewareUserT } from "../lib/types";
 import { ApiError, ErrCodes } from "../lib/ApiError";
 import { createRazorpayOrder } from "../services/payments.service";
 import { and, count, eq, or, sql } from "drizzle-orm";
-import { env } from "zod-client";
-import { ChatMessage, Order, Stream, User } from "drizzle-client";
-import StreamerRequest from "drizzle-client/src/schemas/streamerRequest.sql";
+import { env } from "@pkgs/zod-client";
+import { ChatMessage, Order, Stream, User } from "@pkgs/drizzle-client";
+import { StreamerRequest } from "@pkgs/drizzle-client";
 
 /**
  * Controller for streamers to start a new stream

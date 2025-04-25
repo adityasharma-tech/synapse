@@ -1,7 +1,7 @@
 import { CookieOptions } from "express";
 import jwt from "jsonwebtoken";
 import { MiddlewareUserT } from "./types";
-import { env } from "zod-client";
+import { env } from "@pkgs/zod-client";
 // Roles
 export type Role = keyof typeof ROLES;
 type Permission = (typeof ROLES)[Role][number];
@@ -84,11 +84,9 @@ function generateUsername() {
  * @returns object containing refreshToken, AccessToken and cookieOptions
  */
 function getSigningTokens(payload: Partial<MiddlewareUserT>) {
-  const refreshToken = jwt.sign(
-    { id: payload.id },
-    env.REFRESH_SECRET_KEY,
-    { expiresIn: "4d" }
-  );
+  const refreshToken = jwt.sign({ id: payload.id }, env.REFRESH_SECRET_KEY, {
+    expiresIn: "4d",
+  });
   const accessToken = jwt.sign(payload, env.ACCESS_SECRET_KEY, {
     expiresIn: "5min",
   });

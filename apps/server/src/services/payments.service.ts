@@ -13,9 +13,8 @@ import { Stakeholders } from "razorpay/dist/types/stakeholders";
 import { MiddlewareUserT } from "../lib/types";
 import { Cashfree, CreateOrderRequest } from "cashfree-pg";
 import { signStreamerVerficationToken } from "../lib/utils";
-import { env } from "zod-client";
-import { Order } from "drizzle-client";
-import StreamerRequest from "drizzle-client/src/schemas/streamerRequest.sql";
+import { env } from "@pkgs/zod-client";
+import { Order, StreamerRequest } from "@pkgs/drizzle-client";
 
 /**
  * Cashfree configuration
@@ -23,10 +22,7 @@ import StreamerRequest from "drizzle-client/src/schemas/streamerRequest.sql";
 const cashfreeClientHeaders = new Headers();
 cashfreeClientHeaders.set("x-api-version", env.CF_PAYOUT_XAPI_VERSION);
 cashfreeClientHeaders.set("x-client-id", env.CF_PAYOUT_CLIENT_ID);
-cashfreeClientHeaders.set(
-  "x-client-secret",
-  env.CF_PAYOUT_CLIENT_SECRET
-);
+cashfreeClientHeaders.set("x-client-secret", env.CF_PAYOUT_CLIENT_SECRET);
 cashfreeClientHeaders.set("Content-Type", "application/json");
 
 // specifically for cashfree-pg
@@ -101,7 +97,7 @@ const createBeneficiary: (p: CreateBeneficiaryPropT) => Promise<string> =
           "https://sandbox.cashfree.com/payout/beneficiary",
           options
         );
-        const response = await result.json();
+        const response: any = await result.json();
         if (response["beneficiary_status"] != "VERIFIED")
           throw new ApiError(400, "Failed to create new beneficiary.");
 

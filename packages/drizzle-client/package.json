@@ -1,14 +1,22 @@
 {
-    "name": "@synapse/drizzle-client",
-    "module": "index.ts",
+    "name": "@pkgs/drizzle-client",
+    "module": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "main": "dist/index.js",
+    "type": "commonjs",
     "version": "0.0.1",
-    "type": "module",
     "private": true,
-    "devDependencies": {},
+    "exports": {
+        ".": {
+            "default": "./dist/index.js",
+            "require": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        }
+    },
     "peerDependencies": {
         "typescript": "^5"
     },
     "scripts": {
-        "build": "tsc -b"
+        "build": "tsc"
     }
 }

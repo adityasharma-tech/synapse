@@ -5,8 +5,7 @@ import { asyncHandler } from "../lib/asyncHandler";
 import { createBeneficiary } from "../services/payments.service";
 import { ApiError, ErrCodes } from "../lib/ApiError";
 import { uploadDocumentOnCloudinary } from "../lib/cloudinary";
-import { TokenTable, User } from "drizzle-client";
-import StreamerRequest from "drizzle-client/src/schemas/streamerRequest.sql";
+import { TokenTable, User, StreamerRequest } from "@pkgs/drizzle-client";
 
 /**
  * For logout remove the cookies and clear the caches

@@ -4,8 +4,8 @@ import { eq } from "drizzle-orm";
 import { logger } from "../lib/logger";
 import { asyncHandler } from "../lib/asyncHandler";
 import { ApiError, ErrCodes } from "../lib/ApiError";
-import { env } from "zod-client";
-import { TokenTable } from "drizzle-client";
+import { env } from "@pkgs/zod-client";
+import { TokenTable } from "@pkgs/drizzle-client";
 
 /**
  * authentication middleware to use the protected/secured routes to the authorized user only
@@ -18,10 +18,7 @@ const authMiddleware = asyncHandler(async (req, _, next) => {
   if (!accessToken)
     throw new ApiError(401, "Unauthorized", ErrCodes.UNAUTHORIZED);
   try {
-    const decodedUser: any = jwt.verify(
-      accessToken,
-      env.ACCESS_SECRET_KEY
-    );
+    const decodedUser: any = jwt.verify(accessToken, env.ACCESS_SECRET_KEY);
     req.user = decodedUser;
   } catch (error: any) {
     logger.error(`Error during accessing middleware: ${error.message}`);
@@ -59,10 +56,7 @@ const streamerAuthMiddeware = asyncHandler(async (req, _, next) => {
     );
 
   try {
-    jwt.verify(
-      tokens[0].streamerVerificationToken,
-      env.STREAMER_SECRET_KEY
-    );
+    jwt.verify(tokens[0].streamerVerificationToken, env.STREAMER_SECRET_KEY);
     // req.streamer = JSON.parse(JSON.stringify(streamerPayload));
   } catch (error: any) {
     logger.error(`Error during accessing middleware: ${error.message}`);

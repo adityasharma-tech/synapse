@@ -12,11 +12,11 @@ import {
 
 import axios from "axios";
 import crpyto from "crypto";
-import jose from "node-jose"
+import jose from "node-jose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { env } from "zod-client";
-import { TokenTable, User } from "drizzle-client";
+import { env } from "@pkgs/zod-client";
+import { TokenTable, User } from "@pkgs/drizzle-client";
 
 const loginHandler = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
@@ -78,8 +78,7 @@ const loginHandler = asyncHandler(async (req, res) => {
   });
 
   if (!isPasswordCorrect) {
-
-    if(user.lastLoginMethod != "email-password")
+    if (user.lastLoginMethod != "email-password")
       throw new ApiError(400, "Try sso login.", ErrCodes.INVALID_CREDS);
 
     throw new ApiError(401, "Invalid credentials!", ErrCodes.INVALID_CREDS);
@@ -87,11 +86,9 @@ const loginHandler = asyncHandler(async (req, res) => {
 
   await db
     .update(User)
-    .set({
-      lastLoginMethod: "email-password"
-    })
+    .set({ lastLoginMethod: "email-password" })
     .where(eq(User.id, user.id))
-    .execute()
+    .execute();
 
   await db
     .update(TokenTable)
@@ -499,10 +496,12 @@ const googleSignupHandler = asyncHandler(async (req, res) => {
   logger.debug(`Google public key request: ${JSON.stringify(data)}`);
 
   const publicKey = await jose.JWK.asKeyStore(data);
-  
-  logger.debug(`Google pub key: ${publicKey}`)
-  
-  const result = await jose.JWS.createVerify(publicKey).verify(reqBody.credential)
+
+  logger.debug(`Google pub key: ${publicKey}`);
+
+  const result = await jose.JWS.createVerify(publicKey).verify(
+    reqBody.credential
+  );
   const payload = JSON.parse(result.payload.toString("utf-8")) as {
     aud: string;
     email: string;
@@ -512,7 +511,12 @@ const googleSignupHandler = asyncHandler(async (req, res) => {
     exp: number;
   };
 
-  if(payload.exp * 1000 < Date.now()) throw new ApiError(401, "You are late. Token already expired.", ErrCodes.ACCESS_TOKEN_EXPIRED);
+  if (payload.exp * 1000 < Date.now())
+    throw new ApiError(
+      401,
+      "You are late. Token already expired.",
+      ErrCodes.ACCESS_TOKEN_EXPIRED
+    );
 
   if (payload.aud != env.GOOGLE_CLIENT_ID)
     throw new ApiError(401, "Failed to authorize!");
@@ -523,7 +527,12 @@ const googleSignupHandler = asyncHandler(async (req, res) => {
     .where(eq(User.email, payload.email))
     .execute();
 
-  if (usr) throw new ApiError(400, "User already exists. Please login.", ErrCodes.USER_EXISTS);
+  if (usr)
+    throw new ApiError(
+      400,
+      "User already exists. Please login.",
+      ErrCodes.USER_EXISTS
+    );
 
   const username = `${payload.given_name.trim().replace(" ", "").toLowerCase()}-${generateUsername()}`;
 
@@ -586,7 +595,8 @@ const googleLoginHandler = asyncHandler(async (req, res) => {
     select_by: string;
   };
 
-  if(!reqBody.credential || !reqBody.clientId || !reqBody.select_by) throw new ApiError(400, "Validation Error", ErrCodes.VALIDATION_ERR);
+  if (!reqBody.credential || !reqBody.clientId || !reqBody.select_by)
+    throw new ApiError(400, "Validation Error", ErrCodes.VALIDATION_ERR);
 
   logger.debug(`Req body: ${JSON.stringify(reqBody)}`);
 
@@ -598,10 +608,12 @@ const googleLoginHandler = asyncHandler(async (req, res) => {
   logger.debug(`Google public key request: ${JSON.stringify(data)}`);
 
   const publicKey = await jose.JWK.asKeyStore(data);
-  
-  logger.debug(`Google pub key: ${publicKey}`)
-  
-  const result = await jose.JWS.createVerify(publicKey).verify(reqBody.credential)
+
+  logger.debug(`Google pub key: ${publicKey}`);
+
+  const result = await jose.JWS.createVerify(publicKey).verify(
+    reqBody.credential
+  );
   const payload = JSON.parse(result.payload.toString("utf-8")) as {
     aud: string;
     email: string;
@@ -611,7 +623,12 @@ const googleLoginHandler = asyncHandler(async (req, res) => {
     exp: number;
   };
 
-  if(payload.exp * 1000 < Date.now()) throw new ApiError(401, "You are late. Token already expired.", ErrCodes.ACCESS_TOKEN_EXPIRED);
+  if (payload.exp * 1000 < Date.now())
+    throw new ApiError(
+      401,
+      "You are late. Token already expired.",
+      ErrCodes.ACCESS_TOKEN_EXPIRED
+    );
 
   if (payload.aud != env.GOOGLE_CLIENT_ID)
     throw new ApiError(401, "Failed to authorize!");
@@ -622,15 +639,18 @@ const googleLoginHandler = asyncHandler(async (req, res) => {
     .where(eq(User.email, payload.email))
     .execute();
 
-  if (!usr) throw new ApiError(400, "User not found. Please signup first.", ErrCodes.DB_ROW_NOT_FOUND);
+  if (!usr)
+    throw new ApiError(
+      400,
+      "User not found. Please signup first.",
+      ErrCodes.DB_ROW_NOT_FOUND
+    );
 
   await db
     .update(User)
-    .set({
-      lastLoginMethod: "sso/google"
-    })
+    .set({ lastLoginMethod: "sso/google" })
     .where(eq(User.id, usr.id))
-    .execute()
+    .execute();
 
   const { accessToken, refreshToken, cookieOptions } = getSigningTokens({
     id: usr.id,
@@ -660,9 +680,7 @@ const googleLoginHandler = asyncHandler(async (req, res) => {
 
   res
     .status(200)
-    .json(
-      new ApiResponse(200, { user: usr }, "User logged in successfully")
-    );
+    .json(new ApiResponse(200, { user: usr }, "User logged in successfully"));
 });
 
 export {

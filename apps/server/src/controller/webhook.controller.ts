@@ -9,8 +9,8 @@ import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
 import { SocketEventEnum } from "../lib/constants";
 import { getRazorpayInstance } from "../services/payments.service";
-import { env } from "zod-client";
-import { ChatMessage, Order, User } from "drizzle-client";
+import { env } from "@pkgs/zod-client";
+import { ChatMessage, Order, User } from "@pkgs/drizzle-client";
 // import { getPayoutChannel } from "../services/queue.service"; // uncomment if you wanna use queue system
 
 Cashfree.XClientId = env.CF_PAYMENT_CLIENT_ID;

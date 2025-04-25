@@ -1,6 +1,6 @@
 import amqplib from "amqplib";
 import { RMQ_PAYOUT_QUEUE } from "../lib/constants";
-import { env } from "zod-client";
+import { env } from "@pkgs/zod-client";
 
 /**
  * TODO: Work still left in queuing system
@@ -11,8 +11,7 @@ let payoutChannel: amqplib.Channel;
 
 async function initRmq() {
   try {
-    if (!connection)
-      connection = await amqplib.connect(env.RABBITMQ_URI!);
+    if (!connection) connection = await amqplib.connect(env.RABBITMQ_URI!);
   } catch (error: any) {
     console.error(`Failed to connect to rabbitmq server: ${error.message}`);
     process.exit(1);

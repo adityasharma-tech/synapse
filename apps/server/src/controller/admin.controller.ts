@@ -1,5 +1,5 @@
 import fs from "fs/promises";
-import { TokenTable, User } from "drizzle-client";
+import { TokenTable, User } from "@pkgs/drizzle-client";
 
 import { eq } from "drizzle-orm";
 import { ApiError } from "../lib/ApiError";
@@ -7,7 +7,7 @@ import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
 import { setupRazorpayAccount } from "../services/payments.service";
 import { signStreamerVerficationToken } from "../lib/utils";
-import StreamerRequest from "drizzle-client/src/schemas/streamerRequest.sql";
+import { StreamerRequest } from "@pkgs/drizzle-client";
 
 /**
  * Controller to get all stream applications and send all required data to the admin dashboard

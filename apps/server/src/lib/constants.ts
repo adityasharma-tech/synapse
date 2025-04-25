@@ -1,4 +1,4 @@
-import { env } from "zod-client";
+import { env } from "@pkgs/zod-client";
 
 const emailVerificationTokenExpiry = new Date(Date.now() + 6 * 60 * 60); // 6 hr
 
