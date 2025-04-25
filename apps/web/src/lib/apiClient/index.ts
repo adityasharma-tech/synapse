@@ -1,27 +1,27 @@
 import axios, { CreateAxiosDefaults } from "axios";
 import {
-  GetAllStreamsPayloadT,
-  GetStreamByIdPayloadT,
-  LoginUserPayloadT,
-  MakePremiumChatOrderPayloadT,
-  ResendEmailVerificationPayloadT,
-  SignupUserPayloadT,
-  SSOGoogleAuthPayloadT,
-  StartNewStreamPayloadT,
-  VerifyEmailPayloadT,
+    GetAllStreamsPayloadT,
+    GetStreamByIdPayloadT,
+    LoginUserPayloadT,
+    MakePremiumChatOrderPayloadT,
+    ResendEmailVerificationPayloadT,
+    SignupUserPayloadT,
+    SSOGoogleAuthPayloadT,
+    StartNewStreamPayloadT,
+    VerifyEmailPayloadT,
 } from "./intefaces";
-import { env } from "zod-client/client";
+import { env } from "@pkgs/zod-client/client";
 
 // backend host
 const baseHost = env.VITE_BACKEND_HOST;
 
 // axios configuration specifically for our backend
 const axiosConfig: CreateAxiosDefaults = {
-  baseURL: `${baseHost}/api/v1`,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  withCredentials: true, // adding this will also send/recieve secure cookies from server
+    baseURL: `${baseHost}/api/v1`,
+    headers: {
+        "Content-Type": "application/json",
+    },
+    withCredentials: true, // adding this will also send/recieve secure cookies from server
 };
 
 // ...
@@ -31,32 +31,32 @@ const apiClient = axios.create(axiosConfig);
 // here I am using response middlware which will run after making a request but
 // before returning the reponse data
 apiClient.interceptors.response.use(
-  (response) => Promise.resolve(response),
-  async (error) => {
-    if (
-      error.response &&
-      error.response.data.errType === "ACCESS_TOKEN_EXPIRED"
-    ) {
-      try {
-        await apiClient.post("/auth/refresh-token");
-        return apiClient(error.config); // retry the previous request
-      } catch (refreshTokenErr) {
-        console.error(`Error updating refresh token: ${error.message}`);
-        return Promise.reject(refreshTokenErr);
-      }
+    (response) => Promise.resolve(response),
+    async (error) => {
+        if (
+            error.response &&
+            error.response.data.errType === "ACCESS_TOKEN_EXPIRED"
+        ) {
+            try {
+                await apiClient.post("/auth/refresh-token");
+                return apiClient(error.config); // retry the previous request
+            } catch (refreshTokenErr) {
+                console.error(`Error updating refresh token: ${error.message}`);
+                return Promise.reject(refreshTokenErr);
+            }
+        }
+        return Promise.reject(error);
     }
-    return Promise.reject(error);
-  },
 );
 
 // get user info
 function getUser() {
-  return apiClient.get("/user");
+    return apiClient.get("/user");
 }
 
 // logout user
 function logoutUser() {
-  return apiClient.get("/user/logout");
+    return apiClient.get("/user/logout");
 }
 
 /**
@@ -66,100 +66,102 @@ function logoutUser() {
  * @returns {Promise} - promise with some data
  */
 function loginUser(payload: LoginUserPayloadT) {
-  return apiClient.post("/auth/login", payload);
+    return apiClient.post("/auth/login", payload);
 }
 
 function signupUser(payload: SignupUserPayloadT) {
-  return apiClient.post("/auth/register", payload);
+    return apiClient.post("/auth/register", payload);
 }
 
 function resendEmailVerification(payload: ResendEmailVerificationPayloadT) {
-  return apiClient.post("/auth/resend-email", payload);
+    return apiClient.post("/auth/resend-email", payload);
 }
 
 function verifyEmail(payload: VerifyEmailPayloadT) {
-  return apiClient.get(
-    `/auth/verify?verificationToken=${payload.verificationToken}`,
-  );
+    return apiClient.get(
+        `/auth/verify?verificationToken=${payload.verificationToken}`
+    );
 }
 
 function startNewStream(payload: StartNewStreamPayloadT) {
-  return apiClient.post("/streams", payload);
+    return apiClient.post("/streams", payload);
 }
 
 function getAllStreams(payload?: GetAllStreamsPayloadT) {
-  const searchParams = new URLSearchParams();
-  searchParams.set("page", String(payload?.page ?? ""));
-  searchParams.set("limit", String(payload?.limit ?? ""));
-  return apiClient.get(`/streams?${searchParams}`);
+    const searchParams = new URLSearchParams();
+    searchParams.set("page", String(payload?.page ?? ""));
+    searchParams.set("limit", String(payload?.limit ?? ""));
+    return apiClient.get(`/streams?${searchParams}`);
 }
 
 function applyForStreamer(payload: FormData) {
-  return apiClient.post("/user/apply-streamer", payload, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+    return apiClient.post("/user/apply-streamer", payload, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
 }
 
 function getStreamById(payload: GetStreamByIdPayloadT) {
-  return apiClient.get(`/streams/${payload.streamId}`);
+    return apiClient.get(`/streams/${payload.streamId}`);
 }
 
 function getAllChatByStreamId(payload: GetStreamByIdPayloadT) {
-  return apiClient.get(`/streams/${payload.streamId}/chats`);
+    return apiClient.get(`/streams/${payload.streamId}/chats`);
 }
 
 function createPremiumChatOrder(payload: MakePremiumChatOrderPayloadT) {
-  return apiClient.post(`/streams/${payload.streamId}/premium-chat`, payload);
+    return apiClient.post(`/streams/${payload.streamId}/premium-chat`, payload);
 }
 
 function fetchAllApplications() {
-  return apiClient.get(`/admin/streamer-applications`);
+    return apiClient.get(`/admin/streamer-applications`);
 }
 
 function downloadApplicationAsCsv() {
-  return apiClient.get(`/admin/applications-csv`);
+    return apiClient.get(`/admin/applications-csv`);
 }
 
 function acceptApplication(email: string) {
-  return apiClient.post("/admin/accept-application", {
-    email,
-  });
+    return apiClient.post("/admin/accept-application", {
+        email,
+    });
 }
 
 function getYoutubeVideoData(videoUrl: string) {
-  const searchParams = new URLSearchParams();
-  searchParams.set("videoUrl", videoUrl);
-  return apiClient.post(`/streams/fetchYoutubeData?${searchParams.toString()}`);
+    const searchParams = new URLSearchParams();
+    searchParams.set("videoUrl", videoUrl);
+    return apiClient.post(
+        `/streams/fetchYoutubeData?${searchParams.toString()}`
+    );
 }
 
-function ssoGoogleLogin(payload: SSOGoogleAuthPayloadT){
-  return apiClient.post(`/auth/sso/google/login`, payload)
+function ssoGoogleLogin(payload: SSOGoogleAuthPayloadT) {
+    return apiClient.post(`/auth/sso/google/login`, payload);
 }
 
-function ssoGoogleRegister(payload: SSOGoogleAuthPayloadT){
-  return apiClient.post(`/auth/sso/google/register`, payload)
+function ssoGoogleRegister(payload: SSOGoogleAuthPayloadT) {
+    return apiClient.post(`/auth/sso/google/register`, payload);
 }
 
 export {
-  getUser,
-  loginUser,
-  apiClient,
-  logoutUser,
-  signupUser,
-  verifyEmail,
-  getStreamById,
-  getAllStreams,
-  ssoGoogleLogin,
-  startNewStream,
-  applyForStreamer,
-  ssoGoogleRegister,
-  acceptApplication,
-  getYoutubeVideoData,
-  fetchAllApplications,
-  getAllChatByStreamId,
-  createPremiumChatOrder,
-  resendEmailVerification,
-  downloadApplicationAsCsv
+    getUser,
+    loginUser,
+    apiClient,
+    logoutUser,
+    signupUser,
+    verifyEmail,
+    getStreamById,
+    getAllStreams,
+    ssoGoogleLogin,
+    startNewStream,
+    applyForStreamer,
+    ssoGoogleRegister,
+    acceptApplication,
+    getYoutubeVideoData,
+    fetchAllApplications,
+    getAllChatByStreamId,
+    createPremiumChatOrder,
+    resendEmailVerification,
+    downloadApplicationAsCsv,
 };

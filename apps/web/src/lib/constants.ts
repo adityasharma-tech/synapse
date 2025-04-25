@@ -1,4 +1,4 @@
-import { env } from "zod-client/client";
+import { env } from "@pkgs/zod-client/client";
 
 // constant declaration for msg91 configuration
 const msgWidgetId = env.VITE_WIDGET_ID;
@@ -15,29 +15,29 @@ const razorpayKeyId = env.VITE_RAZORPAY_KEY_ID;
 // we can only need to update one time thte SocketEventEnum
 // so that it will sync to the server and client side both.
 const SocketEventEnum = Object.freeze({
-  CONNECTED_EVENT: "connected",
-  DISCONNECT_EVENT: "disconnected",
-  JOIN_STREAM_EVENT: "stream:join",
-  LEAVE_STREAM_EVENT: "stream:leave",
-  SOCKET_ERROR_EVENT: "socket:error",
-  STREAM_TYPING_EVENT: "stream:typing",
-  STREAM_STOP_TYPING_EVENT: "stream:stop-typing",
-  CHAT_CREATE_EVENT: "stream:chat:create",
-  CHAT_DELETE_EVENT: "stream:chat:delete",
-  CHAT_UPDATE_EVENT: "stream:chat:update",
-  CHAT_UPVOTE_EVENT: "stream:chat:upvote",
-  CHAT_DOWNVOTE_EVENT: "stream:chat:downvote",
-  PAYMENT_CHAT_CREATE_EVENT: "stream:chat-payment:create",
-  CHAT_MARK_DONE: "stream:chat:mark-done",
-  CHAT_UPVOTE_DOWN_EVENT: "stream:chat:upvote-down",
-  CHAT_DOWNVOTE_DOWN_EVENT: "stream:chat:downvote-down",
+    CONNECTED_EVENT: "connected",
+    DISCONNECT_EVENT: "disconnected",
+    JOIN_STREAM_EVENT: "stream:join",
+    LEAVE_STREAM_EVENT: "stream:leave",
+    SOCKET_ERROR_EVENT: "socket:error",
+    STREAM_TYPING_EVENT: "stream:typing",
+    STREAM_STOP_TYPING_EVENT: "stream:stop-typing",
+    CHAT_CREATE_EVENT: "stream:chat:create",
+    CHAT_DELETE_EVENT: "stream:chat:delete",
+    CHAT_UPDATE_EVENT: "stream:chat:update",
+    CHAT_UPVOTE_EVENT: "stream:chat:upvote",
+    CHAT_DOWNVOTE_EVENT: "stream:chat:downvote",
+    PAYMENT_CHAT_CREATE_EVENT: "stream:chat-payment:create",
+    CHAT_MARK_DONE: "stream:chat:mark-done",
+    CHAT_UPVOTE_DOWN_EVENT: "stream:chat:upvote-down",
+    CHAT_DOWNVOTE_DOWN_EVENT: "stream:chat:downvote-down",
 });
 
 export {
-  msgAuthToken,
-  msgWidgetId,
-  hostBaseUrl,
-  SocketEventEnum,
-  razorpayKeyId,
-  githubUrl,
+    msgAuthToken,
+    msgWidgetId,
+    hostBaseUrl,
+    SocketEventEnum,
+    razorpayKeyId,
+    githubUrl,
 };

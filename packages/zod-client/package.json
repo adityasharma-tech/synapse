@@ -11,6 +11,11 @@
             "default": "./dist/index.js",
             "require": "./dist/index.js",
             "types": "./dist/index.d.ts"
+        },
+        "./client": {
+            "default": "./dist/client/index.js",
+            "require": "./dist/client/index.js",
+            "types": "./dist/client/index.d.ts"
         }
     },
     "devDependencies": {},
