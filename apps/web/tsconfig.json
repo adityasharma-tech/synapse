@@ -1,8 +1,17 @@
 {
-  // "rollup/parseAst": ["../../node_modules/rollup/dist/parseAst"],
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ]
+    // "rollup/parseAst": ["../../node_modules/rollup/dist/parseAst"],
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "composite": true,
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["./src/*"]
+        },
+        "strict": true
+    },
+    "files": [],
+    "references": [
+        { "path": "./tsconfig.app.json" },
+        { "path": "./tsconfig.node.json" }
+    ]
 }

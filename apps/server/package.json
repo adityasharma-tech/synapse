@@ -1,10 +1,10 @@
 {
-  "name": "server",
+  "name": "@synapse/server",
   "version": "0.0.1",
   "module": "index.ts",
   "type": "commonjs",
   "scripts": {
-    "dev": "bun index.ts",
+    "dev": "yarn build; yarn start",
     "build": "tsc -b",
     "start": "node dist/index.js",
     "format": "prettier . --write"
@@ -58,7 +58,6 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "drizzle-client": "workspace:*",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
     "express-validator": "^7.2.1",
@@ -78,7 +77,6 @@
     "socket.io": "^4.8.1",
     "utf-8-validate": "^6.0.5",
     "uuid": "^11.1.0",
-    "winston": "^3.17.0",
-    "zod-client": "workspace:*"
+    "winston": "^3.17.0"
   }
 }

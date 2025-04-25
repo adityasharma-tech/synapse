@@ -1,18 +1,17 @@
 {
-  "name": "zod-client",
-  "module": "src/index.ts",
-  "type": "module",
-  "private": true,
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "dependencies": {
-    "zod": "^3.24.3"
-  },
-  "scripts": {
-    "build": "tsc -b"
-  }
+    "name": "zod-client",
+    "module": "src/index.ts",
+    "type": "module",
+    "version": "0.0.1",
+    "private": true,
+    "devDependencies": {},
+    "peerDependencies": {
+        "typescript": "^5"
+    },
+    "dependencies": {
+        "zod": "^3.24.3"
+    },
+    "scripts": {
+        "build": "tsc -b"
+    }
 }

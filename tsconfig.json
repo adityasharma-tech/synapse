@@ -1,18 +1,24 @@
 {
-  "compilerOptions": {
-    "lib": ["ESNext"],
-    "module": "nodenext",
-    "target": "esnext",
-    "moduleResolution": "nodenext",
-    "noImplicitAny": false,
-    "downlevelIteration": true,
-    "skipLibCheck": true,
-    "jsx": "preserve",
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowJs": true,
-    "types": [
-      "bun-types" // add Bun global
-    ],
-  }
+    "compilerOptions": {
+        "lib": ["ESNext"],
+        "module": "nodenext",
+        "target": "esnext",
+        "moduleResolution": "nodenext",
+        "noImplicitAny": false,
+        "downlevelIteration": true,
+        "skipLibCheck": true,
+        "jsx": "preserve",
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "allowJs": true,
+        "paths": {
+            "@pkgs/*": ["./packages/*"]
+        }
+    },
+    "references": [
+        { "path": "./apps/server" },
+        { "path": "./apps/web" },
+        { "path": "./packages/drizzle-client" },
+        { "path": "./packages/zod-client" }
+    ]
 }

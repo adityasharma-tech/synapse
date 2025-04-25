@@ -1,18 +1,14 @@
 {
-  "name": "drizzle-client",
-  "module": "index.ts",
-  "type": "module",
-  "private": true,
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "dependencies": {
-    "zod-client": "workspace:*"
-  },
-  "scripts": {
-    "build": "tsc -b"
-  }
+    "name": "@synapse/drizzle-client",
+    "module": "index.ts",
+    "version": "0.0.1",
+    "type": "module",
+    "private": true,
+    "devDependencies": {},
+    "peerDependencies": {
+        "typescript": "^5"
+    },
+    "scripts": {
+        "build": "tsc -b"
+    }
 }
