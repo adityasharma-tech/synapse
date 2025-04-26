@@ -27,19 +27,22 @@ COPY ./packages/drizzle-client ./packages/drizzle-client
 RUN yarn build:packages
 RUN yarn build:apps
 
-FROM builder AS runner
+# FROM builder AS runner
 
-WORKDIR /home/app
+# WORKDIR /home/app
 
-COPY --from=builder /home/build/apps/server/dist /home/app/apps/server/dist
-COPY --from=builder /home/build/apps/web/dist /home/app/apps/web/dist
+# COPY --from=builder /home/build/node_modules /home/app/node_modules
+# COPY --from=builder /home/build/apps/server/node_modules /home/app/apps/server/node_modules
+# COPY --from=builder /home/build/apps/web/node_modules /home/app/apps/web/node_modules
 
-COPY --from=builder /home/build/packages /home/app/packages
+# COPY --from=builder /home/build/package.json /home/app/
+# COPY --from=builder /home/build/yarn.lock /home/app/
 
-COPY --from=builder /home/build/package.json /home/app/
+# COPY --from=builder /home/build/packages /home/app/packages
 
-COPY --from=builder /home/build/node_modules /home/app/node_modules
-COPY --from=builder /home/build/apps/server/node_modules /home/app/apps/server/node_modules
-COPY --from=builder /home/build/apps/web/node_modules /home/app/apps/web/node_modules
+# COPY --from=builder /home/build/apps/server/dist /home/app/apps/server/dist
+# COPY --from=builder /home/build/apps/web/dist /home/app/apps/web/dist
+
+
 
 CMD [ "yarn", "start" ]

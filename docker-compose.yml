@@ -1,0 +1,8 @@
+services:
+  main-service:
+    container_name: synapse
+    expose:
+      - 5173:5173
+    build: .
+    env_file:
+      - .env
