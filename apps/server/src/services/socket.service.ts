@@ -4,7 +4,7 @@ import { ApiError } from "../lib/ApiError";
 import { Socket, Server } from "socket.io";
 import { SocketEventEnum } from "../lib/constants";
 import { hasPermission, Role } from "../lib/utils";
-import { ChatMessage } from "drizzle-client";
+import { ChatMessage } from "@pkgs/drizzle-client";
 
 // basic data types to support
 interface UserT {

@@ -12,6 +12,8 @@ import {
 } from "./intefaces";
 import { env } from "@pkgs/zod-client/client";
 
+console.log("asdfasdfasdfasdfasdf", env);
+
 // backend host
 const baseHost = env.VITE_BACKEND_HOST;
 

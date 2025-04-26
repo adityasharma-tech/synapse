@@ -17,7 +17,7 @@ export default defineConfig({
     base: "/",
     resolve: {
         alias: {
-            "@pkgs/*": path.resolve(__dirname, "../../packages/*"),
+            "@pkgs/*": "../../packages/*",
         },
     },
 });

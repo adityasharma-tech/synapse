@@ -8,14 +8,14 @@
     "private": true,
     "exports": {
         ".": {
+            "types": "./dist/index.d.ts",
             "default": "./dist/index.js",
-            "require": "./dist/index.js",
-            "types": "./dist/index.d.ts"
+            "require": "./dist/index.js"
         },
         "./client": {
+            "types": "./dist/client/index.d.ts",
             "default": "./dist/client/index.js",
-            "require": "./dist/client/index.js",
-            "types": "./dist/client/index.d.ts"
+            "require": "./dist/client/index.js"
         }
     },
     "devDependencies": {},
