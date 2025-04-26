@@ -13,6 +13,7 @@ import { ApiResponse } from "./lib/ApiResponse";
 import { socketHandler } from "./services/socket.service";
 // import { createAdapter } from "@socket.io/redis-adapter";
 import { Server as SocketIO } from "socket.io";
+import { DrizzleClient } from "@pkgs/drizzle-client";
 import { socketAuthMiddleware } from "./middleware/socket.middleware";
 import { corsOrigins, SocketEventEnum } from "./lib/constants";
 
@@ -87,7 +88,6 @@ import userRouter from "./routes/user.routes";
 import streamRouter from "./routes/stream.routes";
 import webhookRouter from "./routes/webhook.routes";
 import adminRouter from "./routes/admin.routes";
-import { DrizzleClient } from "@pkgs/drizzle-client";
 
 /**
  * Router handlers
