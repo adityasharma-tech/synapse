@@ -1,6 +1,6 @@
-FROM node:22-alpine AS base
+FROM node:22-alpine AS builder
 
-WORKDIR /app
+WORKDIR /home/build
 
 COPY package.json .
 COPY yarn.lock .
@@ -15,10 +15,8 @@ COPY ./packages/drizzle-client/package.json ./packages/drizzle-client/
 
 RUN yarn install
 
-COPY *.json .
 
-RUN ls -l
-RUN ls ./apps/server -l
+COPY *.json .
 
 COPY ./apps/server ./apps/server
 COPY ./apps/web ./apps/web
@@ -26,8 +24,22 @@ COPY ./apps/web ./apps/web
 COPY ./packages/zod-client ./packages/zod-client
 COPY ./packages/drizzle-client ./packages/drizzle-client
 
-RUN ls -l
+RUN yarn build:packages
+RUN yarn build:apps
 
-RUN yarn build
+FROM builder AS runner
 
-CMD [ "yarn", "dev" ]
+WORKDIR /home/app
+
+COPY --from=builder /home/build/apps/server/dist /home/app/apps/server/dist
+COPY --from=builder /home/build/apps/web/dist /home/app/apps/web/dist
+
+COPY --from=builder /home/build/packages /home/app/packages
+
+COPY --from=builder /home/build/package.json /home/app/
+
+COPY --from=builder /home/build/node_modules /home/app/node_modules
+COPY --from=builder /home/build/apps/server/node_modules /home/app/apps/server/node_modules
+COPY --from=builder /home/build/apps/web/node_modules /home/app/apps/web/node_modules
+
+CMD [ "yarn", "start" ]

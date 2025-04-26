@@ -13,8 +13,10 @@
     },
     "private": true,
     "scripts": {
-        "build": "lerna run build",
+        "build:packages": "lerna run build",
+        "build:apps": "yarn --cwd=apps/server build; yarn --cwd=apps/web build",
         "dev": "concurrently --names \"server,web\" --prefix-colors \"yellow,blue\" \"yarn --cwd=apps/server dev\"  \"yarn --cwd=apps/web dev\"",
+        "start": "concurrently --names \"server,web\" --prefix-colors \"yellow,blue\" \"yarn --cwd=apps/server start\"  \"yarn --cwd=apps/web dev\"",
         "prepare": "husky",
         "format": "prettier . --write",
         "clean": "rimraf ./packages/**/dist ./website/**/dist"
