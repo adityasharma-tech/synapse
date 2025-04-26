@@ -10,9 +10,7 @@ import {
     StartNewStreamPayloadT,
     VerifyEmailPayloadT,
 } from "./intefaces";
-import { env } from "@pkgs/zod-client/client";
-
-console.log("asdfasdfasdfasdfasdf", env);
+import { env } from "../../lib/utils";
 
 // backend host
 const baseHost = env.VITE_BACKEND_HOST;

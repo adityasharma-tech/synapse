@@ -7,7 +7,7 @@ import React, {
     useState,
 } from "react";
 import { useAppSelector } from "../store";
-import { env } from "@pkgs/zod-client/client";
+import { env } from "../lib/utils";
 
 // socket context to hold the instance of sockets
 const SocketContext = createContext<{

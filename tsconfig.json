@@ -1,16 +1,13 @@
 {
     "compilerOptions": {
-        "lib": ["ESNext"],
-        "module": "nodenext",
-        "target": "esnext",
-        "moduleResolution": "nodenext",
-        "noImplicitAny": false,
-        "downlevelIteration": true,
-        "skipLibCheck": true,
-        "jsx": "preserve",
-        "allowSyntheticDefaultImports": true,
+        "target": "ES6",
+        "jsx": "react-jsx",
+        "module": "CommonJS",
+        "baseUrl": ".",
+        "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
-        "allowJs": true,
+        "strict": true,
+        "skipLibCheck": true,
         "paths": {
             "@pkgs/*": ["./packages/*"]
         }
@@ -20,5 +17,6 @@
         { "path": "./apps/web" },
         { "path": "./packages/drizzle-client" },
         { "path": "./packages/zod-client" }
-    ]
+    ],
+    "exclude": ["**/dist/*", "commitlint.config.js", "**/eslint.config.js"]
 }

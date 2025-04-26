@@ -16,6 +16,4 @@ const zodEnv = z.object({
     VITE_GOOGLE_CLIENT_ID: z.string(),
 });
 
-const env = zodEnv.parse(import.meta.env);
-
-export { env };
+export { zodEnv as clientEnv };

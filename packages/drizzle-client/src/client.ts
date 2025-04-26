@@ -4,7 +4,6 @@ import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import { env } from "@pkgs/zod-client";
 
 config({ path: "../../.env" });
-// const serverEnv = zodServerEnv.parse(process.env);
 
 interface DrizzleClientInterface {
     db: NodePgDatabase<Record<string, never>> & {

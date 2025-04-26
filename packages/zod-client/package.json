@@ -1,23 +1,11 @@
 {
     "name": "@pkgs/zod-client",
-    "module": "dist/index.js",
     "types": "dist/index.d.ts",
     "main": "dist/index.js",
+    "module": "index.ts",
     "type": "commonjs",
     "version": "0.0.1",
     "private": true,
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.ts",
-            "default": "./dist/index.js",
-            "require": "./dist/index.js"
-        },
-        "./client": {
-            "types": "./dist/client/index.d.ts",
-            "default": "./dist/client/index.js",
-            "require": "./dist/client/index.js"
-        }
-    },
     "devDependencies": {},
     "peerDependencies": {
         "typescript": "^5"
