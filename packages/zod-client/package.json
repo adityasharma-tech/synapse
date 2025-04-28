@@ -5,6 +5,15 @@
     "module": "index.ts",
     "type": "commonjs",
     "version": "0.0.1",
+    "exports": {
+        ".": {
+            "default": "./dist/index.js",
+            "import": "./dist/index.js",
+            "require": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./client": "./client/index.ts"
+    },
     "private": true,
     "devDependencies": {},
     "peerDependencies": {

@@ -1,7 +1,7 @@
-import { ClassValue, clsx } from "clsx";
 import { useRef } from "react";
 import { twMerge } from "tailwind-merge";
-import { clientEnv } from "@pkgs/zod-client";
+import { clientEnv } from "@pkgs/zod-client/client";
+import { ClassValue, clsx } from "clsx";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
