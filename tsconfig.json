@@ -16,7 +16,8 @@
         { "path": "./apps/server" },
         { "path": "./apps/web" },
         { "path": "./packages/drizzle-client" },
-        { "path": "./packages/zod-client" }
+        { "path": "./packages/zod-client" },
+        { "path": "./packages/lib" }
     ],
     "exclude": ["**/dist/*", "commitlint.config.js", "**/eslint.config.js"]
 }

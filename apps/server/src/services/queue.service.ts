@@ -1,6 +1,7 @@
 import amqplib from "amqplib";
-import { RMQ_PAYOUT_QUEUE } from "../lib/constants";
+
 import { env } from "@pkgs/zod-client";
+import { RMQ_PAYOUT_QUEUE } from "@pkgs/lib";
 
 /**
  * TODO: Work still left in queuing system

@@ -1,11 +1,9 @@
 import jwt from "jsonwebtoken";
 
 import { eq } from "drizzle-orm";
-import { logger } from "../lib/logger";
-import { asyncHandler } from "../lib/asyncHandler";
-import { ApiError, ErrCodes } from "../lib/ApiError";
 import { env } from "@pkgs/zod-client";
 import { TokenTable } from "@pkgs/drizzle-client";
+import { asyncHandler, ApiError, logger, ErrCodes } from "@pkgs/lib";
 
 /**
  * authentication middleware to use the protected/secured routes to the authorized user only

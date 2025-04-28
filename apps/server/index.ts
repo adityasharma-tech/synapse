@@ -1,6 +1,7 @@
 import server from "./src/app";
-import { logger } from "./src/lib/logger";
 import { env } from "@pkgs/zod-client";
+import { logger } from "@pkgs/lib";
+
 const PORT = env.PORT || 5174;
 
 /**

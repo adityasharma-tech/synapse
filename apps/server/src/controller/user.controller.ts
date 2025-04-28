@@ -1,11 +1,9 @@
 import { eq } from "drizzle-orm";
-import { ApiResponse } from "../lib/ApiResponse";
 import { msg91AuthKey } from "../lib/constants";
-import { asyncHandler } from "../lib/asyncHandler";
 import { createBeneficiary } from "../services/payments.service";
-import { ApiError, ErrCodes } from "../lib/ApiError";
 import { uploadDocumentOnCloudinary } from "../lib/cloudinary";
 import { TokenTable, User, StreamerRequest } from "@pkgs/drizzle-client";
+import { ApiError, ApiResponse, asyncHandler, ErrCodes } from "@pkgs/lib";
 
 /**
  * For logout remove the cookies and clear the caches

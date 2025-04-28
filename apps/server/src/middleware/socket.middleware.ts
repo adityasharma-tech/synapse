@@ -1,13 +1,11 @@
 import jwt from "jsonwebtoken";
 
-import { parse } from "cookie";
-import { logger } from "../lib/logger";
-import { and, eq } from "drizzle-orm";
-import { SocketEventEnum } from "../lib/constants";
-import { ApiError, ErrCodes } from "../lib/ApiError";
-import { ExtendedError, Socket } from "socket.io";
 import { env } from "@pkgs/zod-client";
+import { parse } from "cookie";
+import { and, eq } from "drizzle-orm";
 import { Stream, User } from "@pkgs/drizzle-client";
+import { ExtendedError, Socket } from "socket.io";
+import { logger, ApiError, SocketEventEnum, ErrCodes } from "@pkgs/lib";
 
 /**
  * @description A function to emit the socket event also disconnecting it so that user can't make any socket request.

@@ -1,7 +1,9 @@
-import { logger } from "../lib/logger";
+import nodemailer from "nodemailer";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
-import nodemailer, { SendMailOptions } from "nodemailer";
+
 import { env } from "@pkgs/zod-client";
+import { logger } from "@pkgs/lib";
+import { SendMailOptions } from "nodemailer";
 
 // transport configuration of the smtp server which handles the mail transportation
 const transportOptions: SMTPTransport.Options = {

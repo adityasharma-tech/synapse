@@ -1,5 +1,5 @@
 import rateLimit from "express-rate-limit";
-import { ApiResponse } from "../lib/ApiResponse";
+import { ApiResponse } from "@pkgs/lib";
 
 // limit the no of requests per ip for the email service only
 const emailVerificationLimiter = rateLimit({

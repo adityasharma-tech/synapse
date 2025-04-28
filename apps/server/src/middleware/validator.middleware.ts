@@ -1,7 +1,5 @@
 import { body, query, validationResult } from "express-validator";
-import { ApiError, ErrCodes } from "../lib/ApiError";
-import { asyncHandler } from "../lib/asyncHandler";
-import { logger } from "../lib/logger";
+import { ApiError, ErrCodes, asyncHandler, logger } from "@pkgs/lib";
 
 /**
  * TODO: Too much validators are still left
