@@ -1,78 +1,87 @@
 import { z } from "zod";
 import dotenv from "dotenv";
 dotenv.config({
-  path: "../../.env",
+    path: "../../.env",
 });
 
 const zodEnv = z.object({
-  // backend host url
-  HOST_URL: z.string().url("Invalid Hostname"),
-  PORT: z.coerce.number().optional().default(5174),
-  FRONTEND_URL: z.string().url(),
+    MAIL_GRPC_ADDRESS: z.string(),
 
-  // Database configuration
-  DB_NAME: z.string(),
-  DB_HOST: z.string(),
-  DB_PORT: z.coerce.number(),
-  DB_USER: z.string(),
-  DB_PASSWORD: z.string(),
-  DB_SSL_MODE: z
-    .enum(["require", "disable", "allow", "prefer", "verify-ca", "verify-full"])
-    .default("disable"),
-  DB_SSL_CA: z.string(),
+    // backend host url
+    HOST_URL: z.string().url("Invalid Hostname"),
+    PORT: z.coerce.number().optional().default(5174),
+    FRONTEND_URL: z.string().url(),
 
-  // Mail configuration
-  MAIL_API_KEY: z.string().optional(),
-  SMTP_HOST: z.string(),
-  SMTP_PORT: z.coerce.number(),
-  SMTP_USER: z.string(),
-  SMTP_PASS: z.string(),
+    // Database configuration
+    DB_NAME: z.string(),
+    DB_HOST: z.string(),
+    DB_PORT: z.coerce.number(),
+    DB_USER: z.string(),
+    DB_PASSWORD: z.string(),
+    DB_SSL_MODE: z
+        .enum([
+            "require",
+            "disable",
+            "allow",
+            "prefer",
+            "verify-ca",
+            "verify-full",
+        ])
+        .default("disable"),
+    DB_SSL_CA: z.string(),
 
-  // secret services token
-  ACCESS_SECRET_KEY: z.string(),
-  REFRESH_SECRET_KEY: z.string(),
-  STREAMER_SECRET_KEY: z.string(),
-  STREAM_SECRET_KEY: z.string(),
+    // Mail configuration
+    MAIL_API_KEY: z.string().optional(),
+    SMTP_HOST: z.string(),
+    SMTP_PORT: z.coerce.number(),
+    SMTP_USER: z.string(),
+    SMTP_PASS: z.string(),
 
-  // msg91 keys
-  MSG91_AUTH_KEY: z.string(),
+    // secret services token
+    ACCESS_SECRET_KEY: z.string(),
+    REFRESH_SECRET_KEY: z.string(),
+    STREAMER_SECRET_KEY: z.string(),
+    STREAM_SECRET_KEY: z.string(),
 
-  // payout configs
-  PAYOUT_PROVIDER: z.enum(["razorpay", "cashfree"]).default("razorpay"),
+    // msg91 keys
+    MSG91_AUTH_KEY: z.string(),
 
-  // cashfree payout api keys
-  CF_PAYOUT_XAPI_VERSION: z.string(),
-  CF_PAYOUT_CLIENT_ID: z.string(),
-  CF_PAYOUT_CLIENT_SECRET: z.string(),
+    // payout configs
+    PAYOUT_PROVIDER: z.enum(["razorpay", "cashfree"]).default("razorpay"),
 
-  // cashfree payment api keys
-  CF_PAYMENT_XAPI_VERSION: z.string(),
-  CF_PAYMENT_CLIENT_ID: z.string(),
-  CF_PAYMENT_CLIENT_SECRET: z.string(),
-  CF_PAYMENT_MODE: z.enum(["production", "sandbox"]).default("sandbox"),
+    // cashfree payout api keys
+    CF_PAYOUT_XAPI_VERSION: z.string(),
+    CF_PAYOUT_CLIENT_ID: z.string(),
+    CF_PAYOUT_CLIENT_SECRET: z.string(),
 
-  // razorpay payment api keys
-  RAZORPAY_KEY_ID: z.string(),
-  RAZORPAY_SECRET_KEY: z.string(),
-  RAZORPAY_WEBHOOK_SECRET: z.string(),
+    // cashfree payment api keys
+    CF_PAYMENT_XAPI_VERSION: z.string(),
+    CF_PAYMENT_CLIENT_ID: z.string(),
+    CF_PAYMENT_CLIENT_SECRET: z.string(),
+    CF_PAYMENT_MODE: z.enum(["production", "sandbox"]).default("sandbox"),
 
-  // redis service
-  REDIS_CONNECT_URI: z.string(),
+    // razorpay payment api keys
+    RAZORPAY_KEY_ID: z.string(),
+    RAZORPAY_SECRET_KEY: z.string(),
+    RAZORPAY_WEBHOOK_SECRET: z.string(),
 
-  // google api services
-  GOOGLE_API_KEY: z.string(),
-  GOOGLE_CLIENT_ID: z.string(),
+    // redis service
+    REDIS_CONNECT_URI: z.string(),
 
-  // Cloudinary configuration
-  CLOUDINARY_CLOUD_NAME: z.string(),
-  CLOUDINARY_API_KEY: z.string(),
-  CLOUDINARY_API_SECRET: z.string(),
+    // google api services
+    GOOGLE_API_KEY: z.string(),
+    GOOGLE_CLIENT_ID: z.string(),
 
-  // RabbitMQ Configuration
-  RABBITMQ_URI: z.string().optional(),
+    // Cloudinary configuration
+    CLOUDINARY_CLOUD_NAME: z.string(),
+    CLOUDINARY_API_KEY: z.string(),
+    CLOUDINARY_API_SECRET: z.string(),
 
-  // Streamer Payout Cut in percentage
-  STREAMER_PAYOUT_CUT: z.coerce.number().default(0.9), // Example: 0.9 -> 90% of amount paid
+    // RabbitMQ Configuration
+    RABBITMQ_URI: z.string().optional(),
+
+    // Streamer Payout Cut in percentage
+    STREAMER_PAYOUT_CUT: z.coerce.number().default(0.9), // Example: 0.9 -> 90% of amount paid
 });
 
 const env = zodEnv.parse(process.env);

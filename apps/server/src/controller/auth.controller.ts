@@ -20,6 +20,9 @@ import jose from "node-jose";
 import axios from "axios";
 import crpyto from "crypto";
 import bcrypt from "bcryptjs";
+import * as grpc from "@grpc/grpc-js";
+import { mailPkg } from "@pkgs/lib/proto";
+import { UnaryCallback } from "@grpc/grpc-js/build/src/client";
 
 const loginHandler = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
@@ -208,18 +211,29 @@ const registerHandler = asyncHandler(async (req, res) => {
       );
   }
 
-  const emailResult = await sendConfirmationMail(
-    email.trim(),
-    emailVerificationToken
+  const client: any = new (mailPkg as any).MailService(
+    env.MAIL_GRPC_ADDRESS,
+    grpc.credentials.createInsecure()
   );
 
-  if (!emailResult.accepted) {
-    throw new ApiError(
-      400,
-      "Failed to send verification email.",
-      ErrCodes.EMAIL_SEND_ERR
-    );
-  }
+  client.SendSignupConfirmMail(
+    { email: email.trim(), token: emailVerificationToken },
+    (err: grpc.ServerErrorResponse, response: any) => {
+      if (err)
+        return logger.error(
+          `Error while sending confirmation mail: ${err.message}`
+        );
+
+      logger.info(`GRPC response: ${JSON.stringify(response)}`);
+
+      if (!response.success)
+        throw new ApiError(
+          400,
+          "Failed to send verification email.",
+          ErrCodes.EMAIL_SEND_ERR
+        );
+    }
+  );
 
   res
     .status(201)

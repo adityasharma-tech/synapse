@@ -1,5 +1,5 @@
 {
-    "name": "@synapse/mail-service",
+    "name": "@synapse/queue-worker",
     "version": "0.0.1",
     "module": "index.ts",
     "type": "commonjs",
@@ -27,5 +27,7 @@
         "@types/node": "^22.13.5",
         "typescript": "^5.7.3"
     },
-    "dependencies": {}
+    "dependencies": {
+        "amqplib": "^0.10.7"
+    }
 }

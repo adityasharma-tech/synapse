@@ -9,6 +9,7 @@ const corsOrigins = [
 
 // RabbitMQ Channels
 const RMQ_PAYOUT_QUEUE = "payout_queue";
+const RMQ_MAIL_QUEUE = "mail_queue";
 
 // socket events
 const SocketEventEnum = Object.freeze({
@@ -30,4 +31,4 @@ const SocketEventEnum = Object.freeze({
     CHAT_DOWNVOTE_DOWN_EVENT: "stream:chat:downvote-down",
 });
 
-export { corsOrigins, SocketEventEnum, RMQ_PAYOUT_QUEUE };
+export { corsOrigins, SocketEventEnum, RMQ_PAYOUT_QUEUE, RMQ_MAIL_QUEUE };
