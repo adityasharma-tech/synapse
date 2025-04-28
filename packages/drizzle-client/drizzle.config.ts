@@ -3,7 +3,7 @@ import { env } from "@pkgs/zod-client";
 
 export default defineConfig({
     out: "./drizzle",
-    schema: "./src/schemas/index",
+    schema: "./src/schemas/index.ts",
     dialect: "postgresql",
     dbCredentials: {
         host: env.DB_HOST,
