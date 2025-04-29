@@ -8,7 +8,7 @@ class RMQClient {
 
     async connect() {
         this.connection = await amqp.connect(
-            env.RABBITMQ_URI ?? "amqp://rabbitmq"
+            env.RABBITMQ_URI ?? "amqp://localhost"
         );
         this.channel = await this.connection.createChannel();
     }

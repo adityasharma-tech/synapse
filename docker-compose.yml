@@ -1,25 +1,28 @@
 services:
-  main-service:
-    container_name: synapse
-    expose:
-      - 5173:5173
-    build: .
-    env_file:
-      - .env
-    depends_on:
-      - rabbitmq
-    networks:
-      - default_network
-
   rabbitmq:
+    image: rabbitmq:latest
     container_name: rabbitmq
-    image: rabbitmq
-    networks:
-      - default_network
-    expose:
+    restart: always
+    ports:
+      - 5672:5672
       - 15672:15672
+    environment:
+      RABBITMQ_MANAGEMENT_AGENT_DISABLE_METRICS_COLLECTOR: false
+    #   RABBITMQ_DEFAULT_USER: kalo
+    #   RABBITMQ_DEFAULT_PASS: kalo
+    configs:
+      - source: rabbitmq-plugins
+        target: /etc/rabbitmq/enabled_plugins
+    volumes:
+      - rabbitmq-lib:/var/lib/rabbitmq/
+      - rabbitmq-log:/var/log/rabbitmq
 
+configs:
+  rabbitmq-plugins:
+    content: "[rabbitmq_management]."  
 
-networks:
- default_network:
-  driver: bridge
+volumes:
+  rabbitmq-lib:
+    driver: local
+  rabbitmq-log:
+    driver: local

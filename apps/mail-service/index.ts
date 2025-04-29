@@ -2,23 +2,29 @@ import * as grpc from "@grpc/grpc-js";
 import { env } from "@pkgs/zod-client";
 import { RMQClient } from "@pkgs/rmq-client";
 import { mailPkg } from "@pkgs/lib/proto";
-import { RMQ_MAIL_QUEUE, rmqMailServiceType } from "@pkgs/lib";
+import { logger, RMQ_MAIL_QUEUE, rmqMailServiceType } from "@pkgs/lib";
 
 const server = new grpc.Server();
 const rmqClient = new RMQClient();
 
 (async () => {
     await rmqClient.assertQueue(RMQ_MAIL_QUEUE);
+    logger.info("I am here");
 })();
-
-server.bind(env.MAIL_GRPC_ADDRESS, grpc.ServerCredentials.createInsecure());
 
 server.addService((mailPkg as any).MailService.service, {
     SendSignupConfirmMail: SendSignupConfirmMail,
     SendResetPasswordMail: SendResetPasswordMail,
 });
 
-server.start();
+server.bindAsync(
+    env.MAIL_GRPC_ADDRESS,
+    grpc.ServerCredentials.createInsecure(),
+    (error, port) => {
+        if (error) logger.error(error.message);
+        else logger.info(`Mail service is running on ${port}`);
+    }
+);
 
 async function SendSignupConfirmMail(
     call: grpc.ServerUnaryCall<any, any>,

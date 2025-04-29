@@ -17,13 +17,18 @@ import { sendConfirmationMail, sendResetPasswordMail } from "./mail.service";
                 type: rmqMailServiceType;
             };
 
+            console.log(data);
+
             switch (data.type) {
                 case "confirmation":
                     sendConfirmationMail(data.email, data.token);
+                    break;
                 case "reset_password":
                     sendResetPasswordMail(data.email, data.token);
+                    break;
                 default:
                     logger.warn("No such type exits for mail queue.");
+                    break;
             }
         },
         { noAck: true }
