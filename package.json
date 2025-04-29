@@ -21,7 +21,8 @@
         "start": "concurrently --names \"server,mail-service,web\" --prefix-colors \"yellow,red,blue\" \"yarn --cwd=apps/server start\" \"yarn --cwd=apps/mail-service start\"  \"yarn --cwd=apps/web dev\"",
         "prepare": "husky",
         "format": "prettier . --write",
-        "clean": "rimraf ./packages/**/dist ./website/**/dist"
+        "clean": "rimraf ./packages/**/dist ./website/**/dist",
+        "proto:generate": "protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=. ./packages/lib/src/proto/**/*.proto --ts_proto_opt=outputServices=grpc-js,env=node,esModuleInterop=true"
     },
     "type": "module",
     "workspaces": [
@@ -31,7 +32,8 @@
     "dependencies": {
         "drizzle-orm": "^0.42.0",
         "pg": "^8.15.5",
-        "rollup": "4.39.0"
+        "rollup": "4.39.0",
+        "ts-proto": "^2.7.0"
     },
     "overrides": {
         "rollup": "4.39.0"

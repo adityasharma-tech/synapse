@@ -10,10 +10,6 @@ import {
   asyncHandler,
   ErrCodes,
 } from "@pkgs/lib";
-import {
-  sendConfirmationMail,
-  sendResetPasswordMail,
-} from "../services/mail.service";
 
 import jwt from "jsonwebtoken";
 import jose from "node-jose";
@@ -21,8 +17,7 @@ import axios from "axios";
 import crpyto from "crypto";
 import bcrypt from "bcryptjs";
 import * as grpc from "@grpc/grpc-js";
-import { mailPkg } from "@pkgs/lib/proto";
-import { UnaryCallback } from "@grpc/grpc-js/build/src/client";
+import { MailClient } from "@pkgs/lib/proto";
 
 const loginHandler = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
@@ -211,14 +206,14 @@ const registerHandler = asyncHandler(async (req, res) => {
       );
   }
 
-  const client: any = new (mailPkg as any).MailService(
+  const client = new MailClient(
     env.MAIL_GRPC_ADDRESS,
     grpc.credentials.createInsecure()
   );
 
-  client.SendSignupConfirmMail(
+  client.sendSignupConfirmMail(
     { email: email.trim(), token: emailVerificationToken },
-    (err: grpc.ServerErrorResponse, response: any) => {
+    (err, response) => {
       if (err)
         return logger.error(
           `Error while sending confirmation mail: ${err.message}`
@@ -338,14 +333,14 @@ const resendEmailHandler = asyncHandler(async (req, res) => {
     .where(eq(TokenTable.id, user.id))
     .execute();
 
-  const client: any = new (mailPkg as any).MailService(
+  const client = new MailClient(
     env.MAIL_GRPC_ADDRESS,
     grpc.credentials.createInsecure()
   );
 
-  client.SendSignupConfirmMail(
+  client.sendSignupConfirmMail(
     { email: email.trim(), token: emailVerificationToken },
-    (err: grpc.ServerErrorResponse, response: any) => {
+    (err, response) => {
       if (err)
         return logger.error(
           `Error while sending confirmation mail: ${err.message}`
@@ -433,14 +428,14 @@ const resetPasswordEmailHandler = asyncHandler(async (req, res) => {
 
   const verificationToken = crpyto.randomBytes(10).toString("hex");
 
-  const client: any = new (mailPkg as any).MailService(
+  const client = new MailClient(
     env.MAIL_GRPC_ADDRESS,
     grpc.credentials.createInsecure()
   );
 
-  client.SendResetPasswordMail(
+  client.sendResetPasswordMail(
     { email: email.trim(), token: verificationToken },
-    (err: grpc.ServerErrorResponse, response: any) => {
+    (err, response) => {
       if (err)
         return logger.error(
           `Error while sending confirmation mail: ${err.message}`

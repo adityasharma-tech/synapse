@@ -1,7 +1,11 @@
 import * as grpc from "@grpc/grpc-js";
 import { env } from "@pkgs/zod-client";
 import { RMQClient } from "@pkgs/rmq-client";
-import { mailPkg } from "@pkgs/lib/proto";
+import {
+    DefaultMailRequest,
+    DefaultMailResponse,
+    MailService,
+} from "@pkgs/lib/proto";
 import { logger, RMQ_MAIL_QUEUE, rmqMailServiceType } from "@pkgs/lib";
 
 const server = new grpc.Server();
@@ -12,7 +16,7 @@ const rmqClient = new RMQClient();
     logger.info("I am here");
 })();
 
-server.addService((mailPkg as any).MailService.service, {
+server.addService(MailService, {
     SendSignupConfirmMail: SendSignupConfirmMail,
     SendResetPasswordMail: SendResetPasswordMail,
 });
@@ -27,8 +31,8 @@ server.bindAsync(
 );
 
 async function SendSignupConfirmMail(
-    call: grpc.ServerUnaryCall<any, any>,
-    callback: grpc.requestCallback<any>
+    call: grpc.ServerUnaryCall<DefaultMailRequest, DefaultMailResponse>,
+    callback: grpc.sendUnaryData<DefaultMailResponse>
 ) {
     const channel = await rmqClient.getChannel();
     channel.sendToQueue(
@@ -48,8 +52,8 @@ async function SendSignupConfirmMail(
     });
 }
 async function SendResetPasswordMail(
-    call: any,
-    callback: grpc.requestCallback<any>
+    call: grpc.ServerUnaryCall<DefaultMailRequest, DefaultMailResponse>,
+    callback: grpc.sendUnaryData<DefaultMailResponse>
 ) {
     const channel = await rmqClient.getChannel();
     channel.sendToQueue(
