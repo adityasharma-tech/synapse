@@ -1,0 +1,25 @@
+{
+    "name": "@pkgs/rmq-client",
+    "module": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "main": "dist/index.js",
+    "type": "commonjs",
+    "version": "0.0.1",
+    "private": true,
+    "exports": {
+        ".": {
+            "default": "./dist/index.js",
+            "require": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        }
+    },
+    "peerDependencies": {
+        "typescript": "^5"
+    },
+    "scripts": {
+        "build": "tsc"
+    },
+    "dependencies": {
+        "amqplib": "^0.10.7"
+    }
+}

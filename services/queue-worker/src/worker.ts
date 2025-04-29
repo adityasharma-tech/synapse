@@ -1,16 +1,11 @@
-import amqp from "amqplib";
-import { env } from "@pkgs/zod-client";
+import { RMQClient } from "@pkgs/rmq-client";
 import { logger, RMQ_MAIL_QUEUE, rmqMailServiceType } from "@pkgs/lib";
 import { sendConfirmationMail, sendResetPasswordMail } from "./mail.service";
 
 (async () => {
-    const connection = await amqp.connect(
-        env.RABBITMQ_URI ?? "amqp://rabbitmq"
-    );
-    const channel = await connection.createChannel();
-    await channel.assertQueue(RMQ_MAIL_QUEUE, {
-        durable: true,
-    });
+    const client = new RMQClient();
+    await client.assertQueue(RMQ_MAIL_QUEUE);
+    const channel = await client.getChannel();
 
     await channel.consume(
         RMQ_MAIL_QUEUE,
