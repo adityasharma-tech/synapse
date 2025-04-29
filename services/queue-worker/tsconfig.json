@@ -111,5 +111,5 @@
         "skipLibCheck": true /* Skip type checking all .d.ts files. */
     },
     "exclude": ["./node_modules", "./dist/**/*"],
-    "include": ["worker.ts", "./src/**/*"]
+    "include": ["src/worker.ts", "./src/**/*"]
 }

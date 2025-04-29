@@ -6,3 +6,20 @@ services:
     build: .
     env_file:
       - .env
+    depends_on:
+      - rabbitmq
+    networks:
+      - default_network
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq
+    networks:
+      - default_network
+    expose:
+      - 15672:15672
+
+
+networks:
+ default_network:
+  driver: bridge

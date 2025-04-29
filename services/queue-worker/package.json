@@ -1,13 +1,12 @@
 {
     "name": "@synapse/queue-worker",
     "version": "0.0.1",
-    "module": "index.ts",
+    "module": "src/worker.ts",
     "type": "commonjs",
     "scripts": {
-        "dev": "tsc; node dist/index.js",
+        "dev": "tsc; node dist/src/worker.js",
         "build": "tsc",
-        "start": "node dist/index.js",
-        "format": "prettier . --write"
+        "start": "node dist/index.js"
     },
     "repository": {
         "type": "git",
@@ -28,6 +27,7 @@
         "typescript": "^5.7.3"
     },
     "dependencies": {
-        "amqplib": "^0.10.7"
+        "amqplib": "^0.10.7",
+        "nodemailer": "^6.10.1"
     }
 }

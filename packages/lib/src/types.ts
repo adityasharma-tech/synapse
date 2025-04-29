@@ -13,4 +13,6 @@ interface MiddlewareUserT {
     phoneNumber?: string;
 }
 
-export type { MiddlewareUserT };
+type rmqMailServiceType = "confirmation" | "reset_password";
+
+export type { MiddlewareUserT, rmqMailServiceType };
