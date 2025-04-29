@@ -338,18 +338,29 @@ const resendEmailHandler = asyncHandler(async (req, res) => {
     .where(eq(TokenTable.id, user.id))
     .execute();
 
-  const result = await sendConfirmationMail(
-    email.trim(),
-    emailVerificationToken
+  const client: any = new (mailPkg as any).MailService(
+    env.MAIL_GRPC_ADDRESS,
+    grpc.credentials.createInsecure()
   );
 
-  if (!result.accepted)
-    throw new ApiError(
-      400,
-      "Failed to resend email verification link.",
-      ErrCodes.EMAIL_SEND_ERR
-    );
+  client.SendSignupConfirmMail(
+    { email: email.trim(), token: emailVerificationToken },
+    (err: grpc.ServerErrorResponse, response: any) => {
+      if (err)
+        return logger.error(
+          `Error while sending confirmation mail: ${err.message}`
+        );
 
+      logger.info(`GRPC response: ${JSON.stringify(response)}`);
+
+      if (!response.success)
+        throw new ApiError(
+          400,
+          "Failed to send verification email.",
+          ErrCodes.EMAIL_SEND_ERR
+        );
+    }
+  );
   res
     .status(200)
     .json(new ApiResponse(200, null, "Email verification send successfully."));
@@ -422,10 +433,29 @@ const resetPasswordEmailHandler = asyncHandler(async (req, res) => {
 
   const verificationToken = crpyto.randomBytes(10).toString("hex");
 
-  const result = await sendResetPasswordMail(email, verificationToken);
+  const client: any = new (mailPkg as any).MailService(
+    env.MAIL_GRPC_ADDRESS,
+    grpc.credentials.createInsecure()
+  );
 
-  if (!result.accepted)
-    throw new ApiError(400, "Err in sending email.", ErrCodes.EMAIL_SEND_ERR);
+  client.SendResetPasswordMail(
+    { email: email.trim(), token: verificationToken },
+    (err: grpc.ServerErrorResponse, response: any) => {
+      if (err)
+        return logger.error(
+          `Error while sending confirmation mail: ${err.message}`
+        );
+
+      logger.info(`GRPC response: ${JSON.stringify(response)}`);
+
+      if (!response.success)
+        throw new ApiError(
+          400,
+          "Failed to send reset password mail email.",
+          ErrCodes.EMAIL_SEND_ERR
+        );
+    }
+  );
 
   res.status(200).json(new ApiResponse(200, null));
 });
