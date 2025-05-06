@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport(transportOptions);
  * confirmation mail sending handler to send confirmation mail to the specified email with the verificationToken
  * @param {string} email - email where you have to send the confirmation link
  * @param {string} verificationToken
- * @returns the result obtained from nodemailer transporter after succesfully making the mail request
+ * @returns the result obtained from nodemailer transporter after successfully making the mail request
  */
 const sendConfirmationMail = async function (
     email: string,
@@ -48,7 +48,7 @@ const sendConfirmationMail = async function (
  * reset password mail sending handler, which send mail to the specified email with the verificationToken
  * @param email - email where you have to send the reset password link
  * @param verificationToken - email where you have to send the reset password link
- * @returns the result obtained from nodemailer transporter after succesfully making the mail request
+ * @returns the result obtained from nodemailer transporter after successfully making the mail request
  */
 const sendResetPasswordMail = async function (
     email: string,
