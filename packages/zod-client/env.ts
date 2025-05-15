@@ -95,4 +95,6 @@ const zodEnv = z.object({
 
 const env = zodEnv.parse(process.env);
 
+export const SECRET = "IoX1E4PZrOUMd3Q8Eno_omMEHEc";
+
 export { env };
