@@ -9,7 +9,10 @@ export const resourceEnum = schema.enum("resources", [
     "order",
 ]);
 
+export type ResourceT = (typeof resourceEnum.enumValues)[number];
+
 export const effectEnum = schema.enum("effects", ["allow", "disallow"]);
+export type EffectT = (typeof effectEnum.enumValues)[number];
 
 export const Permissions = schema.table(
     "permissions",

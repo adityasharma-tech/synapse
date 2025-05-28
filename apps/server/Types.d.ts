@@ -10,7 +10,9 @@ declare global {
         }
     }
     var io: Socket;
-    var db: NodePgDatabase<Record<string, never>> & { $client: Pool };
+    var db: NodePgDatabase<Record<string, never>> & {
+        $client: Pool;
+    };
 }
 
 declare module "socket.io" {

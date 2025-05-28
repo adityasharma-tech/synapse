@@ -32,8 +32,8 @@ export interface DefaultMailResponse {
 }
 
 export interface HasPermissionRequest {
+    user: number;
     resource: string;
-    target: string;
     effect: string;
     action: string[];
 }
@@ -43,9 +43,10 @@ export interface HasPermissionResponse {
 }
 
 export interface InsertTupleRequest {
-    user: string;
-    relation: string;
-    object: string;
+    user: number;
+    resource: string;
+    effect: string;
+    action: string;
 }
 
 export interface InsertTupleResponse {
@@ -229,7 +230,7 @@ export const DefaultMailResponse: MessageFns<DefaultMailResponse> = {
 };
 
 function createBaseHasPermissionRequest(): HasPermissionRequest {
-    return { resource: "", target: "", effect: "", action: [] };
+    return { user: 0, resource: "", effect: "", action: [] };
 }
 
 export const HasPermissionRequest: MessageFns<HasPermissionRequest> = {
@@ -237,11 +238,11 @@ export const HasPermissionRequest: MessageFns<HasPermissionRequest> = {
         message: HasPermissionRequest,
         writer: BinaryWriter = new BinaryWriter()
     ): BinaryWriter {
+        if (message.user !== 0) {
+            writer.uint32(16).int64(message.user);
+        }
         if (message.resource !== "") {
             writer.uint32(10).string(message.resource);
-        }
-        if (message.target !== "") {
-            writer.uint32(18).string(message.target);
         }
         if (message.effect !== "") {
             writer.uint32(26).string(message.effect);
@@ -263,20 +264,20 @@ export const HasPermissionRequest: MessageFns<HasPermissionRequest> = {
         while (reader.pos < end) {
             const tag = reader.uint32();
             switch (tag >>> 3) {
+                case 2: {
+                    if (tag !== 16) {
+                        break;
+                    }
+
+                    message.user = longToNumber(reader.int64());
+                    continue;
+                }
                 case 1: {
                     if (tag !== 10) {
                         break;
                     }
 
                     message.resource = reader.string();
-                    continue;
-                }
-                case 2: {
-                    if (tag !== 18) {
-                        break;
-                    }
-
-                    message.target = reader.string();
                     continue;
                 }
                 case 3: {
@@ -306,11 +307,9 @@ export const HasPermissionRequest: MessageFns<HasPermissionRequest> = {
 
     fromJSON(object: any): HasPermissionRequest {
         return {
+            user: isSet(object.user) ? globalThis.Number(object.user) : 0,
             resource: isSet(object.resource)
                 ? globalThis.String(object.resource)
-                : "",
-            target: isSet(object.target)
-                ? globalThis.String(object.target)
                 : "",
             effect: isSet(object.effect)
                 ? globalThis.String(object.effect)
@@ -323,11 +322,11 @@ export const HasPermissionRequest: MessageFns<HasPermissionRequest> = {
 
     toJSON(message: HasPermissionRequest): unknown {
         const obj: any = {};
+        if (message.user !== 0) {
+            obj.user = Math.round(message.user);
+        }
         if (message.resource !== "") {
             obj.resource = message.resource;
-        }
-        if (message.target !== "") {
-            obj.target = message.target;
         }
         if (message.effect !== "") {
             obj.effect = message.effect;
@@ -347,8 +346,8 @@ export const HasPermissionRequest: MessageFns<HasPermissionRequest> = {
         object: I
     ): HasPermissionRequest {
         const message = createBaseHasPermissionRequest();
+        message.user = object.user ?? 0;
         message.resource = object.resource ?? "";
-        message.target = object.target ?? "";
         message.effect = object.effect ?? "";
         message.action = object.action?.map((e) => e) || [];
         return message;
@@ -429,7 +428,7 @@ export const HasPermissionResponse: MessageFns<HasPermissionResponse> = {
 };
 
 function createBaseInsertTupleRequest(): InsertTupleRequest {
-    return { user: "", relation: "", object: "" };
+    return { user: 0, resource: "", effect: "", action: "" };
 }
 
 export const InsertTupleRequest: MessageFns<InsertTupleRequest> = {
@@ -437,14 +436,17 @@ export const InsertTupleRequest: MessageFns<InsertTupleRequest> = {
         message: InsertTupleRequest,
         writer: BinaryWriter = new BinaryWriter()
     ): BinaryWriter {
-        if (message.user !== "") {
-            writer.uint32(10).string(message.user);
+        if (message.user !== 0) {
+            writer.uint32(8).int64(message.user);
         }
-        if (message.relation !== "") {
-            writer.uint32(18).string(message.relation);
+        if (message.resource !== "") {
+            writer.uint32(18).string(message.resource);
         }
-        if (message.object !== "") {
-            writer.uint32(26).string(message.object);
+        if (message.effect !== "") {
+            writer.uint32(26).string(message.effect);
+        }
+        if (message.action !== "") {
+            writer.uint32(34).string(message.action);
         }
         return writer;
     },
@@ -461,11 +463,11 @@ export const InsertTupleRequest: MessageFns<InsertTupleRequest> = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1: {
-                    if (tag !== 10) {
+                    if (tag !== 8) {
                         break;
                     }
 
-                    message.user = reader.string();
+                    message.user = longToNumber(reader.int64());
                     continue;
                 }
                 case 2: {
@@ -473,7 +475,7 @@ export const InsertTupleRequest: MessageFns<InsertTupleRequest> = {
                         break;
                     }
 
-                    message.relation = reader.string();
+                    message.resource = reader.string();
                     continue;
                 }
                 case 3: {
@@ -481,7 +483,15 @@ export const InsertTupleRequest: MessageFns<InsertTupleRequest> = {
                         break;
                     }
 
-                    message.object = reader.string();
+                    message.effect = reader.string();
+                    continue;
+                }
+                case 4: {
+                    if (tag !== 34) {
+                        break;
+                    }
+
+                    message.action = reader.string();
                     continue;
                 }
             }
@@ -495,26 +505,32 @@ export const InsertTupleRequest: MessageFns<InsertTupleRequest> = {
 
     fromJSON(object: any): InsertTupleRequest {
         return {
-            user: isSet(object.user) ? globalThis.String(object.user) : "",
-            relation: isSet(object.relation)
-                ? globalThis.String(object.relation)
+            user: isSet(object.user) ? globalThis.Number(object.user) : 0,
+            resource: isSet(object.resource)
+                ? globalThis.String(object.resource)
                 : "",
-            object: isSet(object.object)
-                ? globalThis.String(object.object)
+            effect: isSet(object.effect)
+                ? globalThis.String(object.effect)
+                : "",
+            action: isSet(object.action)
+                ? globalThis.String(object.action)
                 : "",
         };
     },
 
     toJSON(message: InsertTupleRequest): unknown {
         const obj: any = {};
-        if (message.user !== "") {
-            obj.user = message.user;
+        if (message.user !== 0) {
+            obj.user = Math.round(message.user);
         }
-        if (message.relation !== "") {
-            obj.relation = message.relation;
+        if (message.resource !== "") {
+            obj.resource = message.resource;
         }
-        if (message.object !== "") {
-            obj.object = message.object;
+        if (message.effect !== "") {
+            obj.effect = message.effect;
+        }
+        if (message.action !== "") {
+            obj.action = message.action;
         }
         return obj;
     },
@@ -528,9 +544,10 @@ export const InsertTupleRequest: MessageFns<InsertTupleRequest> = {
         object: I
     ): InsertTupleRequest {
         const message = createBaseInsertTupleRequest();
-        message.user = object.user ?? "";
-        message.relation = object.relation ?? "";
-        message.object = object.object ?? "";
+        message.user = object.user ?? 0;
+        message.resource = object.resource ?? "";
+        message.effect = object.effect ?? "";
+        message.action = object.action ?? "";
         return message;
     },
 };
@@ -871,6 +888,21 @@ export type Exact<P, I extends P> = P extends Builtin
     : P & { [K in keyof P]: Exact<P[K], I[K]> } & {
           [K in Exclude<keyof I, KeysOfUnion<P>>]: never;
       };
+
+function longToNumber(int64: { toString(): string }): number {
+    const num = globalThis.Number(int64.toString());
+    if (num > globalThis.Number.MAX_SAFE_INTEGER) {
+        throw new globalThis.Error(
+            "Value is larger than Number.MAX_SAFE_INTEGER"
+        );
+    }
+    if (num < globalThis.Number.MIN_SAFE_INTEGER) {
+        throw new globalThis.Error(
+            "Value is smaller than Number.MIN_SAFE_INTEGER"
+        );
+    }
+    return num;
+}
 
 function isSet(value: any): boolean {
     return value !== null && value !== undefined;

@@ -26,7 +26,6 @@ import { socketAuthMiddleware } from "./middleware/socket.middleware";
 const app = express();
 const server = http.createServer(app);
 global.db = new DrizzleClient().db;
-
 /**
  * Socket io server
  * using redis as a pub/sub for sockets

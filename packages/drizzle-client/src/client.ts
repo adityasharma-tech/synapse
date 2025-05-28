@@ -2,7 +2,6 @@ import { config } from "dotenv";
 import { Pool } from "pg";
 import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import { env } from "@pkgs/zod-client";
-import {} from "drizzle-orm/cache";
 
 config({ path: "../../.env" });
 
@@ -36,15 +35,6 @@ class DrizzleClient implements DrizzleClientInterface {
         const db = drizzle({
             client: pool,
             casing: "snake_case",
-            cache: upstashCache({
-                // 👇 Redis credentials (optional — can also be pulled from env vars)
-                url: "<UPSTASH_URL>",
-                token: "<UPSTASH_TOKEN>",
-                // 👇 Enable caching for all queries by default (optional)
-                global: true,
-                // 👇 Default cache behavior (optional)
-                config: { ex: 60 },
-            }),
         });
 
         return db;
