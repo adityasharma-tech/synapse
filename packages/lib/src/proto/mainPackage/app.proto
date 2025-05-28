@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package mainPackage;
+
+service Mail {
+    rpc SendSignupConfirmMail (DefaultMailRequest) returns (DefaultMailResponse) {};
+    rpc SendResetPasswordMail (DefaultMailRequest) returns (DefaultMailResponse) {};
+}
+
+service Permit {
+    rpc HasPermission (HasPermissionRequest) returns (HasPermissionResponse) {};
+    rpc InsertTuple (InsertTupleRequest) returns (InsertTupleResponse) {};
+    rpc RemoveTuple (InsertTupleRequest) returns (InsertTupleResponse) {};
+}
+
+message DefaultMailRequest {
+    string email = 1;
+    string token = 2;
+}
+
+message DefaultMailResponse {
+    bool success = 1;
+    string error = 2;
+}
+
+message HasPermissionRequest {
+    int64 user = 2;
+    string resource = 1;
+    string effect = 3;
+    repeated string action = 4;
+}
+
+message HasPermissionResponse {
+    bool allowed = 1;
+}
+
+message InsertTupleRequest {
+    int64 user = 1;
+    string resource = 2;
+    string effect = 3;
+    string action = 4;
+}
+
+message InsertTupleResponse {
+    bool success = 1;
+}

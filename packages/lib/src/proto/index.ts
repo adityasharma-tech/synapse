@@ -1,1 +1,1 @@
-export * from "./mailPackage/mail";
+export * from "./mainPackage/app";

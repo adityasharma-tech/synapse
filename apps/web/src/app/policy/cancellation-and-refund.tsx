@@ -1,3 +1,3 @@
 export default function CancellationAndRefund() {
-  return <div>CancellationAndRefund</div>;
+    return <div>CancellationAndRefund</div>;
 }

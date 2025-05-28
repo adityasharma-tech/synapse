@@ -1,8 +1,8 @@
 import { Router } from "express";
 import {
-  acceptFormData,
-  downloadStreamAsCsv,
-  getAllStreamApplications,
+    acceptFormData,
+    downloadStreamAsCsv,
+    getAllStreamApplications,
 } from "../controller/admin.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
 

@@ -6,10 +6,10 @@ import streamReducer from "./reducers/stream.reducer";
 
 // we are using redux-toolkit so we neet to declare a global state store where we can put all out states with actions
 export const store = configureStore({
-  reducer: {
-    app: appReducer, // very basic app router to save user state and global app state
-    stream: streamReducer, // specifically for stream routes only
-  },
+    reducer: {
+        app: appReducer, // very basic app router to save user state and global app state
+        stream: streamReducer, // specifically for stream routes only
+    },
 });
 
 // Infer the `RootState`,  `AppDispatch`, and `AppStore` types from the store itself

@@ -7,10 +7,10 @@ import express from "express";
 import cookieParser from "cookie-parser";
 
 import {
-  errorHandler,
-  corsOrigins,
-  SocketEventEnum,
-  ApiResponse,
+    errorHandler,
+    corsOrigins,
+    SocketEventEnum,
+    ApiResponse,
 } from "@pkgs/lib";
 import { rateLimit } from "express-rate-limit";
 // import { redisClient } from "./services/redis.service";
@@ -35,9 +35,9 @@ global.db = new DrizzleClient().db;
 // (async () => await Promise.all([redisClient.connect(), subClient.connect()]))();
 
 const io = new SocketIO(server, {
-  cors: { origin: corsOrigins, credentials: true },
-  // adapter: createAdapter(redisClient, subClient), // only if you want to use redis as an adapter
-  cookie: true,
+    cors: { origin: corsOrigins, credentials: true },
+    // adapter: createAdapter(redisClient, subClient), // only if you want to use redis as an adapter
+    cookie: true,
 });
 
 // socket.io middlewares
@@ -57,22 +57,22 @@ io.on(SocketEventEnum.CONNECTED_EVENT, (socket) => socketHandler(io, socket));
  * Rate limiter configuration
  */
 const limiter = rateLimit({
-  windowMs: 1000 * 60,
-  limit: 90,
-  message: new ApiResponse(429, null, "Too many requests"),
-  standardHeaders: true,
-  legacyHeaders: false,
+    windowMs: 1000 * 60,
+    limit: 90,
+    message: new ApiResponse(429, null, "Too many requests"),
+    standardHeaders: true,
+    legacyHeaders: false,
 });
 
 /**
  * middlewares
  */
 app.use(
-  cors({
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    credentials: true,
-    origin: corsOrigins,
-  })
+    cors({
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        credentials: true,
+        origin: corsOrigins,
+    })
 );
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());

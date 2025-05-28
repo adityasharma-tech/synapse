@@ -1,15 +1,15 @@
 import { Router } from "express";
 import {
-  createNewStream,
-  fetchYoutubeData,
-  getAllChatsByStreamingId,
-  getAllStreams,
-  getStreamById,
-  makePremiumChat,
+    createNewStream,
+    fetchYoutubeData,
+    getAllChatsByStreamingId,
+    getAllStreams,
+    getStreamById,
+    makePremiumChat,
 } from "../controller/stream.controller";
 import {
-  authMiddleware,
-  streamerAuthMiddeware,
+    authMiddleware,
+    streamerAuthMiddeware,
 } from "../middleware/auth.middleware";
 import { streamRouteValidators } from "../middleware/validator.middleware";
 
@@ -18,13 +18,13 @@ const router = Router();
 router.use(authMiddleware);
 
 router
-  .route("/")
-  .post(
-    streamerAuthMiddeware,
-    streamRouteValidators.createStreamRoute,
-    createNewStream
-  )
-  .get(streamerAuthMiddeware, getAllStreams);
+    .route("/")
+    .post(
+        streamerAuthMiddeware,
+        streamRouteValidators.createStreamRoute,
+        createNewStream
+    )
+    .get(streamerAuthMiddeware, getAllStreams);
 
 router.route("/fetchYoutubeData").post(fetchYoutubeData);
 

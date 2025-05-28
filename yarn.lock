@@ -1419,20 +1419,6 @@
   dependencies:
     "@octokit/openapi-types" "^24.2.0"
 
-"@openfga/sdk@^0.8.1":
-  version "0.8.1"
-  resolved "https://registry.yarnpkg.com/@openfga/sdk/-/sdk-0.8.1.tgz#8618a44ece4b0a72be97020900ddd3ee1e2d676a"
-  integrity sha512-fuVYrR/+Zfl80qwWhfccvptFy+xY5JLXPaPebD3m+5zQbuX8QWsb30AR12DScF/du2Jm6MQxaW+tQWaExeBtdw==
-  dependencies:
-    "@opentelemetry/api" "^1.9.0"
-    axios "^1.8.3"
-    tiny-async-pool "^2.1.0"
-
-"@opentelemetry/api@^1.9.0":
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/@opentelemetry/api/-/api-1.9.0.tgz#d03eba68273dc0f7509e2a3d5cba21eae10379fe"
-  integrity sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==
-
 "@petamoriken/float16@^3.8.7":
   version "3.9.2"
   resolved "https://registry.yarnpkg.com/@petamoriken/float16/-/float16-3.9.2.tgz#217a5d349f3655b8e286be447e0ed1eae063a78f"
@@ -8249,11 +8235,6 @@ through@2, "through@>=2.2.7 <3", through@^2.3.4, through@^2.3.6:
   version "2.3.8"
   resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
   integrity sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==
-
-tiny-async-pool@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/tiny-async-pool/-/tiny-async-pool-2.1.0.tgz#3ec126568c18a7916912fb9fbecf812337ec6b84"
-  integrity sha512-ltAHPh/9k0STRQqaoUX52NH4ZQYAJz24ZAEwf1Zm+HYg3l9OXTWeqWKyYsHu40wF/F0rxd2N2bk5sLvX2qlSvg==
 
 tinyexec@^0.3.0:
   version "0.3.2"

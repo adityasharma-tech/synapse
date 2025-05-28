@@ -8,5 +8,5 @@ const PORT = env.PORT || 5174;
  * start server
  */
 server.listen(PORT, () => {
-  logger.info(`Server is running on port http://localhost:${PORT}`);
+    logger.info(`Server is running on port http://localhost:${PORT}`);
 });

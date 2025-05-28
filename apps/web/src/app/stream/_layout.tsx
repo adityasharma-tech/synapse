@@ -5,25 +5,25 @@ import React from "react";
 import LoadingComp from "../../components/loading";
 
 export default function SocketLayout() {
-  const user = useAppSelector((state) => state.app?.user);
-  const navigate = useNavigate();
-  const { streamId } = useParams();
+    const user = useAppSelector((state) => state.app?.user);
+    const navigate = useNavigate();
+    const { streamId } = useParams();
 
-  React.useEffect(() => {
-    if (!user) {
-      const searchParams = new URLSearchParams();
-      searchParams.set("redirect_uri", window.location.pathname);
-      navigate(`/auth/login?${searchParams.toString()}`);
-    }
-  }, [user]);
+    React.useEffect(() => {
+        if (!user) {
+            const searchParams = new URLSearchParams();
+            searchParams.set("redirect_uri", window.location.pathname);
+            navigate(`/auth/login?${searchParams.toString()}`);
+        }
+    }, [user]);
 
-  if (!streamId) return <LoadingComp />;
+    if (!streamId) return <LoadingComp />;
 
-  if (!user) return;
+    if (!user) return;
 
-  return (
-    <SocketProvider streamId={streamId}>
-      <Outlet />
-    </SocketProvider>
-  );
+    return (
+        <SocketProvider streamId={streamId}>
+            <Outlet />
+        </SocketProvider>
+    );
 }

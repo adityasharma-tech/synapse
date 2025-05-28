@@ -29,6 +29,7 @@
         "packages/*",
         "apps/*"
     ],
+    "license": "GPL-3.0-only",
     "dependencies": {
         "drizzle-orm": "^0.42.0",
         "pg": "^8.15.5",

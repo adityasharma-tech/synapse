@@ -6,6 +6,7 @@ dotenv.config({
 
 const zodEnv = z.object({
     MAIL_GRPC_ADDRESS: z.string(),
+    PERMIT_GRPC_ADDRESS: z.string(),
 
     // backend host url
     HOST_URL: z.string().url("Invalid Hostname"),

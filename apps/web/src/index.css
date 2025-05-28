@@ -3,23 +3,23 @@
 @plugin "daisyui";
 
 :root {
-  font-family: "Poppins", sans-serif;
-  font-style: normal;
-  @apply text-neutral-900 overflow-hidden;
+    font-family: "Poppins", sans-serif;
+    font-style: normal;
+    @apply text-neutral-900 overflow-hidden;
 }
 
 .button {
-  @apply cursor-pointer disabled:cursor-not-allowed flex items-center gap-x-2;
+    @apply cursor-pointer disabled:cursor-not-allowed flex items-center gap-x-2;
 }
 
 .button.btn-ghost {
-  @apply px-3 hover:underline;
+    @apply px-3 hover:underline;
 }
 
 .button.btn-outline {
-  @apply px-8 py-2 border rounded-md shadow hover:bg-white dark:hover:text-neutral-800 active:scale-95;
+    @apply px-8 py-2 border rounded-md shadow hover:bg-white dark:hover:text-neutral-800 active:scale-95;
 }
 
 .button.btn-solid {
-  @apply px-8 py-2 text-white border border-neutral-900 hover:opacity-90 bg-neutral-900 rounded-md active:scale-95 shadow dark:bg-neutral-50 dark:text-neutral-900;
+    @apply px-8 py-2 text-white border border-neutral-900 hover:opacity-90 bg-neutral-900 rounded-md active:scale-95 shadow dark:bg-neutral-50 dark:text-neutral-900;
 }

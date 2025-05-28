@@ -1,3 +1,3 @@
 export default function ShippingAndDelivery() {
-  return <div>ShippingAndDelivery</div>;
+    return <div>ShippingAndDelivery</div>;
 }
