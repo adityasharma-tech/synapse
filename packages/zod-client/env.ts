@@ -84,14 +84,14 @@ const zodEnv = z.object({
     // Streamer Payout Cut in percentage
     STREAMER_PAYOUT_CUT: z.coerce.number().default(0.9), // Example: 0.9 -> 90% of amount paid,
 
-    // FGA Credentials
-    FGA_API_TOKEN_ISSUER: z.string(),
-    FGA_API_AUDIENCE: z.string(),
-    FGA_CLIENT_ID: z.string(),
-    FGA_CLIENT_SECRET: z.string(),
-    FGA_API_URL: z.string(),
-    FGA_MODEL_ID: z.string().optional(),
-    FGA_STORE_ID: z.string().optional(),
+    // // FGA Credentials
+    // FGA_API_TOKEN_ISSUER: z.string(),
+    // FGA_API_AUDIENCE: z.string(),
+    // FGA_CLIENT_ID: z.string(),
+    // FGA_CLIENT_SECRET: z.string(),
+    // FGA_API_URL: z.string(),
+    // FGA_MODEL_ID: z.string().optional(),
+    // FGA_STORE_ID: z.string().optional(),
 });
 
 const env = zodEnv.parse(process.env);

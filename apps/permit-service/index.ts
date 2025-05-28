@@ -6,8 +6,10 @@ import {
     PermitService,
 } from "@pkgs/lib/proto";
 import { logger } from "@pkgs/lib";
+import { DrizzleClient } from "@pkgs/drizzle-client";
 
 const server = new grpc.Server();
+const { db } = new DrizzleClient();
 
 server.addService(PermitService, {
     HasPermission,
@@ -16,7 +18,7 @@ server.addService(PermitService, {
 });
 
 server.bindAsync(
-    env.MAIL_GRPC_ADDRESS,
+    env.PERMIT_GRPC_ADDRESS,
     grpc.ServerCredentials.createInsecure(),
     (error, port) => {
         if (error) logger.error(error.message);
@@ -37,6 +39,9 @@ async function InsertTuple(
     call: grpc.ServerUnaryCall<HasPermissionRequest, HasPermissionResponse>,
     callback: grpc.sendUnaryData<HasPermissionResponse>
 ) {
+    try {
+    } catch (error) {}
+
     callback(null, {
         allowed: false,
     });
