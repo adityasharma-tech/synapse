@@ -135,7 +135,6 @@ const createCfOrder: (
     const user = props.user;
     const orderId = OrderId().generate().replace("-", "");
 
-    // configuration for the cashfree to create a new payment gateway session id
     const payload: CreateOrderRequest = {
         order_id: orderId,
         customer_details: {
@@ -153,7 +152,6 @@ const createCfOrder: (
         order_note: "",
     };
 
-    // creates an order in the Order table of postgress db using drizzle-orm
     const [dbOrder] = await db
         .insert(Order)
         .values({
@@ -174,7 +172,7 @@ const createCfOrder: (
     try {
         // using cashfree-pg this will make an api request to create an order on cashfree service for paymentSessionId
         order = await Cashfree.PGCreateOrder(
-            env.CF_PAYMENT_XAPI_VERSION!, // x-api-version: cashfree api version
+            env.CF_PAYMENT_XAPI_VERSION!,
             payload
         );
     } catch (err) {
@@ -184,7 +182,6 @@ const createCfOrder: (
     }
     const paymentSessionId = order.data.payment_session_id;
 
-    // updating the order table row
     await db
         .update(Order)
         .set({
@@ -249,11 +246,7 @@ const createRazorpayOrder: (p: CreateOrderPropT) => Promise<
     try {
         // using razorpay, this will make an api request to create an order on razorpay payment service for paymentSessionId
         const instance = getRazorpayInstance();
-
-        // make n order using razorpay instance
         const order = await instance.orders.create(orderOptions);
-
-        // updating the order table row
         const [dbOrder] = await db
             .insert(Order)
             .values({

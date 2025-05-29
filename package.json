@@ -31,7 +31,8 @@
     ],
     "license": "GPL-3.0-only",
     "dependencies": {
-        "drizzle-orm": "^0.44.0",
+        "bcryptjs": "^3.0.2",
+        "drizzle-orm": "^0.42.0",
         "pg": "^8.15.5",
         "rollup": "4.39.0",
         "ts-proto": "^2.7.0"
