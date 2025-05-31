@@ -11,7 +11,7 @@ import { asyncHandler, ApiError, logger, ErrCodes } from "@pkgs/lib";
 const authMiddleware = asyncHandler(async (req, _, next) => {
     const cookies = req.cookies;
 
-    const accessToken = cookies?.accessToken || req.headers?.accessToken;
+    const accessToken = cookies?.accessToken ?? req.headers?.accessToken;
 
     if (!accessToken)
         throw new ApiError(401, "Unauthorized", ErrCodes.UNAUTHORIZED);

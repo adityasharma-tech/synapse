@@ -4,6 +4,9 @@ CREATE TYPE "upgrade"."business_type" AS ENUM('llp', 'ngo', 'individual', 'partn
 CREATE TYPE "upgrade"."request_status" AS ENUM('pending', 'account_created', 'stakeholder_created', 'tnc_accepted', 'account_added', 'done');--> statement-breakpoint
 CREATE TYPE "upgrade"."last_login_method" AS ENUM('email-password', 'sso/google', 'sso/github');--> statement-breakpoint
 CREATE TYPE "upgrade"."roles" AS ENUM('streamer', 'viewer', 'admin');--> statement-breakpoint
+CREATE TYPE "upgrade"."effects" AS ENUM('allow', 'disallow');--> statement-breakpoint
+CREATE TYPE "upgrade"."resources" AS ENUM('stream', 'user', 'chat', 'order', 'streamer-requests');--> statement-breakpoint
+CREATE TYPE "upgrade"."targets" AS ENUM('streamer', 'viewer', 'admin', 'user');--> statement-breakpoint
 CREATE TABLE "upgrade"."chats" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "upgrade"."chats_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"stream_uid" varchar,
@@ -92,9 +95,9 @@ CREATE TABLE "upgrade"."token_table" (
 	"user_refresh_token" varchar,
 	"streamer_verification_token" varchar,
 	"reset_password_token" varchar,
-	"reset_password_token_expiry" timestamp DEFAULT '2025-04-28 11:57:03.684',
+	"reset_password_token_expiry" timestamp DEFAULT '2025-05-31 17:30:02.290',
 	"email_verification_token" varchar,
-	"email_verification_token_expiry" timestamp DEFAULT '2025-04-28 11:57:03.684',
+	"email_verification_token_expiry" timestamp DEFAULT '2025-05-31 17:30:02.290',
 	"updated_at" timestamp,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
@@ -119,6 +122,18 @@ CREATE TABLE "upgrade"."users" (
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
+CREATE TABLE "upgrade"."permissions" (
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "upgrade"."permissions_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+	"target" "upgrade"."targets" NOT NULL,
+	"target_id" integer,
+	"resource" "upgrade"."resources" NOT NULL,
+	"resource_id" integer,
+	"effect" "upgrade"."effects" DEFAULT 'allow',
+	"action" varchar(255) NOT NULL,
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 ALTER TABLE "upgrade"."chats" ADD CONSTRAINT "chats_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "upgrade"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "upgrade"."orders" ADD CONSTRAINT "orders_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "upgrade"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "upgrade"."payouts" ADD CONSTRAINT "payouts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "upgrade"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -131,4 +146,5 @@ CREATE UNIQUE INDEX "streamingUidIdx" ON "upgrade"."streams" USING btree ("strea
 CREATE UNIQUE INDEX "razorpayAccountIdIdx" ON "upgrade"."streamer_request" USING btree ("razorpay_account_id");--> statement-breakpoint
 CREATE INDEX "accountEmailIdx" ON "upgrade"."streamer_request" USING btree ("account_email");--> statement-breakpoint
 CREATE UNIQUE INDEX "emailIdx" ON "upgrade"."users" USING btree ("email");--> statement-breakpoint
-CREATE UNIQUE INDEX "usernameIdx" ON "upgrade"."users" USING btree ("username");
+CREATE UNIQUE INDEX "usernameIdx" ON "upgrade"."users" USING btree ("username");--> statement-breakpoint
+CREATE UNIQUE INDEX "wholeIndex" ON "upgrade"."permissions" USING btree ("target","target_id","resource","resource_id","effect","action");

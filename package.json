@@ -19,12 +19,12 @@
         "build:apps": "yarn --cwd=apps/server build; yarn --cwd=apps/web build; yarn --cwd=apps/mail-service build",
         "dev": "concurrently --names \"server,mail-service,web\" --prefix-colors \"yellow,red,blue\" \"yarn --cwd=apps/server dev\" \"yarn --cwd=apps/mail-service dev\"  \"yarn --cwd=apps/web dev\"",
         "start": "concurrently --names \"server,mail-service,web\" --prefix-colors \"yellow,red,blue\" \"yarn --cwd=apps/server start\" \"yarn --cwd=apps/mail-service start\"  \"yarn --cwd=apps/web dev\"",
-        "prepare": "husky",
+        "seed": "tsc --project tsconfig.seed.json; node ./dist/seeds.js",
         "format": "prettier . --write",
         "clean": "rimraf ./packages/**/dist ./website/**/dist",
         "proto:generate": "protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=. ./packages/lib/src/proto/**/*.proto --ts_proto_opt=outputServices=grpc-js,env=node,esModuleInterop=true"
     },
-    "type": "module",
+    "type": "commonjs",
     "workspaces": [
         "packages/*",
         "apps/*"

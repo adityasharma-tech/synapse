@@ -1,5 +1,5 @@
 {
-    "id": "bab3094d-a043-4ea0-a449-cf6f38815b46",
+    "id": "a23e3e3d-6231-4a7e-8889-eedd8edc69d6",
     "prevId": "00000000-0000-0000-0000-000000000000",
     "version": "7",
     "dialect": "postgresql",
@@ -728,7 +728,7 @@
                     "type": "timestamp",
                     "primaryKey": false,
                     "notNull": false,
-                    "default": "'2025-04-28 11:57:03.684'"
+                    "default": "'2025-05-31 17:30:02.290'"
                 },
                 "email_verification_token": {
                     "name": "email_verification_token",
@@ -741,7 +741,7 @@
                     "type": "timestamp",
                     "primaryKey": false,
                     "notNull": false,
-                    "default": "'2025-04-28 11:57:03.684'"
+                    "default": "'2025-05-31 17:30:02.290'"
                 },
                 "updated_at": {
                     "name": "updated_at",
@@ -938,6 +938,135 @@
             "policies": {},
             "checkConstraints": {},
             "isRLSEnabled": false
+        },
+        "upgrade.permissions": {
+            "name": "permissions",
+            "schema": "upgrade",
+            "columns": {
+                "id": {
+                    "name": "id",
+                    "type": "integer",
+                    "primaryKey": true,
+                    "notNull": true,
+                    "identity": {
+                        "type": "always",
+                        "name": "permissions_id_seq",
+                        "schema": "upgrade",
+                        "increment": "1",
+                        "startWith": "1",
+                        "minValue": "1",
+                        "maxValue": "2147483647",
+                        "cache": "1",
+                        "cycle": false
+                    }
+                },
+                "target": {
+                    "name": "target",
+                    "type": "targets",
+                    "typeSchema": "upgrade",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "target_id": {
+                    "name": "target_id",
+                    "type": "integer",
+                    "primaryKey": false,
+                    "notNull": false
+                },
+                "resource": {
+                    "name": "resource",
+                    "type": "resources",
+                    "typeSchema": "upgrade",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "resource_id": {
+                    "name": "resource_id",
+                    "type": "integer",
+                    "primaryKey": false,
+                    "notNull": false
+                },
+                "effect": {
+                    "name": "effect",
+                    "type": "effects",
+                    "typeSchema": "upgrade",
+                    "primaryKey": false,
+                    "notNull": false,
+                    "default": "'allow'"
+                },
+                "action": {
+                    "name": "action",
+                    "type": "varchar(255)",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "updated_at": {
+                    "name": "updated_at",
+                    "type": "timestamp",
+                    "primaryKey": false,
+                    "notNull": false
+                },
+                "created_at": {
+                    "name": "created_at",
+                    "type": "timestamp",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "default": "now()"
+                }
+            },
+            "indexes": {
+                "wholeIndex": {
+                    "name": "wholeIndex",
+                    "columns": [
+                        {
+                            "expression": "target",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        },
+                        {
+                            "expression": "target_id",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        },
+                        {
+                            "expression": "resource",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        },
+                        {
+                            "expression": "resource_id",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        },
+                        {
+                            "expression": "effect",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        },
+                        {
+                            "expression": "action",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        }
+                    ],
+                    "isUnique": true,
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                }
+            },
+            "foreignKeys": {},
+            "compositePrimaryKeys": {},
+            "uniqueConstraints": {},
+            "policies": {},
+            "checkConstraints": {},
+            "isRLSEnabled": false
         }
     },
     "enums": {
@@ -979,6 +1108,21 @@
             "name": "roles",
             "schema": "upgrade",
             "values": ["streamer", "viewer", "admin"]
+        },
+        "upgrade.effects": {
+            "name": "effects",
+            "schema": "upgrade",
+            "values": ["allow", "disallow"]
+        },
+        "upgrade.resources": {
+            "name": "resources",
+            "schema": "upgrade",
+            "values": ["stream", "user", "chat", "order", "streamer-requests"]
+        },
+        "upgrade.targets": {
+            "name": "targets",
+            "schema": "upgrade",
+            "values": ["streamer", "viewer", "admin", "user"]
         }
     },
     "schemas": {

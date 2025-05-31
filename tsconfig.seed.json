@@ -13,12 +13,6 @@
             "@pkgs/*": ["./packages/*"]
         }
     },
-    "references": [
-        { "path": "./apps/server" },
-        { "path": "./apps/web" },
-        { "path": "./packages/drizzle-client" },
-        { "path": "./packages/zod-client" },
-        { "path": "./packages/lib" }
-    ],
+    "include": ["./scripts/seeds.ts"],
     "exclude": ["**/dist/*", "commitlint.config.js", "**/eslint.config.js"]
 }

@@ -39,10 +39,9 @@ const zodEnv = z.object({
     SMTP_PASS: z.string(),
 
     // secret services token
-    ACCESS_SECRET_KEY: z.string(),
-    REFRESH_SECRET_KEY: z.string(),
-    STREAMER_SECRET_KEY: z.string(),
-    STREAM_SECRET_KEY: z.string(),
+    ACCESS_SECRET_KEY: z.string().nonempty(),
+    REFRESH_SECRET_KEY: z.string().nonempty(),
+    STREAMER_SECRET_KEY: z.string().nonempty(),
 
     // msg91 keys
     MSG91_AUTH_KEY: z.string(),
