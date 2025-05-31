@@ -26,9 +26,9 @@ const Permissions = schema.table(
     {
         id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
         target: targetEnum().notNull(),
-        targetId: t.integer(),
+        targetId: t.integer().notNull(),
         resource: resourceEnum().notNull(),
-        resourceId: t.integer(),
+        resourceId: t.integer().notNull(),
         effect: effectEnum().default("allow"),
         action: t.varchar({ length: 255 }).notNull(),
         ...timestamps,
