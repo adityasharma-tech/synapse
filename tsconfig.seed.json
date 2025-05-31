@@ -13,6 +13,6 @@
             "@pkgs/*": ["./packages/*"]
         }
     },
-    "include": ["./scripts/seeds.ts"],
+    "include": ["./scripts/*.ts"],
     "exclude": ["**/dist/*", "commitlint.config.js", "**/eslint.config.js"]
 }

@@ -3,7 +3,13 @@ import jwt from "jsonwebtoken";
 import { eq } from "drizzle-orm";
 import { env } from "@pkgs/zod-client";
 import { TokenTable } from "@pkgs/drizzle-client";
-import { asyncHandler, ApiError, logger, ErrCodes } from "@pkgs/lib";
+import {
+    asyncHandler,
+    ApiError,
+    logger,
+    ErrCodes,
+    MiddlewareUserT,
+} from "@pkgs/lib";
 
 /**
  * authentication middleware to use the protected/secured routes to the authorized user only
@@ -11,12 +17,18 @@ import { asyncHandler, ApiError, logger, ErrCodes } from "@pkgs/lib";
 const authMiddleware = asyncHandler(async (req, _, next) => {
     const cookies = req.cookies;
 
-    const accessToken = cookies?.accessToken ?? req.headers?.accessToken;
+    const accessToken =
+        (cookies?.accessToken ?? req.headers?.accessToken)
+            ? String(req.headers.accessToken).replace("Bearer ", "")
+            : null;
 
     if (!accessToken)
         throw new ApiError(401, "Unauthorized", ErrCodes.UNAUTHORIZED);
     try {
-        const decodedUser: any = jwt.verify(accessToken, env.ACCESS_SECRET_KEY);
+        const decodedUser = jwt.verify(
+            accessToken,
+            env.ACCESS_SECRET_KEY
+        ) as MiddlewareUserT;
         req.user = decodedUser;
     } catch (error: any) {
         logger.error(`Error during accessing middleware: ${error.message}`);
