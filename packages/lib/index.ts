@@ -6,4 +6,3 @@ export * from "./src/constants";
 export * from "./src/ApiResponse";
 export * from "./src/asyncHandler";
 export { errorHandler } from "./src/errorHandler";
-export * from "./src/permit";

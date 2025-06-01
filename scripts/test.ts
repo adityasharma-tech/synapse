@@ -1,9 +1,3 @@
-import { config as dotenvConfig } from "dotenv";
-dotenvConfig();
-import { hasPermission } from "@pkgs/lib";
+import amqp from "amqplib";
 
-hasPermission({
-    target: "admin:*",
-    resource: "chat:*",
-    action: "delete:own",
-});
+amqp.connect("amqp://localhost:5672");

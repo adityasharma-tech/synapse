@@ -45,8 +45,8 @@ export const userRoles = Object.keys(ROLES);
  * @param permission
  * @returns
  */
-function hasPermissionOld(user: MiddlewareUserT, permission: Permission) {
+function hasPermission(user: MiddlewareUserT, permission: Permission) {
     return (ROLES[user.role] as readonly Permission[]).includes(permission);
 }
 
-export { hasPermissionOld };
+export { hasPermission };

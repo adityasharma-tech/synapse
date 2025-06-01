@@ -16,9 +16,9 @@
     "private": true,
     "scripts": {
         "build:packages": "lerna run build",
-        "build:apps": "yarn --cwd=apps/server build; yarn --cwd=apps/web build; yarn --cwd=apps/mail-service build",
-        "dev": "concurrently --names \"server,mail-service,web\" --prefix-colors \"yellow,red,blue\" \"yarn --cwd=apps/server dev\" \"yarn --cwd=apps/mail-service dev\"  \"yarn --cwd=apps/web dev\"",
-        "start": "concurrently --names \"server,mail-service,web\" --prefix-colors \"yellow,red,blue\" \"yarn --cwd=apps/server start\" \"yarn --cwd=apps/mail-service start\"  \"yarn --cwd=apps/web dev\"",
+        "build:apps": "yarn --cwd=apps/server build; yarn --cwd=apps/web build; yarn --cwd=apps/mail-service build; yarn --cwd=apps/queue-worker build; yarn --cwd=apps/permit-service build",
+        "start": "pm2 start ecosystem.config.js",
+        "stop": "pm2 stop ecosystem.config.js",
         "seed": "tsc --project tsconfig.seed.json; node ./dist/seeds.js",
         "test": "tsc --project tsconfig.seed.json; node ./dist/test.js",
         "format": "prettier . --write",
