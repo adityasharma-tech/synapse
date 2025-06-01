@@ -32,24 +32,25 @@ export interface DefaultMailResponse {
 }
 
 export interface HasPermissionRequest {
-    user: number;
+    target: string;
     resource: string;
-    effect: string;
-    action: string[];
+    action: string;
 }
 
 export interface HasPermissionResponse {
     allowed: boolean;
 }
 
-export interface InsertTupleRequest {
-    user: number;
+export interface InsertPolicyRequest {
+    target: string;
+    targetId: number;
     resource: string;
+    resourceId: number;
     effect: string;
     action: string;
 }
 
-export interface InsertTupleResponse {
+export interface InsertPolicyResponse {
     success: boolean;
 }
 
@@ -230,7 +231,7 @@ export const DefaultMailResponse: MessageFns<DefaultMailResponse> = {
 };
 
 function createBaseHasPermissionRequest(): HasPermissionRequest {
-    return { user: 0, resource: "", effect: "", action: [] };
+    return { target: "", resource: "", action: "" };
 }
 
 export const HasPermissionRequest: MessageFns<HasPermissionRequest> = {
@@ -238,17 +239,14 @@ export const HasPermissionRequest: MessageFns<HasPermissionRequest> = {
         message: HasPermissionRequest,
         writer: BinaryWriter = new BinaryWriter()
     ): BinaryWriter {
-        if (message.user !== 0) {
-            writer.uint32(16).int64(message.user);
+        if (message.target !== "") {
+            writer.uint32(10).string(message.target);
         }
         if (message.resource !== "") {
-            writer.uint32(10).string(message.resource);
+            writer.uint32(18).string(message.resource);
         }
-        if (message.effect !== "") {
-            writer.uint32(26).string(message.effect);
-        }
-        for (const v of message.action) {
-            writer.uint32(34).string(v!);
+        if (message.action !== "") {
+            writer.uint32(26).string(message.action);
         }
         return writer;
     },
@@ -264,16 +262,16 @@ export const HasPermissionRequest: MessageFns<HasPermissionRequest> = {
         while (reader.pos < end) {
             const tag = reader.uint32();
             switch (tag >>> 3) {
-                case 2: {
-                    if (tag !== 16) {
+                case 1: {
+                    if (tag !== 10) {
                         break;
                     }
 
-                    message.user = longToNumber(reader.int64());
+                    message.target = reader.string();
                     continue;
                 }
-                case 1: {
-                    if (tag !== 10) {
+                case 2: {
+                    if (tag !== 18) {
                         break;
                     }
 
@@ -285,15 +283,7 @@ export const HasPermissionRequest: MessageFns<HasPermissionRequest> = {
                         break;
                     }
 
-                    message.effect = reader.string();
-                    continue;
-                }
-                case 4: {
-                    if (tag !== 34) {
-                        break;
-                    }
-
-                    message.action.push(reader.string());
+                    message.action = reader.string();
                     continue;
                 }
             }
@@ -307,31 +297,27 @@ export const HasPermissionRequest: MessageFns<HasPermissionRequest> = {
 
     fromJSON(object: any): HasPermissionRequest {
         return {
-            user: isSet(object.user) ? globalThis.Number(object.user) : 0,
+            target: isSet(object.target)
+                ? globalThis.String(object.target)
+                : "",
             resource: isSet(object.resource)
                 ? globalThis.String(object.resource)
                 : "",
-            effect: isSet(object.effect)
-                ? globalThis.String(object.effect)
+            action: isSet(object.action)
+                ? globalThis.String(object.action)
                 : "",
-            action: globalThis.Array.isArray(object?.action)
-                ? object.action.map((e: any) => globalThis.String(e))
-                : [],
         };
     },
 
     toJSON(message: HasPermissionRequest): unknown {
         const obj: any = {};
-        if (message.user !== 0) {
-            obj.user = Math.round(message.user);
+        if (message.target !== "") {
+            obj.target = message.target;
         }
         if (message.resource !== "") {
             obj.resource = message.resource;
         }
-        if (message.effect !== "") {
-            obj.effect = message.effect;
-        }
-        if (message.action?.length) {
+        if (message.action !== "") {
             obj.action = message.action;
         }
         return obj;
@@ -346,10 +332,9 @@ export const HasPermissionRequest: MessageFns<HasPermissionRequest> = {
         object: I
     ): HasPermissionRequest {
         const message = createBaseHasPermissionRequest();
-        message.user = object.user ?? 0;
+        message.target = object.target ?? "";
         message.resource = object.resource ?? "";
-        message.effect = object.effect ?? "";
-        message.action = object.action?.map((e) => e) || [];
+        message.action = object.action ?? "";
         return message;
     },
 };
@@ -427,26 +412,39 @@ export const HasPermissionResponse: MessageFns<HasPermissionResponse> = {
     },
 };
 
-function createBaseInsertTupleRequest(): InsertTupleRequest {
-    return { user: 0, resource: "", effect: "", action: "" };
+function createBaseInsertPolicyRequest(): InsertPolicyRequest {
+    return {
+        target: "",
+        targetId: 0,
+        resource: "",
+        resourceId: 0,
+        effect: "",
+        action: "",
+    };
 }
 
-export const InsertTupleRequest: MessageFns<InsertTupleRequest> = {
+export const InsertPolicyRequest: MessageFns<InsertPolicyRequest> = {
     encode(
-        message: InsertTupleRequest,
+        message: InsertPolicyRequest,
         writer: BinaryWriter = new BinaryWriter()
     ): BinaryWriter {
-        if (message.user !== 0) {
-            writer.uint32(8).int64(message.user);
+        if (message.target !== "") {
+            writer.uint32(10).string(message.target);
+        }
+        if (message.targetId !== 0) {
+            writer.uint32(16).int64(message.targetId);
         }
         if (message.resource !== "") {
-            writer.uint32(18).string(message.resource);
+            writer.uint32(26).string(message.resource);
+        }
+        if (message.resourceId !== 0) {
+            writer.uint32(32).int64(message.resourceId);
         }
         if (message.effect !== "") {
-            writer.uint32(26).string(message.effect);
+            writer.uint32(42).string(message.effect);
         }
         if (message.action !== "") {
-            writer.uint32(34).string(message.action);
+            writer.uint32(50).string(message.action);
         }
         return writer;
     },
@@ -454,28 +452,28 @@ export const InsertTupleRequest: MessageFns<InsertTupleRequest> = {
     decode(
         input: BinaryReader | Uint8Array,
         length?: number
-    ): InsertTupleRequest {
+    ): InsertPolicyRequest {
         const reader =
             input instanceof BinaryReader ? input : new BinaryReader(input);
         let end = length === undefined ? reader.len : reader.pos + length;
-        const message = createBaseInsertTupleRequest();
+        const message = createBaseInsertPolicyRequest();
         while (reader.pos < end) {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1: {
-                    if (tag !== 8) {
+                    if (tag !== 10) {
                         break;
                     }
 
-                    message.user = longToNumber(reader.int64());
+                    message.target = reader.string();
                     continue;
                 }
                 case 2: {
-                    if (tag !== 18) {
+                    if (tag !== 16) {
                         break;
                     }
 
-                    message.resource = reader.string();
+                    message.targetId = longToNumber(reader.int64());
                     continue;
                 }
                 case 3: {
@@ -483,11 +481,27 @@ export const InsertTupleRequest: MessageFns<InsertTupleRequest> = {
                         break;
                     }
 
-                    message.effect = reader.string();
+                    message.resource = reader.string();
                     continue;
                 }
                 case 4: {
-                    if (tag !== 34) {
+                    if (tag !== 32) {
+                        break;
+                    }
+
+                    message.resourceId = longToNumber(reader.int64());
+                    continue;
+                }
+                case 5: {
+                    if (tag !== 42) {
+                        break;
+                    }
+
+                    message.effect = reader.string();
+                    continue;
+                }
+                case 6: {
+                    if (tag !== 50) {
                         break;
                     }
 
@@ -503,12 +517,20 @@ export const InsertTupleRequest: MessageFns<InsertTupleRequest> = {
         return message;
     },
 
-    fromJSON(object: any): InsertTupleRequest {
+    fromJSON(object: any): InsertPolicyRequest {
         return {
-            user: isSet(object.user) ? globalThis.Number(object.user) : 0,
+            target: isSet(object.target)
+                ? globalThis.String(object.target)
+                : "",
+            targetId: isSet(object.targetId)
+                ? globalThis.Number(object.targetId)
+                : 0,
             resource: isSet(object.resource)
                 ? globalThis.String(object.resource)
                 : "",
+            resourceId: isSet(object.resourceId)
+                ? globalThis.Number(object.resourceId)
+                : 0,
             effect: isSet(object.effect)
                 ? globalThis.String(object.effect)
                 : "",
@@ -518,13 +540,19 @@ export const InsertTupleRequest: MessageFns<InsertTupleRequest> = {
         };
     },
 
-    toJSON(message: InsertTupleRequest): unknown {
+    toJSON(message: InsertPolicyRequest): unknown {
         const obj: any = {};
-        if (message.user !== 0) {
-            obj.user = Math.round(message.user);
+        if (message.target !== "") {
+            obj.target = message.target;
+        }
+        if (message.targetId !== 0) {
+            obj.targetId = Math.round(message.targetId);
         }
         if (message.resource !== "") {
             obj.resource = message.resource;
+        }
+        if (message.resourceId !== 0) {
+            obj.resourceId = Math.round(message.resourceId);
         }
         if (message.effect !== "") {
             obj.effect = message.effect;
@@ -535,30 +563,32 @@ export const InsertTupleRequest: MessageFns<InsertTupleRequest> = {
         return obj;
     },
 
-    create<I extends Exact<DeepPartial<InsertTupleRequest>, I>>(
+    create<I extends Exact<DeepPartial<InsertPolicyRequest>, I>>(
         base?: I
-    ): InsertTupleRequest {
-        return InsertTupleRequest.fromPartial(base ?? ({} as any));
+    ): InsertPolicyRequest {
+        return InsertPolicyRequest.fromPartial(base ?? ({} as any));
     },
-    fromPartial<I extends Exact<DeepPartial<InsertTupleRequest>, I>>(
+    fromPartial<I extends Exact<DeepPartial<InsertPolicyRequest>, I>>(
         object: I
-    ): InsertTupleRequest {
-        const message = createBaseInsertTupleRequest();
-        message.user = object.user ?? 0;
+    ): InsertPolicyRequest {
+        const message = createBaseInsertPolicyRequest();
+        message.target = object.target ?? "";
+        message.targetId = object.targetId ?? 0;
         message.resource = object.resource ?? "";
+        message.resourceId = object.resourceId ?? 0;
         message.effect = object.effect ?? "";
         message.action = object.action ?? "";
         return message;
     },
 };
 
-function createBaseInsertTupleResponse(): InsertTupleResponse {
+function createBaseInsertPolicyResponse(): InsertPolicyResponse {
     return { success: false };
 }
 
-export const InsertTupleResponse: MessageFns<InsertTupleResponse> = {
+export const InsertPolicyResponse: MessageFns<InsertPolicyResponse> = {
     encode(
-        message: InsertTupleResponse,
+        message: InsertPolicyResponse,
         writer: BinaryWriter = new BinaryWriter()
     ): BinaryWriter {
         if (message.success !== false) {
@@ -570,11 +600,11 @@ export const InsertTupleResponse: MessageFns<InsertTupleResponse> = {
     decode(
         input: BinaryReader | Uint8Array,
         length?: number
-    ): InsertTupleResponse {
+    ): InsertPolicyResponse {
         const reader =
             input instanceof BinaryReader ? input : new BinaryReader(input);
         let end = length === undefined ? reader.len : reader.pos + length;
-        const message = createBaseInsertTupleResponse();
+        const message = createBaseInsertPolicyResponse();
         while (reader.pos < end) {
             const tag = reader.uint32();
             switch (tag >>> 3) {
@@ -595,7 +625,7 @@ export const InsertTupleResponse: MessageFns<InsertTupleResponse> = {
         return message;
     },
 
-    fromJSON(object: any): InsertTupleResponse {
+    fromJSON(object: any): InsertPolicyResponse {
         return {
             success: isSet(object.success)
                 ? globalThis.Boolean(object.success)
@@ -603,7 +633,7 @@ export const InsertTupleResponse: MessageFns<InsertTupleResponse> = {
         };
     },
 
-    toJSON(message: InsertTupleResponse): unknown {
+    toJSON(message: InsertPolicyResponse): unknown {
         const obj: any = {};
         if (message.success !== false) {
             obj.success = message.success;
@@ -611,15 +641,15 @@ export const InsertTupleResponse: MessageFns<InsertTupleResponse> = {
         return obj;
     },
 
-    create<I extends Exact<DeepPartial<InsertTupleResponse>, I>>(
+    create<I extends Exact<DeepPartial<InsertPolicyResponse>, I>>(
         base?: I
-    ): InsertTupleResponse {
-        return InsertTupleResponse.fromPartial(base ?? ({} as any));
+    ): InsertPolicyResponse {
+        return InsertPolicyResponse.fromPartial(base ?? ({} as any));
     },
-    fromPartial<I extends Exact<DeepPartial<InsertTupleResponse>, I>>(
+    fromPartial<I extends Exact<DeepPartial<InsertPolicyResponse>, I>>(
         object: I
-    ): InsertTupleResponse {
-        const message = createBaseInsertTupleResponse();
+    ): InsertPolicyResponse {
+        const message = createBaseInsertPolicyResponse();
         message.success = object.success ?? false;
         return message;
     },
@@ -743,36 +773,38 @@ export const PermitService = {
         responseDeserialize: (value: Buffer) =>
             HasPermissionResponse.decode(value),
     },
-    insertTuple: {
-        path: "/mainPackage.Permit/InsertTuple",
+    insertPolicy: {
+        path: "/mainPackage.Permit/InsertPolicy",
         requestStream: false,
         responseStream: false,
-        requestSerialize: (value: InsertTupleRequest) =>
-            Buffer.from(InsertTupleRequest.encode(value).finish()),
-        requestDeserialize: (value: Buffer) => InsertTupleRequest.decode(value),
-        responseSerialize: (value: InsertTupleResponse) =>
-            Buffer.from(InsertTupleResponse.encode(value).finish()),
+        requestSerialize: (value: InsertPolicyRequest) =>
+            Buffer.from(InsertPolicyRequest.encode(value).finish()),
+        requestDeserialize: (value: Buffer) =>
+            InsertPolicyRequest.decode(value),
+        responseSerialize: (value: InsertPolicyResponse) =>
+            Buffer.from(InsertPolicyResponse.encode(value).finish()),
         responseDeserialize: (value: Buffer) =>
-            InsertTupleResponse.decode(value),
+            InsertPolicyResponse.decode(value),
     },
-    removeTuple: {
-        path: "/mainPackage.Permit/RemoveTuple",
+    removePolicy: {
+        path: "/mainPackage.Permit/RemovePolicy",
         requestStream: false,
         responseStream: false,
-        requestSerialize: (value: InsertTupleRequest) =>
-            Buffer.from(InsertTupleRequest.encode(value).finish()),
-        requestDeserialize: (value: Buffer) => InsertTupleRequest.decode(value),
-        responseSerialize: (value: InsertTupleResponse) =>
-            Buffer.from(InsertTupleResponse.encode(value).finish()),
+        requestSerialize: (value: InsertPolicyRequest) =>
+            Buffer.from(InsertPolicyRequest.encode(value).finish()),
+        requestDeserialize: (value: Buffer) =>
+            InsertPolicyRequest.decode(value),
+        responseSerialize: (value: InsertPolicyResponse) =>
+            Buffer.from(InsertPolicyResponse.encode(value).finish()),
         responseDeserialize: (value: Buffer) =>
-            InsertTupleResponse.decode(value),
+            InsertPolicyResponse.decode(value),
     },
 } as const;
 
 export interface PermitServer extends UntypedServiceImplementation {
     hasPermission: handleUnaryCall<HasPermissionRequest, HasPermissionResponse>;
-    insertTuple: handleUnaryCall<InsertTupleRequest, InsertTupleResponse>;
-    removeTuple: handleUnaryCall<InsertTupleRequest, InsertTupleResponse>;
+    insertPolicy: handleUnaryCall<InsertPolicyRequest, InsertPolicyResponse>;
+    removePolicy: handleUnaryCall<InsertPolicyRequest, InsertPolicyResponse>;
 }
 
 export interface PermitClient extends Client {
@@ -800,52 +832,52 @@ export interface PermitClient extends Client {
             response: HasPermissionResponse
         ) => void
     ): ClientUnaryCall;
-    insertTuple(
-        request: InsertTupleRequest,
+    insertPolicy(
+        request: InsertPolicyRequest,
         callback: (
             error: ServiceError | null,
-            response: InsertTupleResponse
+            response: InsertPolicyResponse
         ) => void
     ): ClientUnaryCall;
-    insertTuple(
-        request: InsertTupleRequest,
+    insertPolicy(
+        request: InsertPolicyRequest,
         metadata: Metadata,
         callback: (
             error: ServiceError | null,
-            response: InsertTupleResponse
+            response: InsertPolicyResponse
         ) => void
     ): ClientUnaryCall;
-    insertTuple(
-        request: InsertTupleRequest,
-        metadata: Metadata,
-        options: Partial<CallOptions>,
-        callback: (
-            error: ServiceError | null,
-            response: InsertTupleResponse
-        ) => void
-    ): ClientUnaryCall;
-    removeTuple(
-        request: InsertTupleRequest,
-        callback: (
-            error: ServiceError | null,
-            response: InsertTupleResponse
-        ) => void
-    ): ClientUnaryCall;
-    removeTuple(
-        request: InsertTupleRequest,
-        metadata: Metadata,
-        callback: (
-            error: ServiceError | null,
-            response: InsertTupleResponse
-        ) => void
-    ): ClientUnaryCall;
-    removeTuple(
-        request: InsertTupleRequest,
+    insertPolicy(
+        request: InsertPolicyRequest,
         metadata: Metadata,
         options: Partial<CallOptions>,
         callback: (
             error: ServiceError | null,
-            response: InsertTupleResponse
+            response: InsertPolicyResponse
+        ) => void
+    ): ClientUnaryCall;
+    removePolicy(
+        request: InsertPolicyRequest,
+        callback: (
+            error: ServiceError | null,
+            response: InsertPolicyResponse
+        ) => void
+    ): ClientUnaryCall;
+    removePolicy(
+        request: InsertPolicyRequest,
+        metadata: Metadata,
+        callback: (
+            error: ServiceError | null,
+            response: InsertPolicyResponse
+        ) => void
+    ): ClientUnaryCall;
+    removePolicy(
+        request: InsertPolicyRequest,
+        metadata: Metadata,
+        options: Partial<CallOptions>,
+        callback: (
+            error: ServiceError | null,
+            response: InsertPolicyResponse
         ) => void
     ): ClientUnaryCall;
 }

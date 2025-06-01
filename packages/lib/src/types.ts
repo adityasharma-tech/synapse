@@ -13,6 +13,24 @@ interface MiddlewareUserT {
     phoneNumber?: string;
 }
 
+type ActionT =
+    | "view"
+    | "update"
+    | "delete"
+    | "block"
+    | "unblock"
+    | "accept"
+    | "reject"
+    | "user:block"
+    | "rating:create"
+    | "rating:update:own"
+    | "rating:delete:own"
+    | "create"
+    | "update:own"
+    | "delete:own"
+    | "upvote"
+    | "downvote";
+
 type rmqMailServiceType = "confirmation" | "reset_password";
 
-export type { MiddlewareUserT, rmqMailServiceType };
+export type { MiddlewareUserT, rmqMailServiceType, ActionT };

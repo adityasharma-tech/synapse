@@ -9,8 +9,8 @@ service Mail {
 
 service Permit {
     rpc HasPermission (HasPermissionRequest) returns (HasPermissionResponse) {};
-    rpc InsertTuple (InsertTupleRequest) returns (InsertTupleResponse) {};
-    rpc RemoveTuple (InsertTupleRequest) returns (InsertTupleResponse) {};
+    rpc InsertPolicy (InsertPolicyRequest) returns (InsertPolicyResponse) {};
+    rpc RemovePolicy (InsertPolicyRequest) returns (InsertPolicyResponse) {};
 }
 
 message DefaultMailRequest {
@@ -24,23 +24,24 @@ message DefaultMailResponse {
 }
 
 message HasPermissionRequest {
-    int64 user = 2;
-    string resource = 1;
-    string effect = 3;
-    repeated string action = 4;
+    string target = 1;
+    string resource = 2;
+    string action = 3;
 }
 
 message HasPermissionResponse {
     bool allowed = 1;
 }
 
-message InsertTupleRequest {
-    int64 user = 1;
-    string resource = 2;
-    string effect = 3;
-    string action = 4;
+message InsertPolicyRequest {
+    string target = 1;
+    int64 targetId = 2;
+    string resource = 3;
+    int64 resourceId = 4;
+    string effect = 5;
+    string action = 6;
 }
 
-message InsertTupleResponse {
+message InsertPolicyResponse {
     bool success = 1;
 }
