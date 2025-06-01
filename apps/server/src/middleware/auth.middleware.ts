@@ -18,9 +18,12 @@ const authMiddleware = asyncHandler(async (req, _, next) => {
     const cookies = req.cookies;
 
     const accessToken =
-        (cookies?.accessToken ?? req.headers?.accessToken)
+        cookies?.accessToken ??
+        (req.headers?.accessToken
             ? String(req.headers.accessToken).replace("Bearer ", "")
-            : null;
+            : null);
+
+    logger.info(`AccessToken: ${accessToken}`);
 
     if (!accessToken)
         throw new ApiError(401, "Unauthorized", ErrCodes.UNAUTHORIZED);

@@ -6,9 +6,12 @@ services:
     ports:
       - 5672:5672
       - 15672:15672
+    environment:
+      RABBITMQ_MANAGEMENT_AGENT_DISABLE_METRICS_COLLECTOR: 'false'
     volumes:
-      - rabbitmq-lib:/var/lib/rabbitmq/
+      - rabbitmq-lib:/var/lib/rabbitmq
       - rabbitmq-log:/var/log/rabbitmq
+      - ~/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
 
 volumes:
   rabbitmq-lib:

@@ -16,8 +16,11 @@
     "references": [
         { "path": "./apps/server" },
         { "path": "./apps/web" },
+        { "path": "./apps/queue-worker" },
+        { "path": "./apps/permit-service" },
         { "path": "./packages/drizzle-client" },
         { "path": "./packages/zod-client" },
+        { "path": "./packages/rmq-client" },
         { "path": "./packages/lib" }
     ],
     "exclude": ["**/dist/*", "commitlint.config.js", "**/eslint.config.js"]

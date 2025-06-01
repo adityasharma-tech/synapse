@@ -1,12 +1,6 @@
 module.exports = {
     apps: [
         {
-            name: "mail-service",
-            cwd: "./apps/mail-service",
-            script: "yarn start",
-            // args: "start",
-        },
-        {
             name: "permit-service",
             cwd: "./apps/permit-service",
             script: "yarn start",

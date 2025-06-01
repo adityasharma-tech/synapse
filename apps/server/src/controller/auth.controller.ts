@@ -3,12 +3,15 @@ import { eq, or } from "drizzle-orm";
 import { TokenTable, User } from "@pkgs/drizzle-client";
 import { emailVerificationTokenExpiry } from "../lib/constants";
 import { generateUsername, getSigningTokens } from "../lib/utils";
+import { RMQClient } from "@pkgs/rmq-client";
 import {
     logger,
     ApiError,
     ApiResponse,
     asyncHandler,
     ErrCodes,
+    RMQ_MAIL_QUEUE,
+    rmqMailServiceType,
 } from "@pkgs/lib";
 
 import jwt from "jsonwebtoken";
@@ -16,8 +19,8 @@ import jose from "node-jose";
 import axios from "axios";
 import crpyto from "crypto";
 import bcrypt from "bcryptjs";
-import * as grpc from "@grpc/grpc-js";
-import { MailClient } from "@pkgs/lib/proto";
+
+const rmqClient = new RMQClient();
 
 const loginHandler = asyncHandler(async (req, res) => {
     const { username, email, password } = req.body;
@@ -206,28 +209,20 @@ const registerHandler = asyncHandler(async (req, res) => {
             );
     }
 
-    const client = new MailClient(
-        env.MAIL_GRPC_ADDRESS,
-        grpc.credentials.createInsecure()
-    );
-
-    client.sendSignupConfirmMail(
-        { email: email.trim(), token: emailVerificationToken },
-        (err, response) => {
-            if (err)
-                return logger.error(
-                    `Error while sending confirmation mail: ${err.message}`
-                );
-
-            logger.info(`GRPC response: ${JSON.stringify(response)}`);
-
-            if (!response.success)
-                throw new ApiError(
-                    400,
-                    "Failed to send verification email.",
-                    ErrCodes.EMAIL_SEND_ERR
-                );
-        }
+    const channel = await rmqClient.getChannel();
+    channel.sendToQueue(
+        RMQ_MAIL_QUEUE,
+        Buffer.from(
+            JSON.stringify({
+                email: email.trim(),
+                token: emailVerificationToken,
+                type: "confirmation",
+            } as {
+                email: string;
+                token: string;
+                type: rmqMailServiceType;
+            })
+        )
     );
 
     res.status(201).json(
@@ -255,6 +250,7 @@ const verifyEmailHandler = asyncHandler(async (req, res) => {
         .execute();
 
     const user = users[0];
+    logger.info(user);
 
     if (
         !user ||
@@ -341,32 +337,24 @@ const resendEmailHandler = asyncHandler(async (req, res) => {
 
     await db
         .update(TokenTable)
-        .set({ emailVerificationToken, updatedAt: new Date() })
-        .where(eq(TokenTable.id, user.id))
+        .set({ emailVerificationToken, emailVerificationTokenExpiry })
+        .where(eq(TokenTable.userId, user.id))
         .execute();
 
-    const client = new MailClient(
-        env.MAIL_GRPC_ADDRESS,
-        grpc.credentials.createInsecure()
-    );
-
-    client.sendSignupConfirmMail(
-        { email: email.trim(), token: emailVerificationToken },
-        (err, response) => {
-            if (err)
-                return logger.error(
-                    `Error while sending confirmation mail: ${err.message}`
-                );
-
-            logger.info(`GRPC response: ${JSON.stringify(response)}`);
-
-            if (!response.success)
-                throw new ApiError(
-                    400,
-                    "Failed to send verification email.",
-                    ErrCodes.EMAIL_SEND_ERR
-                );
-        }
+    const channel = await rmqClient.getChannel();
+    channel.sendToQueue(
+        RMQ_MAIL_QUEUE,
+        Buffer.from(
+            JSON.stringify({
+                email: email.trim(),
+                token: emailVerificationToken,
+                type: "confirmation",
+            } as {
+                email: string;
+                token: string;
+                type: rmqMailServiceType;
+            })
+        )
     );
     res.status(200).json(
         new ApiResponse(200, null, "Email verification send successfully.")
@@ -444,28 +432,20 @@ const resetPasswordEmailHandler = asyncHandler(async (req, res) => {
 
     const verificationToken = crpyto.randomBytes(10).toString("hex");
 
-    const client = new MailClient(
-        env.MAIL_GRPC_ADDRESS,
-        grpc.credentials.createInsecure()
-    );
-
-    client.sendResetPasswordMail(
-        { email: email.trim(), token: verificationToken },
-        (err, response) => {
-            if (err)
-                return logger.error(
-                    `Error while sending confirmation mail: ${err.message}`
-                );
-
-            logger.info(`GRPC response: ${JSON.stringify(response)}`);
-
-            if (!response.success)
-                throw new ApiError(
-                    400,
-                    "Failed to send reset password mail email.",
-                    ErrCodes.EMAIL_SEND_ERR
-                );
-        }
+    const channel = await rmqClient.getChannel();
+    channel.sendToQueue(
+        RMQ_MAIL_QUEUE,
+        Buffer.from(
+            JSON.stringify({
+                email: email.trim(),
+                token: verificationToken,
+                type: "reset_password",
+            } as {
+                email: string;
+                token: string;
+                type: rmqMailServiceType;
+            })
+        )
     );
 
     res.status(200).json(new ApiResponse(200, null));
