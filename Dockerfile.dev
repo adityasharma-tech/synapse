@@ -25,4 +25,4 @@ RUN yarn
 RUN yarn build:packages
 RUN yarn build:apps
 
-CMD [ "yarn", "start" ]
+CMD ["bash", "-c", "nginx && yarn start"]

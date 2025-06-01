@@ -6,7 +6,6 @@ services:
     networks:
       - default_network
     ports:
-      - 5672:5672
       - 15672:15672
     environment:
       RABBITMQ_MANAGEMENT_AGENT_DISABLE_METRICS_COLLECTOR: 'false'
@@ -23,9 +22,10 @@ services:
       dockerfile: ./Dockerfile.dev
     restart: always
     ports:
-      - 8080:8080
+      - 5174:8080
+      - 5173:80
     environment:
-      REDIS_CONNECT_URI: amqp://guest:guest@rabbitmq:5672
+      RABBITMQ_URI: amqp://guest:guest@rabbitmq:5672
     env_file:
       - ./.env
     depends_on:
