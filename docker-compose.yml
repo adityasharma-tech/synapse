@@ -3,6 +3,8 @@ services:
     image: rabbitmq:latest
     container_name: rabbitmq
     restart: always
+    networks:
+      - default_network
     ports:
       - 5672:5672
       - 15672:15672
@@ -12,6 +14,25 @@ services:
       - rabbitmq-lib:/var/lib/rabbitmq
       - rabbitmq-log:/var/log/rabbitmq
       - ~/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+
+  synapse:
+    container_name: synapse
+    networks:
+      - default_network
+    build:
+      dockerfile: ./Dockerfile.dev
+    restart: always
+    ports:
+      - 8080:8080
+    environment:
+      REDIS_CONNECT_URI: amqp://guest:guest@rabbitmq:5672
+    env_file:
+      - ./.env
+    depends_on:
+      - rabbitmq
+
+networks:
+  default_network:
 
 volumes:
   rabbitmq-lib:
