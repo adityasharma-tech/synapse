@@ -25,4 +25,8 @@ RUN yarn
 RUN yarn build:packages
 RUN yarn build:apps
 
+RUN mkdir /www /www/root
+
+RUN mv ./apps/web/dist/* /www/root
+
 CMD ["bash", "-c", "nginx && yarn start"]

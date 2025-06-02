@@ -34,15 +34,15 @@ module.exports = {
                 PORT: 3007,
             },
         },
-        {
-            name: "web",
-            cwd: "./apps/web",
-            script: "yarn dev --port 8082",
-        },
-        {
-            name: "web",
-            cwd: "./apps/web",
-            script: "yarn dev --port 8083",
-        },
+        // {
+        //     name: "web",
+        //     cwd: "./apps/web",
+        //     script: "yarn dev --port 8082",
+        // },
+        // {
+        //     name: "web",
+        //     cwd: "./apps/web",
+        //     script: "yarn dev --port 8083",
+        // },
     ],
 };
