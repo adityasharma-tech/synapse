@@ -38,11 +38,11 @@ const SocketProvider = ({
     const handleConnectSocket = useCallback(() => {
         const socketClient = io(backendURL, {
             withCredentials: true, // by setting true it will send secure cookies from the client to the server
-            // transports: ["websockets"],
             autoConnect: true, // debug code (default it is true) which will try to connect which no need to call socketClient.connect(), it will call as soon as this will run
             query: {
                 streamId,
             },
+            transports: ["websocket", "webtransport"],
         });
         setSocket(socketClient);
     }, [io, setSocket, backendURL, streamId]);

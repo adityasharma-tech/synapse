@@ -36,6 +36,7 @@ const io = new SocketIO(server, {
     cors: { origin: corsOrigins, credentials: true },
     adapter: createAdapter(redisClient, subClient), // only if you want to use redis as an adapter
     cookie: true,
+    transports: ["websocket", "webtransport"],
 });
 
 // socket.io middlewares
