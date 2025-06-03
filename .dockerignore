@@ -2,6 +2,8 @@
 Dockerfile
 Dockerfile.dev
 docker-compose.yml
+./apps/**/dist
+./packages/**/dist
 
 # Logs
 logs

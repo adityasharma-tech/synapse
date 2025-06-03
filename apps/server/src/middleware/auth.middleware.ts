@@ -23,8 +23,6 @@ const authMiddleware = asyncHandler(async (req, _, next) => {
             ? String(req.headers.accessToken).replace("Bearer ", "")
             : null);
 
-    logger.info(`AccessToken: ${accessToken}`);
-
     if (!accessToken)
         throw new ApiError(401, "Unauthorized", ErrCodes.UNAUTHORIZED);
     try {

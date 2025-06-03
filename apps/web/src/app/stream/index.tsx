@@ -386,7 +386,7 @@ export default function Stream() {
         return () => {
             clearInterval(interval);
         };
-    }, []);
+    }, [socket, streamId]);
 
     React.useEffect(() => {
         // handleInitializeCashfree();
