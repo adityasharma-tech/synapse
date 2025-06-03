@@ -35,6 +35,7 @@ type rmqMailServiceType =
     | "confirmation"
     | "reset_password"
     | "recieve_streamer_application"
+    | "welcome_email"
     | "streamer_application_rejected"
     | "streamer_application_accepted"
     | "subs_start_streaming";

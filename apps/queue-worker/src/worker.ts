@@ -6,6 +6,7 @@ import {
     gotStreamerApplicationEmail,
     sendConfirmationMail,
     sendResetPasswordMail,
+    sendWelcomeEmail,
     streamerStartStreamingEmail,
 } from "./mail.service";
 
@@ -23,7 +24,7 @@ import {
 
     await channel.consume(
         queue.queue,
-        (msg) => {
+        async (msg) => {
             if (!msg) return;
             const data = JSON.parse(msg.content.toString()) as {
                 email: string;
@@ -38,31 +39,38 @@ import {
 
             switch (data.type) {
                 case "confirmation":
-                    sendConfirmationMail(data.email, data.token);
+                    await sendConfirmationMail(data.email, data.token);
                     break;
                 case "reset_password":
-                    sendResetPasswordMail(data.email, data.token);
+                    await sendResetPasswordMail(data.email, data.token);
                     break;
                 case "recieve_streamer_application":
-                    gotStreamerApplicationEmail({
+                    await gotStreamerApplicationEmail({
                         email: data.email,
                         name: data.name,
                     });
                     break;
+
+                case "welcome_email":
+                    await sendWelcomeEmail({
+                        name: data.name,
+                        email: data.email,
+                    });
+                    break;
                 case "streamer_application_accepted":
-                    applicationAcceptedEmail({
+                    await applicationAcceptedEmail({
                         email: data.email,
                         name: data.name,
                     });
                     break;
                 case "streamer_application_rejected":
-                    applicationRejectedEmail({
+                    await applicationRejectedEmail({
                         email: data.email,
                         name: data.name,
                     });
                     break;
                 case "subs_start_streaming":
-                    streamerStartStreamingEmail({
+                    await streamerStartStreamingEmail({
                         email: data.email,
                         name: data.name,
                         streamerName: data.streamerName!,

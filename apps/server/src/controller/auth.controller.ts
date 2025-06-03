@@ -274,10 +274,11 @@ const verifyEmailHandler = asyncHandler(async (req, res) => {
             "Token expired successfully. 😁 Please request for new."
         );
 
-    const userUpdateResult = await db
+    const [userUpdateResult] = await db
         .update(User)
         .set({ emailVerified: true, updatedAt: new Date() })
         .where(eq(User.id, user.users.id))
+        .returning()
         .execute();
     if (!userUpdateResult)
         throw new ApiError(
@@ -302,6 +303,19 @@ const verifyEmailHandler = asyncHandler(async (req, res) => {
             "Failed to update tokens.",
             ErrCodes.DB_UPDATE_ERR
         );
+
+    const channel = await rmqClient.getChannel();
+    channel.publish(
+        RMQ_MAIL_QUEUE,
+        "",
+        Buffer.from(
+            JSON.stringify({
+                email: userUpdateResult.email.trim(),
+                name: `${userUpdateResult.firstName} ${userUpdateResult.lastName}`,
+                type: "welcome_email",
+            })
+        )
+    );
 
     res.status(200).json(
         new ApiResponse(200, null, "Email verified successfully.")

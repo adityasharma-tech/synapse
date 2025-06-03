@@ -3,8 +3,11 @@ import fs from "fs/promises";
 import { eq } from "drizzle-orm";
 import { setupRazorpayAccount } from "../services/payments.service";
 import { signStreamerVerficationToken } from "../lib/utils";
-import { ApiError, ApiResponse, asyncHandler } from "@pkgs/lib";
+import { ApiError, ApiResponse, asyncHandler, RMQ_MAIL_QUEUE } from "@pkgs/lib";
 import { TokenTable, User, StreamerRequest } from "@pkgs/drizzle-client";
+import { RMQClient } from "@pkgs/rmq-client";
+
+const rmqClient = new RMQClient();
 
 /**
  * Controller to get all stream applications and send all required data to the admin dashboard
@@ -171,6 +174,19 @@ const acceptFormData = asyncHandler(async (req, res) => {
                 updatedAt: new Date(),
             })
             .where(eq(User.id, application.userId));
+
+        const channel = await rmqClient.getChannel();
+        channel.publish(
+            RMQ_MAIL_QUEUE,
+            "",
+            Buffer.from(
+                JSON.stringify({
+                    email: req.user.email.trim(),
+                    name: `${req.user.firstName} ${req.user.lastName}`,
+                    type: "streamer_application_accepted",
+                })
+            )
+        );
 
         res.status(200).json(new ApiResponse(200, "Success"));
     } catch (err) {

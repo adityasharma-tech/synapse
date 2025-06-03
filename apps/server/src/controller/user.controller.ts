@@ -9,18 +9,21 @@ import { ApiError, ApiResponse, asyncHandler, ErrCodes } from "@pkgs/lib";
  * For logout remove the cookies and clear the caches
  */
 const logoutHandler = asyncHandler(async (_, res) => {
-    res.cookie("accessToken", "", {
-        maxAge: 0,
-        sameSite: "none",
-        httpOnly: true,
-        secure: true,
-    });
-    res.cookie("refreshToken", "", {
-        maxAge: 0,
-        sameSite: "none",
-        httpOnly: true,
-        secure: true,
-    });
+    // res.cookie("accessToken", "", {
+    //     maxAge: 0,
+    //     sameSite: "none",
+    //     httpOnly: true,
+    //     secure: true,
+    // });
+    // res.cookie("refreshToken", "", {
+    //     maxAge: 0,
+    //     sameSite: "none",
+    //     httpOnly: true,
+    //     secure: true,
+    // });
+
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
 
     res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     res.setHeader("Pragma", "no-cache");
