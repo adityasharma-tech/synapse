@@ -31,6 +31,12 @@ type ActionT =
     | "upvote"
     | "downvote";
 
-type rmqMailServiceType = "confirmation" | "reset_password";
+type rmqMailServiceType =
+    | "confirmation"
+    | "reset_password"
+    | "recieve_streamer_application"
+    | "streamer_application_rejected"
+    | "streamer_application_accepted"
+    | "subs_start_streaming";
 
 export type { MiddlewareUserT, rmqMailServiceType, ActionT };

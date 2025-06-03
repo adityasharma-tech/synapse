@@ -4,6 +4,7 @@ import SMTPTransport from "nodemailer/lib/smtp-transport";
 import { env } from "@pkgs/zod-client";
 import { logger } from "@pkgs/lib";
 import { SendMailOptions } from "nodemailer";
+import Mailgen from "mailgen";
 
 // transport configuration of the smtp server which handles the mail transportation
 const transportOptions: SMTPTransport.Options = {
@@ -13,6 +14,14 @@ const transportOptions: SMTPTransport.Options = {
     auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
 };
 const transporter = nodemailer.createTransport(transportOptions);
+
+const mailGenerator = new Mailgen({
+    theme: "default",
+    product: {
+        name: "Synapse",
+        link: "https://synapse.aditya.agency",
+    },
+});
 
 /**
  * confirmation mail sending handler to send confirmation mail to the specified email with the verificationToken
@@ -74,5 +83,150 @@ const sendResetPasswordMail = async function (
     }
 };
 
+const sendWelcomeEmail = async function ({
+    name,
+    email,
+}: {
+    name: string;
+    email: string;
+}) {
+    const welcomeMail: Mailgen.Content = {
+        body: {
+            name,
+            intro: "Welcome to Synapse! We\'re very excited to have you on board.",
+            outro: "Need help, or have questions? Just reply to this email, we'd love to help.",
+            title: "Synapse",
+        },
+    };
+
+    return await transporter.sendMail({
+        from: "synapse@aditya.agency",
+        to: email.toLowerCase().trim(),
+        subject: "Welcome to Synapse",
+        html: mailGenerator.generate(welcomeMail),
+        text: mailGenerator.generatePlaintext(welcomeMail),
+    });
+};
+
+const gotStreamerApplicationEmail = async function ({
+    name,
+    email,
+}: {
+    name: string;
+    email: string;
+}) {
+    const mail: Mailgen.Content = {
+        body: {
+            name,
+            intro: "We have received your application for streamer request on our Synapse platform. We are currently reviewing your application and will notify you once the review process is complete.",
+            outro: "Need help, or have questions? Just reply to this email, we'd love to help.",
+            title: "Synapse - Application",
+        },
+    };
+
+    return await transporter.sendMail({
+        from: "synapse@aditya.agency",
+        to: email.toLowerCase().trim(),
+        subject: "Application recieved",
+        html: mailGenerator.generate(mail),
+        text: mailGenerator.generatePlaintext(mail),
+    });
+};
+
+const applicationRejectedEmail = async function ({
+    name,
+    email,
+}: {
+    name: string;
+    email: string;
+}) {
+    const mail: Mailgen.Content = {
+        body: {
+            name,
+            intro: "We regret to inform you that your application for becoming a streamer on Synapse has been rejected. Unfortunately, your application did not meet our current requirements.",
+            outro: "If you have any questions about this decision or would like to apply again in the future, please feel free to contact us.",
+            title: "Synapse - Application Status",
+        },
+    };
+
+    return await transporter.sendMail({
+        from: "synapse@aditya.agency",
+        to: email.toLowerCase().trim(),
+        subject: "Synapse - Application Status",
+        html: mailGenerator.generate(mail),
+        text: mailGenerator.generatePlaintext(mail),
+    });
+};
+
+const applicationAcceptedEmail = async function ({
+    name,
+    email,
+}: {
+    name: string;
+    email: string;
+}) {
+    const mail: Mailgen.Content = {
+        body: {
+            name,
+            intro: "Congratulations! Your application for becoming a streamer on Synapse has been approved. You can now start streaming on our platform.",
+            outro: "If you have any questions or need assistance getting started, please don't hesitate to contact us.",
+            title: "Synapse - Application Approved",
+        },
+    };
+
+    return await transporter.sendMail({
+        from: "synapse@aditya.agency",
+        to: email.toLowerCase().trim(),
+        subject: "Synapse - Application Approved",
+        html: mailGenerator.generate(mail),
+        text: mailGenerator.generatePlaintext(mail),
+    });
+};
+
+const streamerStartStreamingEmail = async function ({
+    name,
+    email,
+    streamerName,
+    streamingLink,
+}: {
+    name: string;
+    email: string;
+    streamerName: string;
+    streamingLink: string;
+}) {
+    const mail: Mailgen.Content = {
+        body: {
+            name,
+            intro: `${streamerName} just went live! Click the link below to join the stream.`,
+            action: {
+                instructions: "Click the button below to join the stream:",
+                button: {
+                    color: "#222222",
+                    text: "Join Stream",
+                    link: streamingLink,
+                },
+            },
+            outro: "Don't miss out on the action!",
+            title: `${streamerName} is Live!`,
+        },
+    };
+
+    return await transporter.sendMail({
+        from: "synapse@aditya.agency",
+        to: email.toLowerCase().trim(),
+        subject: `${streamerName} started streaming, Join in`,
+        html: mailGenerator.generate(mail),
+        text: mailGenerator.generatePlaintext(mail),
+    });
+};
+
 /// ...
-export { sendConfirmationMail, sendResetPasswordMail };
+export {
+    sendConfirmationMail,
+    sendResetPasswordMail,
+    sendWelcomeEmail,
+    gotStreamerApplicationEmail,
+    applicationAcceptedEmail,
+    applicationRejectedEmail,
+    streamerStartStreamingEmail,
+};

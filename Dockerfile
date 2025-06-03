@@ -31,4 +31,4 @@ RUN mkdir /www /www/root
 
 RUN mv ./apps/web/dist/* /www/root
 
-CMD ["bash", "-c", "nginx && yarn start"]
+CMD ["bash", "-c", "nginx && yarn start && sleep infinity"]

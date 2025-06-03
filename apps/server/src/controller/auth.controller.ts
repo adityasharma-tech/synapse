@@ -210,8 +210,9 @@ const registerHandler = asyncHandler(async (req, res) => {
     }
 
     const channel = await rmqClient.getChannel();
-    channel.sendToQueue(
+    channel.publish(
         RMQ_MAIL_QUEUE,
+        "",
         Buffer.from(
             JSON.stringify({
                 email: email.trim(),

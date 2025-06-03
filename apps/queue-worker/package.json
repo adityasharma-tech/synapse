@@ -28,6 +28,7 @@
     },
     "dependencies": {
         "amqplib": "^0.10.7",
+        "mailgen": "^2.0.29",
         "nodemailer": "^6.10.1"
     }
 }

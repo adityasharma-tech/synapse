@@ -17,7 +17,7 @@
     "scripts": {
         "build:packages": "lerna run build",
         "build:apps": "yarn --cwd=apps/server build; yarn --cwd=apps/web build; yarn --cwd=apps/queue-worker build; yarn --cwd=apps/permit-service build",
-        "start": "pm2 start ecosystem.config.js; sleep infinity",
+        "start": "pm2 start ecosystem.config.js",
         "stop": "pm2 stop ecosystem.config.js",
         "seed": "tsc --project tsconfig.seed.json; node ./dist/seeds.js",
         "test": "tsc --project tsconfig.seed.json; node ./dist/test.js",
