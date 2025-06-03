@@ -71,7 +71,6 @@ export default function Main() {
                         <Route path="stream/:streamId" element={<Stream />} />
                     </Route>
                     <Route path="*" element={<NotFound />} />{" "}
-                    {/* Not found page */}
                 </Route>
             </Routes>
         </BrowserRouter>

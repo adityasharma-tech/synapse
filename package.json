@@ -22,7 +22,7 @@
         "seed": "tsc --project tsconfig.seed.json; node ./dist/seeds.js",
         "test": "tsc --project tsconfig.seed.json; node ./dist/test.js",
         "format": "prettier . --write",
-        "clean": "rimraf ./packages/**/dist ./website/**/dist",
+        "clean": "rimraf ./packages/**/dist ./apps/**/dist ./packages/**/node_modules ./apps/**/node_modules ./node_modules",
         "proto:generate": "protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=. ./packages/lib/src/proto/**/*.proto --ts_proto_opt=outputServices=grpc-js,env=node,esModuleInterop=true"
     },
     "type": "commonjs",

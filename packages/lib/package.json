@@ -12,6 +12,7 @@
             "require": "./dist/index.js",
             "types": "./dist/index.d.ts"
         },
+        "./shared": "./shared.ts",
         "./proto": {
             "default": "./dist/src/proto/index.js",
             "types": "./dist/src/proto/index.d.ts"

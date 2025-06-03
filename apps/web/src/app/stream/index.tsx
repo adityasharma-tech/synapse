@@ -6,7 +6,8 @@ import { useNavigate, useParams } from "react-router";
 import { useSocket } from "../../hooks/socket.hook";
 import { createPremiumChatOrder, getStreamById } from "../../lib/apiClient";
 import { requestHandler } from "../../lib/requestHandler";
-import { razorpayKeyId, SocketEventEnum } from "../../lib/constants";
+import { razorpayKeyId } from "../../lib/constants";
+import { SocketEventEnum } from "@pkgs/lib/shared";
 import { useAppDispatch, useAppSelector } from "../../store";
 import {
     useRef,
@@ -19,7 +20,6 @@ import {
     addBasicChat,
     addPremiumChat,
     downVoteBasicChat,
-    // PremiumChatT,
     removeBasicChat,
     updateStreamId,
     updateBasicChat,
@@ -31,6 +31,7 @@ import {
     downVoteDownBasicChat,
     PremiumChatT,
     updateUserRole,
+    updateMetadata,
 } from "../../store/reducers/stream.reducer";
 import { setAllPreChats } from "../../store/actions/stream.actions";
 import { loadScript, useDebounce, useThrottle } from "../../lib/utils";
@@ -289,6 +290,10 @@ export default function Stream() {
             dispatch(upVoteDownBasicChat(chatObject));
         });
 
+        socket.on(SocketEventEnum.GET_STREAM_CONNECTIONS, (chatObject) => {
+            dispatch(updateMetadata(chatObject));
+        });
+
         // trigger when someone wants to remove hhis downvotes for a specific chat
         socket.on(SocketEventEnum.CHAT_DOWNVOTE_DOWN_EVENT, (chatObject) => {
             dispatch(downVoteDownBasicChat(chatObject));
@@ -309,6 +314,7 @@ export default function Stream() {
         dispatch,
         addBasicChat,
         updateBasicChat,
+        updateMetadata,
         removeBasicChat,
         addPremiumChat,
         upVoteBasicChat,
@@ -367,6 +373,20 @@ export default function Stream() {
             }
         }
     }, [streamId, socket, streaming]);
+
+    React.useEffect(() => {
+        const interval = setInterval(() => {
+            if (socket && streamId) {
+                socket.emit(SocketEventEnum.GET_STREAM_CONNECTIONS, {
+                    streamId,
+                });
+            }
+        }, 3000);
+
+        return () => {
+            clearInterval(interval);
+        };
+    }, []);
 
     React.useEffect(() => {
         // handleInitializeCashfree();
@@ -536,7 +556,7 @@ export default function Stream() {
                                     d="M458.159 404.216c-18.93-33.65-49.934-71.764-100.409-93.431-28.868 20.196-63.938 32.087-101.745 32.087-37.828 0-72.898-11.89-101.767-32.087-50.474 21.667-81.479 59.782-100.398 93.431C28.731 448.848 48.417 512 91.842 512h328.317c43.424 0 63.11-63.152 38-107.784zM256.005 300.641c74.144 0 134.231-60.108 134.231-134.242v-32.158C390.236 60.108 330.149 0 256.005 0 181.85 0 121.753 60.108 121.753 134.242V166.4c0 74.133 60.098 134.241 134.252 134.241z"
                                 />
                             </svg>
-                            251 Watching
+                            {streamState.currentViewers} Watching
                         </div>
                         <div className="bg-neutral-950 rounded-lg py-4 flex items-center justify-between px-5">
                             {streamState.totalQuestions} Questions

@@ -42,6 +42,10 @@ interface TypingEventPayloadT {
     fullName: string;
 }
 
+interface UpdateMetadataPayloadT {
+    currentViewers: number;
+}
+
 // Define a type for the slice state
 interface DashStreamReducer {
     streamRunning: boolean;
@@ -52,6 +56,7 @@ interface DashStreamReducer {
     typerNames: TypingEventPayloadT[];
     userRole: "streamer" | "viewer" | "admin";
     totalQuestions: number;
+    currentViewers: number;
 }
 
 // Define the initial state using that type
@@ -64,6 +69,7 @@ const initialState: DashStreamReducer = {
     typerNames: [],
     userRole: "viewer",
     totalQuestions: 0,
+    currentViewers: 0,
 };
 
 export const streamSlice = createSlice({
@@ -243,6 +249,13 @@ export const streamSlice = createSlice({
             );
             if (typerIndex >= 0) state.typerNames.splice(typerIndex, 1);
         },
+
+        updateMetadata: (
+            state,
+            action: PayloadAction<UpdateMetadataPayloadT>
+        ) => {
+            state.currentViewers = action.payload.currentViewers;
+        },
     },
 
     // extra reducers for async thunks
@@ -278,6 +291,7 @@ export const {
     upVoteDownBasicChat,
     downVoteDownBasicChat,
     updateUserRole,
+    updateMetadata,
 } = streamSlice.actions;
 
 export default streamSlice.reducer;

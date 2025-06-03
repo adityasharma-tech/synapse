@@ -60,6 +60,10 @@ interface ChatDeletePayloadT {
     streamId: string;
 }
 
+interface GetCurrentViewers {
+    streamId: string;
+}
+
 interface ChatUpvotePaylaodT extends ChatDeletePayloadT {}
 interface ChatDownVotePaylaodT extends ChatDeletePayloadT {}
 interface ChatMarkDonePayloadT extends ChatDeletePayloadT {}
@@ -130,6 +134,13 @@ async function chatUpdateHandler(io: Server, payload: ChatUpdatePayloadT) {
     io.to(payload.streamId).emit(SocketEventEnum.CHAT_UPDATE_EVENT, {
         ...payload,
         streamId: undefined,
+    });
+}
+
+async function getCurrentViewers(io: Server, payload: GetCurrentViewers) {
+    const viewers = (await io.in(payload.streamId).fetchSockets()).length;
+    io.to(payload.streamId).emit(SocketEventEnum.GET_STREAM_CONNECTIONS, {
+        currentViewers: viewers,
     });
 }
 
@@ -307,6 +318,9 @@ function socketHandler(io: Server, socket: Socket) {
         socket.on(SocketEventEnum.CHAT_DELETE_EVENT, (payload) =>
             chatDeleteHandler(io, socket, payload)
         );
+        socket.on(SocketEventEnum.GET_STREAM_CONNECTIONS, (payload) => {
+            getCurrentViewers(io, payload);
+        });
         socket.on(
             SocketEventEnum.PAYMENT_CHAT_CREATE_EVENT,
             paymentChatCreateHandler
