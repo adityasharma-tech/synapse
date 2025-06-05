@@ -435,7 +435,7 @@ export default function ChatWindowComponent({
                     hidden={searchParams.get("popout") ? true : false}
                     onClick={() => {
                         window.open(
-                            `http://localhost:5173/stream/b79bcbf9-147e-45ce-b2d2-3a6d374fb530/chat?popout=true`,
+                            `http://localhost:5173/stream/${streamId}/chat?popout=true`,
                             "StreamChat",
                             "popup=true"
                         );
@@ -513,7 +513,22 @@ export default function ChatWindowComponent({
                     </button>
                 </div>
                 <div className="flex justify-between">
-                    <div></div>
+                    <div>
+                        {streamState.typerNames.length > 0 ? (
+                            <div className="flex items-center gap-x-2 text-sm font-medium absolute -top-10 bg-black/10 px-3 rounded-t-md py-1 backdrop-blur-md left-0 right-0">
+                                <span className="loading loading-dots loading-lg" />
+                                {streamState.typerNames.map((user) => (
+                                    <span
+                                        key={user.userId}
+                                        className="animate-pulse"
+                                    >
+                                        {user.fullName}
+                                    </span>
+                                ))}
+                                <span>typing...</span>
+                            </div>
+                        ) : null}
+                    </div>
                     <button className="font-medium bg-indigo-700 px-2 py-1 rounded md:cursor-pointer active:ring-3 ring-indigo-800/30">
                         Message
                     </button>

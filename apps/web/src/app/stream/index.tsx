@@ -351,7 +351,6 @@ export default function Stream() {
                         dispatch(updateUserRole(result.data.userRole));
                         if (result.data.stream.youtubeVideoUrl)
                             setVideoUrl(result.data.stream.youtubeVideoUrl);
-                        console.log(result.data.stream.youtubeVideoUrl);
                     },
                     () => {
                         navigate("/dashboard");

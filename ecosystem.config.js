@@ -29,14 +29,14 @@ module.exports = {
             cwd: "./apps/queue-worker",
             script: "yarn start",
         },
-        {
-            name: "server-1",
-            cwd: "./apps/server",
-            script: "yarn start",
-            env: {
-                PORT: 5174,
-            },
-        },
+        // {
+        //     name: "server-1",
+        //     cwd: "./apps/server",
+        //     script: "yarn start",
+        //     env: {
+        //         PORT: 5174,
+        //     },
+        // },
         // {
         //     name: "server-2",
         //     cwd: "./apps/server",
