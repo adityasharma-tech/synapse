@@ -15,10 +15,7 @@ export default function StreamV2() {
                 aria-expanded={"true"}
                 className="h-2/3 aria-[expanded='false']:w-0 aria-[expanded='false']:overflow-hidden md:w-2/5 md:h-full"
             >
-                <ChatComponent
-                    chatWindowRef={chatWindowRef}
-                    videoWindowRef={videoWindowRef}
-                />
+                <ChatComponent />
             </div>
         </div>
     );

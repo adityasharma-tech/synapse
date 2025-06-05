@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-import { env } from "@pkgs/zod-client";
+import { env, handleZodError } from "@pkgs/zod-client";
 import { google } from "googleapis";
 import { v4 as uuidv4 } from "uuid";
 import { createRazorpayOrder } from "../services/payments.service";
@@ -21,20 +21,15 @@ import {
     logger,
     MiddlewareUserT,
 } from "@pkgs/lib";
+import { createStreamSchema } from "src/validators/stream.validators";
 
 /**
  * Controller for streamers to start a new stream
  */
 const createNewStream = asyncHandler(async (req, res) => {
-    const { title, youtubeVideoUrl } = req.body;
+    const { title, youtubeVideoUrl, chatSlowMode, about, thumbnailUrl } =
+        handleZodError(createStreamSchema.safeParse(req.body));
     const user = req.user;
-
-    if (!title || !user)
-        throw new ApiError(
-            400,
-            "Title is required field.",
-            ErrCodes.VALIDATION_ERR
-        );
 
     const streamingToken = jwt.sign(
         { streamerId: user.id },
@@ -98,11 +93,14 @@ const fetchYoutubeData = asyncHandler(async (req, res) => {
 
     const video = items[0]["snippet"];
 
+    logger.info(JSON.stringify(video));
+
     res.status(200).json(
         new ApiResponse(200, {
             title: video?.title,
-            thumbnail: video?.thumbnails?.default?.url,
+            thumbnail: video?.thumbnails?.high?.url,
             channelTitle: video?.channelTitle,
+            description: video?.description,
         })
     );
 });

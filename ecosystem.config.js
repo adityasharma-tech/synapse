@@ -3,7 +3,7 @@ module.exports = {
         {
             name: "permit-service-1",
             cwd: "./apps/permit-service",
-            script: "yarn start",
+            script: "yarn build && yarn start",
             env: {
                 // PERMIT_GRPC_ADDRESS: "0.0.0.0:3010"
             },

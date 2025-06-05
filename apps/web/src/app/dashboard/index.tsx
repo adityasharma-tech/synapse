@@ -1,12 +1,14 @@
-import React, {
-    ChangeEvent,
-    MouseEventHandler,
-    useCallback,
-    useRef,
-    useState,
-} from "react";
-import { useNavigate } from "react-router";
-import { useAppSelector } from "../../store";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/btn";
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -15,342 +17,436 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
-import { useDebounce } from "../../lib/utils";
-import { requestHandler } from "../../lib/requestHandler";
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { useFileUpload } from "@/hooks/use-file-upload";
+import { getYoutubeVideoData } from "@/lib/apiClient";
+import { requestHandler } from "@/lib/requestHandler";
+import { useDebounce } from "@/lib/utils";
+import { useAppSelector } from "@/store";
 import {
-    getAllStreams,
-    getYoutubeVideoData,
-    startNewStream,
-} from "../../lib/apiClient";
+    AlertCircleIcon,
+    BoltIcon,
+    BookOpenIcon,
+    ChevronDownIcon,
+    ImageUpIcon,
+    Layers2Icon,
+    LogOutIcon,
+    MessageSquareCodeIcon,
+    PinIcon,
+    UserPenIcon,
+    XIcon,
+} from "lucide-react";
+import React, { ChangeEvent, useId } from "react";
+import { Link } from "react-router";
 
 export default function DashboardPage() {
-    const navigate = useNavigate();
-
     const user = useAppSelector((state) => state.app.user);
-    const videoInputRef = useRef<HTMLInputElement | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [streamFetchLoading, setStreamFetchLoading] = useState(false);
-    const [previousStreams, setPreviousStreams] = useState<any[]>([]);
 
-    const [videoData, setVideoData] = useState<{
-        title: string;
-        thumbnail: string;
-        channelTitle: string;
-    } | null>(null);
+    return (
+        <div className="h-full">
+            <div className="bg-neutral-900 pr-2 flex justify-between items-center h-12">
+                <Link to="/">
+                    <img
+                        alt="Synapse"
+                        src="/T&W@2x.png"
+                        className="object-contain h-7"
+                    />
+                </Link>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            className="h-auto p-0 hover:bg-none focus-visible:border-none focus-visible:ring-0"
+                        >
+                            <Avatar>
+                                <AvatarImage
+                                    src="./avatar.jpg"
+                                    alt="Profile image"
+                                />
+                                <AvatarFallback>
+                                    {user?.firstName[0]}
+                                    {user?.lastName[0]}
+                                </AvatarFallback>
+                            </Avatar>
+                            <ChevronDownIcon
+                                size={16}
+                                className="opacity-60"
+                                aria-hidden="true"
+                            />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="max-w-64 mr-3 mt-3">
+                        <DropdownMenuLabel className="flex min-w-0 flex-col">
+                            <span className="text-foreground truncate text-sm font-medium">
+                                {user?.firstName} {user?.lastName}
+                            </span>
+                            <span className="text-muted-foreground truncate text-xs font-normal">
+                                {user?.email}
+                            </span>
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuGroup>
+                            <DropdownMenuItem>
+                                <BoltIcon
+                                    size={16}
+                                    className="opacity-60"
+                                    aria-hidden="true"
+                                />
+                                <span>Option 1</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                                <Layers2Icon
+                                    size={16}
+                                    className="opacity-60"
+                                    aria-hidden="true"
+                                />
+                                <span>Option 2</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                                <BookOpenIcon
+                                    size={16}
+                                    className="opacity-60"
+                                    aria-hidden="true"
+                                />
+                                <span>Option 3</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuGroup>
+                            <DropdownMenuItem>
+                                <PinIcon
+                                    size={16}
+                                    className="opacity-60"
+                                    aria-hidden="true"
+                                />
+                                <span>Option 4</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                                <UserPenIcon
+                                    size={16}
+                                    className="opacity-60"
+                                    aria-hidden="true"
+                                />
+                                <span>Option 5</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                        <DropdownMenuSeparator />
+                        <Link to="/user/logout">
+                            <DropdownMenuItem>
+                                <LogOutIcon
+                                    size={16}
+                                    className="opacity-60"
+                                    aria-hidden="true"
+                                />
+                                <span>Logout</span>
+                            </DropdownMenuItem>
+                        </Link>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+            <div className="h-[35%] from-purple-400 to-red-500 via-pink-500 bg-gradient-to-r flex items-center gap-y-14 flex-col justify-center">
+                <div>
+                    <span className="text-6xl font-semibold">
+                        Welcome back, {user?.firstName} {user?.lastName}
+                    </span>
+                </div>
+                <div className="flex gap-x-4">
+                    <Button
+                        size="lg"
+                        className="md:cursor-pointer h-10 px-10 text-md font-medium border-2 bg-white/20 text-white hover:bg-white/30"
+                    >
+                        Schedule a stream
+                    </Button>
+                    <GoLiveButton />
+                </div>
+            </div>
+        </div>
+    );
+}
 
-    const [dialogOpen, setDialogOpen] = useState(false);
-
-    const handleCreateStream: MouseEventHandler<HTMLButtonElement> =
-        useCallback(
-            async (e) => {
-                e.preventDefault();
-                if (videoInputRef.current)
-                    await requestHandler(
-                        startNewStream({
-                            title: videoInputRef.current.value
-                                .trim()
-                                .startsWith("https://")
-                                ? (videoData?.title ?? "")
-                                : videoInputRef.current.value.trim(),
-                            youtubeVideoUrl: videoInputRef.current.value
-                                .trim()
-                                .startsWith("https://")
-                                ? videoInputRef.current.value.trim()
-                                : "",
-                        }),
-                        setLoading,
-                        (res) => {
-                            navigate(`/stream/${res.data.stream.streamingUid}`);
-                        }
-                    );
-            },
-            [
-                videoInputRef,
-                requestHandler,
-                startNewStream,
-                setLoading,
-                navigate,
-                videoData,
-            ]
-        );
-
-    const handleFetchStreams = useCallback(async () => {
-        await requestHandler(
-            getAllStreams(),
-            setStreamFetchLoading,
-            (result) => {
-                setPreviousStreams(result.data.data);
-            },
-            undefined
-        );
-    }, [requestHandler, getAllStreams, setPreviousStreams]);
-
-    React.useEffect(() => {
-        if (user?.role == "viewer") return;
-        handleFetchStreams();
-    }, [user]);
+function GoLiveButton() {
+    const titleInputId = useId();
+    const videoUrlId = useId();
+    const slowModeCheckInputId = useId();
+    const aboutInputId = useId();
+    const maxSize = 5 * 1024 * 1024; // max 5 mb
+    const [
+        { files, isDragging, errors },
+        {
+            handleDragEnter,
+            handleDragLeave,
+            handleDragOver,
+            handleDrop,
+            openFileDialog,
+            removeFile,
+            getInputProps,
+        },
+    ] = useFileUpload({
+        accept: "image/*",
+        maxSize,
+    });
 
     const debouncer = useDebounce();
 
-    const handleFetchVideoData = useCallback(
+    const [formData, setFormData] = React.useState<{
+        videoUrl: string;
+        title: string;
+        about: string;
+        slowChatMode: boolean;
+        thumbnail: string | null;
+    }>({
+        videoUrl: "",
+        title: "",
+        about: "",
+        slowChatMode: false,
+        thumbnail: null,
+    });
+
+    const handleFetchVideoData = React.useCallback(
         async function (e: ChangeEvent<HTMLInputElement>) {
+            console.log(formData);
             if (e.target.value.trim() == "") return;
             if (!e.target.value.trim().startsWith("https://")) return;
+            setFormData((prev) => ({
+                ...prev,
+                videoUrl: prev.videoUrl.replace("https://", ""),
+            }));
             await requestHandler(
                 getYoutubeVideoData(e.target.value),
                 undefined,
                 (data) => {
-                    setVideoData(data.data);
-                }
+                    setFormData((prev) => ({
+                        ...prev,
+                        thumbnail: data.data.thumbnail,
+                        title: `${data.data.channelTitle} | ${data.data.title}`,
+                        about: data.data.description,
+                    }));
+                },
+                undefined,
+                false
             );
         },
-        [requestHandler, getYoutubeVideoData, setVideoData]
+        [requestHandler, getYoutubeVideoData, setFormData, formData]
     );
 
-    React.useEffect(() => {
-        console.log(videoData);
-    }, [videoData]);
-
+    const previewUrl = files[0]?.preview || null;
     return (
-        <React.Fragment>
-            <header className="px-5 flex justify-between py-4">
-                <img
-                    alt="Synapse"
-                    src="/T&W@2x.png"
-                    className="object-contain h-10"
-                />
-                <div className="flex items-center gap-x-3">
-                    {user?.role == "admin" || user?.role == "streamer" ? (
-                        <button
-                            onClick={() => setDialogOpen(!dialogOpen)}
-                            className="dark:bg-neutral-200 px-4 cursor-pointer hover:bg-neutral-100 transition-colors active:bg-neutral-300 dark:text-neutral-800 py-2 rounded-lg"
-                        >
-                            Start new stream
-                        </button>
-                    ) : null}
-                    <hr className="h-full border border-neutral-700" />
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <button className="flex gap-x-3 bg-neutral-800 cursor-pointer items-center rounded-lg p-2 pr-10">
-                                <div>
-                                    <img
-                                        className="size-8"
-                                        src="https://avatar.iran.liara.run/username?username=AdityaSharma"
-                                    />
-                                </div>
-                                <div className="flex flex-col items-start justify-start">
-                                    <span className="text-sm">
-                                        {user?.firstName} {user?.lastName}
-                                    </span>
-                                    <span className="text-xs text-gray-400">
-                                        {user?.role}
-                                    </span>
-                                </div>
-                            </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56 bg-neutral-100">
-                            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuGroup>
-                                <DropdownMenuItem>Profile</DropdownMenuItem>
-                            </DropdownMenuGroup>
-                            <DropdownMenuGroup>
-                                {user?.role == "viewer" ? (
-                                    <DropdownMenuItem
-                                        onClick={() => navigate("apply")}
-                                    >
-                                        Apply for streamer
-                                    </DropdownMenuItem>
-                                ) : user?.role == "admin" ? (
-                                    <DropdownMenuItem
-                                        onClick={() =>
-                                            navigate("streamer-applications")
-                                        }
-                                    >
-                                        View all applications
-                                    </DropdownMenuItem>
-                                ) : null}
-                            </DropdownMenuGroup>
-                            <DropdownMenuItem disabled>API</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                                onClick={() => navigate("/user/logout")}
-                            >
-                                Log out
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </header>
-            {/* Dialog */}
-            <span
-                data-open={dialogOpen}
-                onClick={() => setDialogOpen(false)}
-                className="z-10 bg-neutral-500/10 transition-all data-[open=false]:hidden inset-0 fixed backdrop-blur-xs"
-            />
-            <div
-                data-open={dialogOpen}
-                className="top-1/2 left-1/2 data-[open=false]:hidden -translate-1/2 -translate-y-1/2 px-10 rounded-xl py-10 fixed z-30"
-            >
-                <div className="flex justify-end">
-                    <button
-                        onClick={() => setDialogOpen(!dialogOpen)}
-                        className="p-2 bg-neutral-900 hover:bg-neutral-800 cursor-pointer rounded-lg mb-2"
-                    >
-                        <svg
-                            width="1em"
-                            height="1em"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                        >
-                            <path
-                                d="M6.995 7.006a1 1 0 000 1.415l3.585 3.585-3.585 3.585a1 1 0 101.414 1.414l3.585-3.585 3.585 3.585a1 1 0 001.415-1.414l-3.586-3.585 3.586-3.585a1 1 0 00-1.415-1.415l-3.585 3.585L8.41 7.006a1 1 0 00-1.414 0z"
-                                fill="#fff"
-                            />
-                        </svg>
-                    </button>
-                </div>
-                <div className="min-w-sm min-h-12 bg-neutral-900 rounded-lg p-3">
-                    <div className="flex gap-x-2 p-2 bg-[#222] rounded-md">
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button
+                    size="lg"
+                    className="md:cursor-pointer h-10 px-10 font-medium text-md"
+                >
+                    Go live now
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="flex flex-col gap-0 overflow-y-visible max-w-5xl p-0 [&>button:last-child]:top-3.5">
+                <DialogHeader className="contents space-y-0 text-left">
+                    <DialogTitle className="border-b px-6 py-4 text-base">
+                        Start stream
+                    </DialogTitle>
+                </DialogHeader>
+                <div className="p-3 flex h-full gap-x-4">
+                    <div className="w-2/3">
                         <div>
-                            <img
-                                className="h-36 rounded-md"
-                                src={videoData?.thumbnail}
-                                alt="Thumbnail"
-                            />
-                        </div>
-                        <div>
-                            <div className="text-lg">{videoData?.title}</div>
-                            <div className="text-sm mt-2 text-neutral-400">
-                                {videoData?.channelTitle}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-x-2 rounded-lg py-1 bg-[#222] my-3">
-                        <div className="flex items-center gap-x-2 px-3">
-                            <div>
-                                <img
-                                    src="https://youtube.com/favicon.ico"
-                                    className=""
+                            <Label htmlFor={videoUrlId}>
+                                Video Url{" "}
+                                <span className="text-destructive">*</span>
+                            </Label>
+                            <div className="relative">
+                                <Input
+                                    id={videoUrlId}
+                                    className="peer ps-16"
+                                    placeholder="youtube.com/watch?v="
+                                    type="text"
+                                    value={formData.videoUrl}
+                                    onChange={(e) => {
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            videoUrl: e.target.value,
+                                        }));
+                                        debouncer(
+                                            handleFetchVideoData.bind(null, e),
+                                            1000
+                                        );
+                                    }}
                                 />
+                                <span className="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-sm peer-disabled:opacity-50">
+                                    https://
+                                </span>
                             </div>
-                            <span>YouTube Link</span>
                         </div>
-                        <div className="flex-grow mr-1 rounded-md bg-neutral-900 px-2 focus-within:border-neutral-600 border border-transparent">
-                            <input
-                                ref={videoInputRef}
+                        <div className="mt-2">
+                            <Label htmlFor={titleInputId}>
+                                Title{" "}
+                                <span className="text-destructive">*</span>
+                            </Label>
+                            <Input
+                                id={titleInputId}
+                                placeholder="Wonderful chatting"
+                                value={formData.title}
                                 onChange={(e) =>
-                                    debouncer(
-                                        handleFetchVideoData.bind(null, e),
-                                        1000
-                                    )
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        title: e.target.value,
+                                    }))
                                 }
-                                className="h-8 focus:outline-none w-full"
-                                placeholder="https://www.youtube.com/watch/?v="
+                                type="text"
+                                required
+                            />
+                        </div>
+                        <div className="flex justify-between py-2 mt-4">
+                            <div>
+                                <Label htmlFor={slowModeCheckInputId}>
+                                    Chat slow mode{" "}
+                                </Label>
+                            </div>
+                            <div className="inline-flex items-center gap-2">
+                                <Switch
+                                    id={slowModeCheckInputId}
+                                    checked={formData.slowChatMode}
+                                    onCheckedChange={(checked) =>
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            slowChatMode: checked,
+                                        }))
+                                    }
+                                    aria-label="Toggle switch"
+                                />
+                                <Label
+                                    htmlFor={slowModeCheckInputId}
+                                    className="text-sm font-medium"
+                                >
+                                    {formData.slowChatMode ? "On" : "Off"}
+                                </Label>
+                            </div>
+                        </div>
+                        <div className="mt-2">
+                            <Label htmlFor={aboutInputId}>About</Label>
+                            <Textarea
+                                value={formData.about}
+                                id={aboutInputId}
+                                onChange={(e) =>
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        about: e.target.value,
+                                    }))
+                                }
+                                placeholder="Having a good day."
                             />
                         </div>
                     </div>
-                    <div className="flex justify-end mt-10">
-                        <button
-                            onClick={handleCreateStream}
-                            disabled={loading}
-                            className="bg-black disabled:opacity-85 py-2 px-3 flex rounded-lg hover:bg-neutral-950 cursor-pointer active:bg-neutral-800"
-                        >
-                            Start new stream
-                            <span
-                                data-loading={loading}
-                                className="loading data-[loading=true]:block hidden loading-spinner loading-xs"
-                            ></span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <section className="h-[calc(100vh-72px)] flex gap-x-4 px-5 pb-5">
-                <div className="h-full w-[60%] bg-[#222] rounded-xl p-3 relative">
-                    <div className="font-medium text-neutral-100 text-lg">
-                        Analytics
-                    </div>
-                    <div className="absolute top-1/2 left-1/2 -translate-1/2 -translate-y-1/2">
-                        No analytics yet!
-                    </div>
-                </div>
-                <div className="h-full w-[40%] flex flex-col gap-5">
-                    <div className="h-[60%] w-full bg-[#222] rounded-xl p-3 overflow-y-auto">
-                        <div className="font-medium text-neutral-100 text-lg">
-                            Streams Watch History
-                        </div>
-                        <span
-                            data-loading={streamFetchLoading}
-                            className="loading data-[loading=true]:block hidden loading-spinner loading-xs"
-                        ></span>
-                        {previousStreams.map((str, idx) => (
-                            <div
-                                role="button"
-                                tabIndex={0}
-                                key={idx}
-                                className="bg-neutral-900 first:mt-0 mt-3 rounded-lg shadow p-2 flex justify-between"
-                            >
-                                <div className="flex gap-x-3">
-                                    <div>
-                                        <img
-                                            className="h-16 rounded-md"
-                                            src={
-                                                str.thumbnailUrl ??
-                                                "https://placehold.co/150x80"
-                                            }
-                                        />
-                                    </div>
-                                    <div className="flex flex-col justify-center gap-y-1">
-                                        <div className="font-medium">
-                                            {str.streamTitle}
+                    <div className="w-1/3">
+                        <Label>
+                            Thumbnail upload{" "}
+                            <span className="text-destructive">*</span>
+                        </Label>
+                        <div className="flex flex-col gap-2">
+                            <div className="relative">
+                                <div
+                                    role="button"
+                                    onClick={openFileDialog}
+                                    onDragEnter={handleDragEnter}
+                                    onDragLeave={handleDragLeave}
+                                    onDragOver={handleDragOver}
+                                    onDrop={handleDrop}
+                                    data-dragging={isDragging || undefined}
+                                    className="border-input hover:bg-accent/50 data-[dragging=true]:bg-accent/50 has-[input:focus]:border-ring has-[input:focus]:ring-ring/50 relative flex min-h-52 flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed p-4 transition-colors has-disabled:pointer-events-none has-disabled:opacity-50 has-[img]:border-none has-[input:focus]:ring-[3px]"
+                                >
+                                    <input
+                                        {...getInputProps()}
+                                        className="sr-only"
+                                        aria-label="Upload file"
+                                    />
+                                    {formData.thumbnail || previewUrl ? (
+                                        <div className="absolute inset-0">
+                                            <img
+                                                src={
+                                                    formData.thumbnail ??
+                                                    previewUrl ??
+                                                    ""
+                                                }
+                                                alt={
+                                                    files[0]?.file?.name ||
+                                                    "Uploaded image"
+                                                }
+                                                className="size-full object-cover"
+                                            />
                                         </div>
-                                        {str.videoUrl ? (
-                                            <div className="text-xs text-neutral-400">
-                                                {str.videoUrl}
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center px-4 py-3 text-center">
+                                            <div
+                                                className="bg-background mb-2 flex size-11 shrink-0 items-center justify-center rounded-full border"
+                                                aria-hidden="true"
+                                            >
+                                                <ImageUpIcon className="size-4 opacity-60" />
                                             </div>
-                                        ) : null}
-                                    </div>
+                                            <p className="mb-1.5 text-sm font-medium">
+                                                Drop your image here or click to
+                                                browse
+                                            </p>
+                                            <p className="text-muted-foreground text-xs">
+                                                Max size: 5 MB
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="flex items-center px-4">
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            window.navigator.clipboard.writeText(
-                                                `https://${window.location.host}/stream/${str.streamingUid}`
-                                            )
-                                        }
-                                        className="px-2 cursor-pointer bg-neutral-900 active:bg-neutral-800 transition-colors rounded-md py-2"
-                                    >
-                                        <svg
-                                            width="1.5em"
-                                            height="1.5em"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
+                                {previewUrl && (
+                                    <div className="absolute top-4 right-4">
+                                        <button
+                                            type="button"
+                                            className="focus-visible:border-ring focus-visible:ring-ring/50 z-50 flex size-8 cursor-pointer items-center justify-center rounded-full bg-black/60 text-white transition-[color,box-shadow] outline-none hover:bg-black/80 focus-visible:ring-[3px]"
+                                            onClick={() =>
+                                                removeFile(files[0]?.id)
+                                            }
+                                            aria-label="Remove image"
                                         >
-                                            <path
-                                                fillRule="evenodd"
-                                                clipRule="evenodd"
-                                                d="M21 8a3 3 0 00-3-3h-8a3 3 0 00-3 3v12a3 3 0 003 3h8a3 3 0 003-3V8zm-2 0a1 1 0 00-1-1h-8a1 1 0 00-1 1v12a1 1 0 001 1h8a1 1 0 001-1V8z"
-                                                fill="#fff"
+                                            <XIcon
+                                                className="size-4"
+                                                aria-hidden="true"
                                             />
-                                            <path
-                                                d="M6 3h10a1 1 0 100-2H6a3 3 0 00-3 3v14a1 1 0 102 0V4a1 1 0 011-1z"
-                                                fill="#fff"
-                                            />
-                                        </svg>
-                                    </button>
-                                </div>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                        ))}
-                    </div>
-                    <div className="h-full w-full bg-[#222] rounded-xl p-3">
-                        <div className="text-neutral-100 text-lg">
-                            Previous Chats
+
+                            {errors.length > 0 && (
+                                <div
+                                    className="text-destructive flex items-center gap-1 text-xs"
+                                    role="alert"
+                                >
+                                    <AlertCircleIcon className="size-3 shrink-0" />
+                                    <span>{errors[0]}</span>
+                                </div>
+                            )}
+
+                            <p
+                                aria-live="polite"
+                                role="region"
+                                className="text-muted-foreground mt-2 text-center text-xs"
+                            >
+                                Upload your thumbnail here
+                            </p>
                         </div>
                     </div>
                 </div>
-            </section>
-        </React.Fragment>
+                <DialogFooter className="border-t px-6 py-4">
+                    <DialogClose asChild>
+                        <Button type="button" variant="outline">
+                            Cancel
+                        </Button>
+                    </DialogClose>
+                    <DialogClose asChild>
+                        <Button type="button">
+                            Start chat <MessageSquareCodeIcon />{" "}
+                        </Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }
