@@ -43,7 +43,9 @@ interface TypingEventPayloadT {
 }
 
 interface UpdateMetadataPayloadT {
-    currentViewers: number;
+    currentViewers?: number;
+    videoUrl?: string;
+    streamRunning?: boolean;
 }
 
 // Define a type for the slice state
@@ -56,7 +58,14 @@ interface DashStreamReducer {
     typerNames: TypingEventPayloadT[];
     userRole: "streamer" | "viewer" | "admin";
     totalQuestions: number;
+    videoUrl?: string;
     currentViewers: number;
+    metadata: {
+        channelName: string;
+        title: string;
+        subscribed: boolean;
+        profileImage: string;
+    };
 }
 
 // Define the initial state using that type
@@ -70,6 +79,12 @@ const initialState: DashStreamReducer = {
     userRole: "viewer",
     totalQuestions: 0,
     currentViewers: 0,
+    metadata: {
+        channelName: "",
+        title: "",
+        subscribed: false,
+        profileImage: "",
+    },
 };
 
 export const streamSlice = createSlice({
@@ -254,7 +269,12 @@ export const streamSlice = createSlice({
             state,
             action: PayloadAction<UpdateMetadataPayloadT>
         ) => {
-            state.currentViewers = action.payload.currentViewers;
+            if (action.payload.currentViewers)
+                state.currentViewers = action.payload.currentViewers;
+            if (action.payload.videoUrl)
+                state.videoUrl = action.payload.videoUrl;
+            if (action.payload.streamRunning)
+                state.streamRunning = action.payload.streamRunning;
         },
     },
 

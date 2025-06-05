@@ -1,6 +1,5 @@
 import React, { MouseEventHandler } from "react";
 import LoadingComp from "../../components/loading";
-// import { load as loadCashfree } from "@cashfreepayments/cashfree-js";
 
 import { useNavigate, useParams } from "react-router";
 import { useSocket } from "../../hooks/socket.hook";

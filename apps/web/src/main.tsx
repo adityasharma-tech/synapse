@@ -1,6 +1,5 @@
 // pages imports
 import App from "./app";
-import Stream from "./app/stream";
 import LoginPage from "./app/auth/login";
 import SignupPage from "./app/auth/signup";
 import VerifyPage from "./app/auth/verify";
@@ -13,13 +12,15 @@ import StreamerApplicationsPage from "./app/dashboard/streamer-applications";
 import RootLayout from "./app/_layout";
 import { NotFound } from "./app/_not-found";
 import AuthLayout from "./app/auth/_layout";
-import SocketLayout from "./app/stream/_layout";
 import DashboardLayout from "./app/dashboard/_layout";
 
 import { useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { useAppDispatch, useAppSelector } from "./store";
 import { fetchUser } from "./store/actions/user.actions";
+import ChatStreamLayout from "./app/streamv2/_layout";
+import StreamV2 from "./app/streamv2";
+import ChatComponent from "./app/streamv2/chat-comp";
 
 export default function Main() {
     const dispatch = useAppDispatch();
@@ -67,8 +68,12 @@ export default function Main() {
                             ) : null}
                         </Route>
                     ) : null}
-                    <Route element={<SocketLayout />}>
-                        <Route path="stream/:streamId" element={<Stream />} />
+                    <Route element={<ChatStreamLayout />}>
+                        <Route path="stream/:streamId" element={<StreamV2 />} />
+                        <Route
+                            path="stream/:streamId/chat"
+                            element={<ChatComponent />}
+                        />
                     </Route>
                     <Route path="*" element={<NotFound />} />{" "}
                 </Route>
