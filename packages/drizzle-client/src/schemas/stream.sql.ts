@@ -8,12 +8,14 @@ const Stream = schema.table(
         id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
         streamingUid: t.varchar().notNull(),
         streamTitle: t.varchar().notNull(),
-        streamingToken: t.varchar().notNull(),
-        youtubeVideoUrl: t.varchar(),
+        chatSlowMode: t.boolean().default(false),
+        about: t.varchar().default(""),
+        videoUrl: t.varchar(),
         streamerId: t
             .integer()
             .references(() => User.id)
             .notNull(),
+        thumbnailUrl: t.varchar().notNull(),
         ...timestamps,
     },
     (table) => [t.uniqueIndex("streamingUidIdx").on(table.streamingUid)]

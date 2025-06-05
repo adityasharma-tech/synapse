@@ -1,5 +1,3 @@
-import jwt from "jsonwebtoken";
-
 import { env, handleZodError } from "@pkgs/zod-client";
 import { google } from "googleapis";
 import { v4 as uuidv4 } from "uuid";
@@ -21,7 +19,8 @@ import {
     logger,
     MiddlewareUserT,
 } from "@pkgs/lib";
-import { createStreamSchema } from "src/validators/stream.validators";
+import { createStreamSchema } from "@pkgs/zod-client/validators";
+import { uploadDocumentOnCloudinary } from "../lib/cloudinary";
 
 /**
  * Controller for streamers to start a new stream
@@ -31,11 +30,18 @@ const createNewStream = asyncHandler(async (req, res) => {
         handleZodError(createStreamSchema.safeParse(req.body));
     const user = req.user;
 
-    const streamingToken = jwt.sign(
-        { streamerId: user.id },
-        env.STREAMER_SECRET_KEY,
-        { expiresIn: "6hr" }
-    );
+    let thumbnail: string | null = null;
+
+    if (req.file) {
+        thumbnail = await uploadDocumentOnCloudinary(req.file.path);
+    }
+
+    if (!thumbnailUrl && !thumbnail)
+        throw new ApiError(
+            403,
+            "Please upload any thumbnail for the video.",
+            ErrCodes.VALIDATION_ERR
+        );
 
     const streams = await db
         .insert(Stream)
@@ -43,9 +49,10 @@ const createNewStream = asyncHandler(async (req, res) => {
             streamTitle: title,
             streamingUid: uuidv4().toString(),
             streamerId: user.id,
-            streamingToken,
-            youtubeVideoUrl,
-            updatedAt: new Date(),
+            thumbnailUrl: thumbnail ?? thumbnailUrl ?? "",
+            about,
+            chatSlowMode,
+            videoUrl: youtubeVideoUrl,
         })
         .returning()
         .execute();
@@ -159,18 +166,32 @@ const getStreamById = asyncHandler(async (req, res) => {
     let userRole: Role = "viewer";
 
     if (req.user.role == "admin") userRole = "admin";
-
-    logger.info(`Id of stream: ${id}`);
     const [stream] = await db
         .select({
             streamTitle: Stream.streamTitle,
             streamUid: Stream.streamingUid,
             streamerId: Stream.streamerId,
             id: Stream.id,
-            youtubeVideoUrl: Stream.youtubeVideoUrl,
+            youtubeVideoUrl: Stream.videoUrl,
+            about: Stream.about,
+            streamerName: sql`${User.firstName} || ' ' || ${User.lastName}`.as(
+                "streamerName"
+            ),
         })
         .from(Stream)
         .where(eq(Stream.streamingUid, id))
+        .innerJoin(User, eq(User.id, Stream.streamerId))
+        .groupBy(
+            Stream.streamTitle,
+            Stream.streamingUid,
+            Stream.streamerId,
+            Stream.id,
+            Stream.videoUrl,
+            Stream.about,
+            User.id,
+            User.firstName,
+            User.lastName
+        )
         .execute();
 
     if (!stream) throw new ApiError(400, "Stream not found.");

@@ -16,11 +16,6 @@ interface ResendEmailVerificationPayloadT {
     email: string;
 }
 
-interface StartNewStreamPayloadT {
-    title: string;
-    youtubeVideoUrl: string;
-}
-
 interface VerifyEmailPayloadT {
     verificationToken: string;
 }
@@ -62,7 +57,6 @@ export type {
     LoginUserPayloadT,
     SignupUserPayloadT,
     ResendEmailVerificationPayloadT,
-    StartNewStreamPayloadT,
     VerifyEmailPayloadT,
     GetAllStreamsPayloadT,
     ApplyForStreamerPayloadT,

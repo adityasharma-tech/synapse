@@ -11,7 +11,7 @@ import {
     authMiddleware,
     streamerAuthMiddeware,
 } from "../middleware/auth.middleware";
-import { streamRouteValidators } from "../middleware/validator.middleware";
+import { upload } from "../middleware/multer.middeware";
 
 const router = Router();
 
@@ -21,7 +21,7 @@ router
     .route("/")
     .post(
         streamerAuthMiddeware,
-        streamRouteValidators.createStreamRoute,
+        upload.single("thumbnailImage"),
         createNewStream
     )
     .get(streamerAuthMiddeware, getAllStreams);

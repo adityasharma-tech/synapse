@@ -46,6 +46,8 @@ interface UpdateMetadataPayloadT {
     currentViewers?: number;
     videoUrl?: string;
     streamRunning?: boolean;
+    channelName?: string;
+    title?: string;
 }
 
 // Define a type for the slice state
@@ -275,6 +277,10 @@ export const streamSlice = createSlice({
                 state.videoUrl = action.payload.videoUrl;
             if (action.payload.streamRunning)
                 state.streamRunning = action.payload.streamRunning;
+            if (action.payload.title)
+                state.metadata.title = action.payload.title;
+            if (action.payload.channelName)
+                state.metadata.channelName = action.payload.channelName;
         },
     },
 

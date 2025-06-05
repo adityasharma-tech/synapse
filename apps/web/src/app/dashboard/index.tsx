@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useFileUpload } from "@/hooks/use-file-upload";
-import { getYoutubeVideoData } from "@/lib/apiClient";
+import { getYoutubeVideoData, startNewStream } from "@/lib/apiClient";
 import { requestHandler } from "@/lib/requestHandler";
 import { useDebounce } from "@/lib/utils";
 import { useAppSelector } from "@/store";
@@ -34,14 +34,15 @@ import {
     ChevronDownIcon,
     ImageUpIcon,
     Layers2Icon,
+    LoaderCircle,
     LogOutIcon,
     MessageSquareCodeIcon,
     PinIcon,
     UserPenIcon,
     XIcon,
 } from "lucide-react";
-import React, { ChangeEvent, useId } from "react";
-import { Link } from "react-router";
+import React, { ChangeEvent, MouseEventHandler, useId, useState } from "react";
+import { Link, useNavigate } from "react-router";
 
 export default function DashboardPage() {
     const user = useAppSelector((state) => state.app.user);
@@ -191,6 +192,7 @@ function GoLiveButton() {
     });
 
     const debouncer = useDebounce();
+    const navigate = useNavigate();
 
     const [formData, setFormData] = React.useState<{
         videoUrl: string;
@@ -232,6 +234,29 @@ function GoLiveButton() {
         },
         [requestHandler, getYoutubeVideoData, setFormData, formData]
     );
+
+    const [loading, setLoading] = useState(false);
+
+    const handleCreateStream: MouseEventHandler<HTMLButtonElement> =
+        React.useCallback(
+            async (e) => {
+                e.preventDefault();
+                await requestHandler(
+                    startNewStream({
+                        title: formData.title,
+                        about: formData.about,
+                        chatSlowMode: formData.slowChatMode,
+                        youtubeVideoUrl: "https://" + formData.videoUrl.trim(),
+                        thumbnailUrl: formData.thumbnail ?? undefined,
+                    }),
+                    setLoading,
+                    (res) => {
+                        navigate(`/stream/${res.data.stream.streamingUid}`);
+                    }
+                );
+            },
+            [requestHandler, startNewStream, setLoading, navigate, formData]
+        );
 
     const previewUrl = files[0]?.preview || null;
     return (
@@ -441,8 +466,16 @@ function GoLiveButton() {
                         </Button>
                     </DialogClose>
                     <DialogClose asChild>
-                        <Button type="button">
-                            Start chat <MessageSquareCodeIcon />{" "}
+                        <Button
+                            disabled={loading}
+                            onClick={handleCreateStream}
+                            type="submit"
+                        >
+                            {loading ? (
+                                <LoaderCircle className="animate-spin text-neutral-900" />
+                            ) : null}
+                            Start chat{" "}
+                            {!loading && <MessageSquareCodeIcon />}{" "}
                         </Button>
                     </DialogClose>
                 </DialogFooter>

@@ -32,11 +32,6 @@ interface BasicChatT {
     pinned?: boolean;
 }
 
-interface PremiumChatT extends BasicChatT {
-    amount: string;
-    paymentStatus?: string;
-}
-
 interface JoinStreamHandlerPayloadT {
     streamId: string;
 }

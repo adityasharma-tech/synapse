@@ -50,9 +50,9 @@ export default function ChatWindowComponent({
     // local states
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
-    const [paymentLoding, setPaymentLoading] = useState(false);
-    const [dialogPayOpen, setPayDialogOpen] = useState(false);
-    const [premiumChatForm, setPremiumChatForm] = useState<{
+    const [_, setPaymentLoading] = useState(false);
+    const [__, setPayDialogOpen] = useState(false);
+    const [premiumChatForm] = useState<{
         paymentAmount: number;
         message: string;
     }>({
@@ -348,6 +348,9 @@ export default function ChatWindowComponent({
                                 updateMetadata({
                                     videoUrl:
                                         result.data.stream.youtubeVideoUrl,
+                                    channelName:
+                                        result.data.stream.streamerName,
+                                    title: result.data.stream.streamTitle,
                                 })
                             );
                     },
@@ -378,7 +381,7 @@ export default function ChatWindowComponent({
                     streamId,
                 });
             }
-        }, 3000);
+        }, 10000);
 
         return () => {
             clearInterval(interval);
@@ -395,6 +398,8 @@ export default function ChatWindowComponent({
         })();
     }, []);
 
+    console.log(handleMakePayment);
+
     if (loading) return <LoadingComp />;
 
     return (
@@ -404,8 +409,8 @@ export default function ChatWindowComponent({
         >
             <div className="bg-neutral-900 rounded-md flex items-center h-9 justify-between px-1">
                 <button
-                    hidden={searchParams.get("popout") ? true : false}
                     onClick={toogleWindowOpen}
+                    hidden={searchParams.get("popout") ? true : false}
                     className="hover:bg-neutral-950 p-1.5 rounded md:cursor-pointer"
                 >
                     <svg
@@ -450,7 +455,7 @@ export default function ChatWindowComponent({
             </div>
 
             <div className="relative border flex flex-col overflow-y-auto gap-y-2 fill-indigo-600 border-neutral-900 flex-1 rounded-md ">
-                {streamState.basicChats.map((chat, idx) => (
+                {streamState.basicChats.map((chat) => (
                     <ChatComponent
                         key={chat.id}
                         message={chat.message}

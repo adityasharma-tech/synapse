@@ -12,7 +12,11 @@
             "require": "./dist/index.js",
             "types": "./dist/index.d.ts"
         },
-        "./client": "./client/index.ts"
+        "./client": "./client/index.ts",
+        "./validators": {
+            "default": "./dist/main/validators/index.js",
+            "import": "./dist/main/validators/index.d.ts"
+        }
     },
     "private": true,
     "devDependencies": {},

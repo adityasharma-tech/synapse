@@ -45,25 +45,25 @@ export default function DashboardPage() {
         useCallback(
             async (e) => {
                 e.preventDefault();
-                if (videoInputRef.current)
-                    await requestHandler(
-                        startNewStream({
-                            title: videoInputRef.current.value
-                                .trim()
-                                .startsWith("https://")
-                                ? (videoData?.title ?? "")
-                                : videoInputRef.current.value.trim(),
-                            youtubeVideoUrl: videoInputRef.current.value
-                                .trim()
-                                .startsWith("https://")
-                                ? videoInputRef.current.value.trim()
-                                : "",
-                        }),
-                        setLoading,
-                        (res) => {
-                            navigate(`/stream/${res.data.stream.streamingUid}`);
-                        }
-                    );
+                // if (videoInputRef.current)
+                // await requestHandler(
+                //     startNewStream({
+                //         title: videoInputRef.current.value
+                //             .trim()
+                //             .startsWith("https://")
+                //             ? (videoData?.title ?? "")
+                //             : videoInputRef.current.value.trim(),
+                //         youtubeVideoUrl: videoInputRef.current.value
+                //             .trim()
+                //             .startsWith("https://")
+                //             ? videoInputRef.current.value.trim()
+                //             : "",
+                //     }),
+                //     setLoading,
+                //     (res) => {
+                //         navigate(`/stream/${res.data.stream.streamingUid}`);
+                //     }
+                // );
             },
             [
                 videoInputRef,

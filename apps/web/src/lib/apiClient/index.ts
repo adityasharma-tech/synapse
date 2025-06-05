@@ -7,9 +7,10 @@ import {
     ResendEmailVerificationPayloadT,
     SignupUserPayloadT,
     SSOGoogleAuthPayloadT,
-    StartNewStreamPayloadT,
     VerifyEmailPayloadT,
 } from "./intefaces";
+
+import { CreateStreamPayloadT } from "@pkgs/zod-client/validators";
 import { env } from "../../lib/utils";
 
 // backend host
@@ -83,7 +84,7 @@ function verifyEmail(payload: VerifyEmailPayloadT) {
     );
 }
 
-function startNewStream(payload: StartNewStreamPayloadT) {
+function startNewStream(payload: CreateStreamPayloadT) {
     return apiClient.post("/streams", payload);
 }
 
