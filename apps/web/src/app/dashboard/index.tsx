@@ -34,20 +34,29 @@ import { useDebounce } from "@/lib/utils";
 import { useAppSelector } from "@/store";
 import {
     AlertCircleIcon,
+    BadgeDollarSign,
     BoltIcon,
     BookOpenIcon,
     ChevronDownIcon,
     ImageUpIcon,
+    IndianRupee,
     Layers2Icon,
     LoaderCircle,
     LogOutIcon,
     MessageSquareCodeIcon,
-    PinIcon,
     Reply,
     UserPenIcon,
     XIcon,
 } from "lucide-react";
-import React, { ChangeEvent, MouseEventHandler, useId, useState } from "react";
+import React, {
+    ChangeEvent,
+    ChangeEventHandler,
+    FormEvent,
+    MouseEventHandler,
+    useCallback,
+    useId,
+    useState,
+} from "react";
 import { Link, useNavigate } from "react-router";
 
 export default function DashboardPage() {
@@ -55,6 +64,8 @@ export default function DashboardPage() {
 
     const [streamFetchLoading, setStreamFetchLoading] = React.useState(true);
     const [previousStreams, setPreviousStreams] = React.useState<any[]>([]);
+    const [subscriptionDialogOpen, setSubscriptionDialogOpen] =
+        React.useState<boolean>(false);
 
     const handleFetchStreams = React.useCallback(async () => {
         await requestHandler(
@@ -75,6 +86,10 @@ export default function DashboardPage() {
 
     return (
         <div className="h-full">
+            <SubscriptionsModel
+                isModelOopen={subscriptionDialogOpen}
+                setModelOpen={setSubscriptionDialogOpen}
+            />
             <div className="bg-neutral-900 pr-2 flex justify-between items-center h-12">
                 <Link to="/">
                     <img
@@ -144,22 +159,29 @@ export default function DashboardPage() {
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
-                            <DropdownMenuItem>
-                                <PinIcon
-                                    size={16}
-                                    className="opacity-60"
-                                    aria-hidden="true"
-                                />
-                                <span>Option 4</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <UserPenIcon
-                                    size={16}
-                                    className="opacity-60"
-                                    aria-hidden="true"
-                                />
-                                <span>Option 5</span>
-                            </DropdownMenuItem>
+                            <button
+                                className="w-full"
+                                onClick={() => setSubscriptionDialogOpen(true)}
+                            >
+                                <DropdownMenuItem>
+                                    <BadgeDollarSign
+                                        size={16}
+                                        className="opacity-60"
+                                        aria-hidden="true"
+                                    />
+                                    <span>Subscriptions</span>
+                                </DropdownMenuItem>
+                            </button>
+                            <Link to="/dashboard/apply">
+                                <DropdownMenuItem>
+                                    <UserPenIcon
+                                        size={16}
+                                        className="opacity-60"
+                                        aria-hidden="true"
+                                    />
+                                    <span>Apply for streamer</span>
+                                </DropdownMenuItem>
+                            </Link>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <Link to="/user/logout">
@@ -241,6 +263,155 @@ function VideoSkeleton() {
                 </div>
             </div>
         </div>
+    );
+}
+
+function SubscriptionsModel({
+    isModelOopen,
+    setModelOpen,
+}: {
+    isModelOopen: boolean;
+    setModelOpen: (val: boolean) => void;
+}) {
+    const planNameInputID = useId();
+    const amountInputId = useId();
+    const aboutInputId = useId();
+
+    const [loading, setLoading] = useState<boolean>(false);
+    const [planCreated, setPlanCreated] = useState<boolean>(false);
+    const [formData, setFormData] = useState<{
+        planName: string;
+        inrAmountPerMonth: number;
+        planDetails: string;
+    }>({
+        inrAmountPerMonth: 10,
+        planDetails: "",
+        planName: "",
+    });
+
+    const handleChange: ChangeEventHandler<
+        HTMLInputElement | HTMLTextAreaElement
+    > = (e) => {
+        e.preventDefault();
+        setFormData((prev) => ({
+            ...prev,
+            [e.target.name]: e.target.value,
+        }));
+    };
+
+    const handleSubmit = useCallback(async (e: FormEvent) => {
+        e.preventDefault();
+    }, []);
+
+    return (
+        <Dialog open={isModelOopen} onOpenChange={setModelOpen}>
+            <DialogContent className="overflow-y-visible max-w-xl p-0">
+                <form
+                    onSubmit={handleSubmit}
+                    className="flex flex-col gap-0 [&>button:last-child]:top-3.5"
+                >
+                    <DialogHeader className="contents space-y-0 text-left">
+                        <DialogTitle className="border-b px-6 py-4 text-base">
+                            Your channel plans
+                        </DialogTitle>
+                    </DialogHeader>
+                    {!planCreated ? (
+                        <div className="p-3 flex h-full flex-col">
+                            <div className="*:not-first:mt-2">
+                                <Label htmlFor={planNameInputID}>
+                                    Plan name{" "}
+                                    <span className="text-destructive">*</span>
+                                </Label>
+                                <Input
+                                    id={planNameInputID}
+                                    placeholder="Diamond"
+                                    type="text"
+                                    required
+                                    name="planName"
+                                    onChange={handleChange}
+                                    value={formData.planName}
+                                />
+                            </div>
+                            <div className="mt-2 max-w-xs">
+                                <Label htmlFor={amountInputId}>
+                                    Amount per month
+                                    <span className="text-destructive">*</span>
+                                </Label>
+                                <div className="relative mt-1">
+                                    <Input
+                                        id={amountInputId}
+                                        className="peer ps-8 pe-12"
+                                        placeholder="0.00"
+                                        type="text"
+                                        required
+                                        onChange={handleChange}
+                                        value={formData.inrAmountPerMonth}
+                                        name="inrAmountPerMonth"
+                                    />
+                                    <span className="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-sm peer-disabled:opacity-50">
+                                        <IndianRupee className="size-3.5" />
+                                    </span>
+                                    <span className="text-muted-foreground pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-sm peer-disabled:opacity-50">
+                                        INR
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="mt-2">
+                                <Label htmlFor={aboutInputId}>
+                                    Plan details{" "}
+                                    <span className="text-destructive">*</span>
+                                </Label>
+                                <Textarea
+                                    value={formData.planDetails}
+                                    id={aboutInputId}
+                                    onChange={handleChange}
+                                    name="planDetails"
+                                    placeholder="Your channel name (Aditya Sharma) and member status may be publicly visible and shared by the channel with third parties (to provide perks)."
+                                    required
+                                />
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="p-3 flex h-full flex-col">
+                            <div className="flex justify-between items-center">
+                                <span>Plan name</span>
+                                <div className="flex items-center gap-x-2">
+                                    <span className="font-medium">
+                                        $10/month
+                                    </span>
+                                    <Button
+                                        disabled
+                                        type="button"
+                                        size={"sm"}
+                                        className="rounded-full"
+                                    >
+                                        Subscribe
+                                    </Button>
+                                </div>
+                            </div>
+                            <div className="text-sm font-medium py-3 text-neutral-500">
+                                Your channel name (Aditya Sharma) and member
+                                status may be publicly visible and shared by the
+                                channel with third parties (to provide perks).
+                            </div>
+                        </div>
+                    )}
+                    {planCreated ? null : (
+                        <DialogFooter className="border-t px-6 py-4">
+                            <DialogClose asChild>
+                                <Button type="button" variant="outline">
+                                    Cancel
+                                </Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                                <Button type="submit">Create plan</Button>
+                            </DialogClose>
+                        </DialogFooter>
+                    )}
+                </form>
+            </DialogContent>
+        </Dialog>
     );
 }
 
