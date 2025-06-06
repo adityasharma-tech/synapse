@@ -60,6 +60,15 @@
     @apply cursor-pointer disabled:cursor-not-allowed flex items-center gap-x-2;
 }
 
+div[role="button"],
+div[role="menuitem"] {
+    @apply cursor-pointer;
+}
+
+button {
+    @apply cursor-pointer disabled:cursor-not-allowed;
+}
+
 .button.btn-ghost {
     @apply px-3 hover:underline;
 }
@@ -151,8 +160,4 @@
     body {
         @apply bg-background text-foreground;
     }
-}
-
-button {
-    @apply md:cursor-pointer disabled:cursor-not-allowed;
 }

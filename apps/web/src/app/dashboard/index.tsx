@@ -20,10 +20,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useFileUpload } from "@/hooks/use-file-upload";
-import { getYoutubeVideoData, startNewStream } from "@/lib/apiClient";
+import {
+    getAllStreams,
+    getYoutubeVideoData,
+    startNewStream,
+} from "@/lib/apiClient";
 import { requestHandler } from "@/lib/requestHandler";
 import { useDebounce } from "@/lib/utils";
 import { useAppSelector } from "@/store";
@@ -38,6 +43,7 @@ import {
     LogOutIcon,
     MessageSquareCodeIcon,
     PinIcon,
+    Reply,
     UserPenIcon,
     XIcon,
 } from "lucide-react";
@@ -46,6 +52,26 @@ import { Link, useNavigate } from "react-router";
 
 export default function DashboardPage() {
     const user = useAppSelector((state) => state.app.user);
+
+    const [streamFetchLoading, setStreamFetchLoading] = React.useState(true);
+    const [previousStreams, setPreviousStreams] = React.useState<any[]>([]);
+
+    const handleFetchStreams = React.useCallback(async () => {
+        await requestHandler(
+            getAllStreams(),
+            setStreamFetchLoading,
+            (result) => {
+                setPreviousStreams(result.data.data);
+            },
+            () => {
+                setPreviousStreams([]);
+            }
+        );
+    }, [requestHandler, getAllStreams, setPreviousStreams]);
+
+    React.useEffect(() => {
+        handleFetchStreams();
+    }, []);
 
     return (
         <div className="h-full">
@@ -163,6 +189,119 @@ export default function DashboardPage() {
                         Schedule a stream
                     </Button>
                     <GoLiveButton />
+                </div>
+            </div>
+            <div className="flex md:flex-row flex-col md:h-[calc(100vh-(35%+48px))]">
+                <div className="h-full md:w-2/5 p-3 flex flex-col">
+                    <div>
+                        <span>Notifications</span>
+                    </div>
+                    <div className="flex h-full flex-col overflow-y-auto gap-y-2 pt-2">
+                        <NotificationModel />
+                        <NotificationModel />
+                        <NotificationModel />
+                        <NotificationModel />
+                    </div>
+                </div>
+                <div className="h-full md:w-3/5 p-3 flex flex-col">
+                    <div>
+                        <span>Watch history</span>
+                    </div>
+                    <div className="relative grid md:grid-cols-3 grid-cols-2 lg:grid-cols-4 gap-3 h-full overflow-y-auto">
+                        {streamFetchLoading ? (
+                            Array(5)
+                                .fill(null)
+                                .map((_, i) => <VideoSkeleton key={i} />)
+                        ) : previousStreams.length <= 0 ? (
+                            <div className="text-neutral-600 absolute top-1/2 left-1/2 -translate-1/2">
+                                No steam found.
+                            </div>
+                        ) : (
+                            previousStreams.map((stream) => (
+                                <VideoModel key={stream.id} {...stream} />
+                            ))
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function VideoSkeleton() {
+    return (
+        <div className="flex flex-col p-3 gap-y-3">
+            <Skeleton className="h-[50%]" />
+
+            <div className="flex items-center space-x-4">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div className="space-y-2 flex-1">
+                    <Skeleton className="h-3 w-[90%]" />
+                    <Skeleton className="h-3 w-[60%]" />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function VideoModel(props: {
+    id: number;
+    streamTitle: string;
+    streamingUid: string;
+    streamerId: number;
+    updatedAt: Date | null;
+    streamerName: string;
+    thumbnail: string;
+}) {
+    const navigate = useNavigate();
+    return (
+        <div
+            onClick={() => navigate(`/stream/${props.streamingUid}`)}
+            role="button"
+            className="p-3 hover:opacity-90 max-h-[40vh] flex flex-col rounded"
+        >
+            <div>
+                <img className="rounded-md" src={props.thumbnail} />
+            </div>
+            <div className="flex gap-x-1 items-center">
+                <img
+                    className="size-5 rounded-full"
+                    src={`https://avatar.iran.liara.run/public?id=${props.streamerId}`}
+                />
+                <span className="text-sm truncate font-medium text-emerald-500">
+                    {props.streamerName}
+                </span>
+            </div>
+            <div className="mt-2 text-xs">{props.streamTitle}</div>
+        </div>
+    );
+}
+
+function NotificationModel() {
+    return (
+        <div className="p-1 rounded hover:bg-neutral-900 cursor-pointer">
+            <div className="text-xs bg-neutral-900 rounded py-1 text-neutral-400 px-2 items-center flex justify-between">
+                <span>
+                    I am very very Excited for every new Series Harry Bhai !!
+                </span>
+
+                <Reply className="size-4" />
+            </div>
+            <div className="flex pt-2 pb-1 px-1">
+                <div className="flex gap-x-1 items-center">
+                    <img
+                        className="size-5 rounded-full"
+                        src={`https://avatar.iran.liara.run/public?id={props.username}`}
+                    />
+                    <span className="text-sm truncate font-medium text-emerald-500">
+                        srvjha:
+                    </span>
+                </div>
+                <div>
+                    <p className="text-neutral-200 text-sm flex-1 px-2">
+                        {/* {props.message} */}
+                        Me too sir
+                    </p>
                 </div>
             </div>
         </div>
@@ -399,7 +538,7 @@ function GoLiveButton() {
                                                     files[0]?.file?.name ||
                                                     "Uploaded image"
                                                 }
-                                                className="size-full object-cover"
+                                                className="size-full object-cover opacity-50"
                                             />
                                         </div>
                                     ) : (

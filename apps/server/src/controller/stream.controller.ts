@@ -21,6 +21,7 @@ import {
 } from "@pkgs/lib";
 import { createStreamSchema } from "@pkgs/zod-client/validators";
 import { uploadDocumentOnCloudinary } from "../lib/cloudinary";
+import { alias } from "drizzle-orm/pg-core";
 
 /**
  * Controller for streamers to start a new stream
@@ -129,11 +130,25 @@ const getAllStreams = asyncHandler(async (req, res) => {
             streamingUid: Stream.streamingUid,
             streamerId: Stream.streamerId,
             updatedAt: Stream.updatedAt,
+            streamerName: sql`${User.firstName} || ' ' || ${User.lastName}`.as(
+                "streamerName"
+            ),
+            thumbnail: Stream.thumbnailUrl,
         })
         .from(Stream)
         .where(eq(Stream.streamerId, user?.id))
+        .innerJoin(User, eq(User.id, Stream.streamerId))
         .offset((currentPage - 1) * currentLimit)
         .limit(currentLimit)
+        .groupBy(
+            Stream.streamTitle,
+            Stream.streamingUid,
+            Stream.id,
+            Stream.updatedAt,
+            Stream.thumbnailUrl,
+            User.firstName,
+            User.lastName
+        )
         .execute();
 
     const [countResult] = await db
@@ -226,6 +241,9 @@ const getStreamById = asyncHandler(async (req, res) => {
 const getAllChatsByStreamingId = asyncHandler(async (req, res) => {
     const { streamId } = req.params;
 
+    const ReplyMessage = alias(ChatMessage, "replyMessage");
+    const ReplyUser = alias(User, "replyUser");
+
     const results = await db
         .select({
             id: ChatMessage.id,
@@ -244,8 +262,26 @@ const getAllChatsByStreamingId = asyncHandler(async (req, res) => {
             orderId: ChatMessage.cfOrderId,
             paymentAmount: Order.orderAmount,
             paymentCurrency: Order.orderCurrency,
+            reply: {
+                messageId: ReplyMessage.id,
+                message: ReplyMessage.message,
+                username: ReplyUser.username,
+            },
         })
         .from(ChatMessage)
+        .leftJoin(User, eq(ChatMessage.userId, User.id))
+        .leftJoin(Order, eq(ChatMessage.cfOrderId, Order.cfOrderId))
+        .leftJoin(ReplyMessage, eq(ChatMessage.replyToId, ReplyMessage.id))
+        .leftJoin(ReplyUser, eq(ReplyMessage.userId, ReplyUser.id))
+        .where(
+            and(
+                eq(ChatMessage.streamUid, String(streamId)),
+                or(
+                    eq(ChatMessage.paymentStatus, "IDLE"),
+                    eq(ChatMessage.paymentStatus, "paid")
+                )
+            )
+        )
         .groupBy(
             ChatMessage.id,
             ChatMessage.message,
@@ -258,18 +294,12 @@ const getAllChatsByStreamingId = asyncHandler(async (req, res) => {
             ChatMessage.createdAt,
             ChatMessage.updatedAt,
             Order.orderCurrency,
-            Order.orderAmount
-        )
-        .leftJoin(User, eq(ChatMessage.userId, User.id))
-        .leftJoin(Order, eq(ChatMessage.cfOrderId, Order.cfOrderId))
-        .where(
-            and(
-                eq(ChatMessage.streamUid, String(streamId)),
-                or(
-                    eq(ChatMessage.paymentStatus, "IDLE"),
-                    eq(ChatMessage.paymentStatus, "paid")
-                )
-            )
+            Order.orderAmount,
+            ReplyMessage.id,
+            ReplyMessage.message,
+            ReplyUser.username,
+            ReplyMessage.userId,
+            ChatMessage.replyToId
         )
         .execute();
 

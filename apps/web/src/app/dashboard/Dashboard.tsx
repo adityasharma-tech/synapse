@@ -278,7 +278,7 @@ export default function DashboardPage() {
                 <div className="h-full w-[40%] flex flex-col gap-5">
                     <div className="h-[60%] w-full bg-[#222] rounded-xl p-3 overflow-y-auto">
                         <div className="font-medium text-neutral-100 text-lg">
-                            Streams Watch History
+                            Your streams
                         </div>
                         <span
                             data-loading={streamFetchLoading}

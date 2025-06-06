@@ -3,7 +3,7 @@ module.exports = {
         {
             name: "permit-service-1",
             cwd: "./apps/permit-service",
-            script: "yarn build && yarn start",
+            script: "yarn start",
             env: {
                 // PERMIT_GRPC_ADDRESS: "0.0.0.0:3010"
             },
@@ -29,14 +29,14 @@ module.exports = {
             cwd: "./apps/queue-worker",
             script: "yarn start",
         },
-        // {
-        //     name: "server-1",
-        //     cwd: "./apps/server",
-        //     script: "yarn start",
-        //     env: {
-        //         PORT: 5174,
-        //     },
-        // },
+        {
+            name: "server-1",
+            cwd: "./apps/server",
+            script: "yarn build && yarn start",
+            env: {
+                PORT: 5174,
+            },
+        },
         // {
         //     name: "server-2",
         //     cwd: "./apps/server",

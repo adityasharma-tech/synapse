@@ -26,6 +26,7 @@ const ChatMessage = schema.table(
             .array()
             .default([])
             .notNull(),
+        replyToId: t.integer(),
         pinned: t.boolean().default(false).notNull(),
         paymentStatus: t.varchar().default("IDLE").notNull(),
         ...timestamps,
