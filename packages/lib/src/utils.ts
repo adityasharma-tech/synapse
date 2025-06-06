@@ -14,6 +14,9 @@ const ROLES = {
         "stream:update",
         "stream:view",
         "stream:user:block",
+        "plan:create",
+        "plan:view",
+        "plan:update",
     ],
     streamer: [
         "chat:create",
@@ -21,6 +24,9 @@ const ROLES = {
         "chat:message:own-update", // self message update
         "chat:mark-read",
         "chat:view",
+        "plan:create",
+        "plan:update",
+        "plan:view",
         "stream:create",
         "stream:update",
         "stream:view",

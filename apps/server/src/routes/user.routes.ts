@@ -3,6 +3,7 @@ import { authMiddleware } from "../middleware/auth.middleware";
 import { userRouteValidators } from "../middleware/validator.middleware";
 import {
     applyForStreamerV2,
+    createPaymentPlan,
     getUserHandler,
     logoutHandler,
     updateUserHandler,
@@ -23,5 +24,7 @@ router
 router
     .route("/apply-streamer")
     .post(upload.single("document"), applyForStreamerV2);
+
+router.route("/create-plan").post(createPaymentPlan);
 
 export default router;

@@ -10,7 +10,11 @@ import {
     VerifyEmailPayloadT,
 } from "./intefaces";
 
-import { CreateStreamPayloadT } from "@pkgs/zod-client/validators";
+import {
+    CreateStreamPayloadT,
+    CreatePlanPayloadT,
+    GetChannelPlanDetailPayloadT,
+} from "@pkgs/zod-client/validators";
 import { env } from "../../lib/utils";
 
 // backend host
@@ -145,6 +149,16 @@ function ssoGoogleRegister(payload: SSOGoogleAuthPayloadT) {
     return apiClient.post(`/auth/sso/google/register`, payload);
 }
 
+function createNewPlan(payload: CreatePlanPayloadT) {
+    return apiClient.post("/user/create-plan", payload);
+}
+
+function fetchPaymentPlanDetails(payload: GetChannelPlanDetailPayloadT) {
+    const searchParams = new URLSearchParams();
+    searchParams.append("streamerId", String(payload.streamerId));
+    return apiClient.get(`/streams/get-plans?${searchParams.toString()}`);
+}
+
 export {
     getUser,
     loginUser,
@@ -153,6 +167,7 @@ export {
     signupUser,
     verifyEmail,
     getStreamById,
+    createNewPlan,
     getAllStreams,
     ssoGoogleLogin,
     startNewStream,
@@ -163,6 +178,7 @@ export {
     fetchAllApplications,
     getAllChatByStreamId,
     createPremiumChatOrder,
+    fetchPaymentPlanDetails,
     resendEmailVerification,
     downloadApplicationAsCsv,
 };

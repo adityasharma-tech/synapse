@@ -79,7 +79,7 @@ app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(helmet());
 app.use(limiter);
-app.set("trust proxy", true);
+// app.set("trust proxy", true);
 
 /**
  * Router imports

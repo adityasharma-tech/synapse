@@ -12,7 +12,7 @@ import { Stakeholders } from "razorpay/dist/types/stakeholders";
 import { Order, StreamerRequest } from "@pkgs/drizzle-client";
 import { Cashfree, CreateOrderRequest } from "cashfree-pg";
 import { signStreamerVerficationToken } from "../lib/utils";
-import { MiddlewareUserT, ApiError, logger } from "@pkgs/lib";
+import { MiddlewareUserT, ApiError, logger, ErrCodes } from "@pkgs/lib";
 
 /**
  * Cashfree configuration
@@ -585,10 +585,37 @@ const setupRazorpayAccount = async function (
     return null;
 };
 
+const createRazorpayPlan = async function (
+    name: string,
+    details: string,
+    amount: number
+) {
+    const instance = getRazorpayInstance();
+    logger.info(`createRazorpayPlan: ${name} ${details} ${amount}`);
+    try {
+        const result = await instance.plans.create({
+            interval: 1,
+            item: {
+                amount: amount * 100, // paise to INR
+                currency: "INR",
+                name,
+                description: details,
+            },
+            period: "monthly",
+        });
+
+        return result;
+    } catch (error: any) {
+        logger.error(`Failed while creating plans: ${JSON.stringify(error)}`);
+        throw new ApiError(500, "Failed to create plan.", ErrCodes.DEFAULT_RES);
+    }
+};
+
 export {
     createBeneficiary,
     createCfOrder,
     createRazorpayOrder,
     getRazorpayInstance,
     setupRazorpayAccount,
+    createRazorpayPlan,
 };

@@ -25,6 +25,8 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import {
+    createNewPlan,
+    fetchPaymentPlanDetails,
     getAllStreams,
     getYoutubeVideoData,
     startNewStream,
@@ -276,8 +278,10 @@ function SubscriptionsModel({
     const planNameInputID = useId();
     const amountInputId = useId();
     const aboutInputId = useId();
+    const user = useAppSelector((state) => state.app.user);
 
     const [loading, setLoading] = useState<boolean>(false);
+    const [fetching, setFetching] = useState<boolean>(true);
     const [planCreated, setPlanCreated] = useState<boolean>(false);
     const [formData, setFormData] = useState<{
         planName: string;
@@ -299,8 +303,58 @@ function SubscriptionsModel({
         }));
     };
 
-    const handleSubmit = useCallback(async (e: FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = useCallback(
+        async (e: FormEvent) => {
+            e.preventDefault();
+            await requestHandler(
+                createNewPlan({
+                    ...formData,
+                    inrAmountPerMonth: Number(formData.inrAmountPerMonth),
+                }),
+                setLoading,
+                () => {
+                    setPlanCreated(true);
+                    setModelOpen(false);
+                }
+            );
+        },
+        [
+            requestHandler,
+            createNewPlan,
+            formData,
+            setLoading,
+            setPlanCreated,
+            setModelOpen,
+        ]
+    );
+
+    const handleRequestPlanDetails = useCallback(async () => {
+        if (user)
+            await requestHandler(
+                fetchPaymentPlanDetails({ streamerId: user.id }),
+                setFetching,
+                (data) => {
+                    setFormData({
+                        inrAmountPerMonth: data.data.plan.planAmount,
+                        planDetails: data.data.plan.planDetails,
+                        planName: data.data.plan.planName,
+                    });
+                    setPlanCreated(true);
+                },
+                undefined,
+                false
+            );
+    }, [
+        requestHandler,
+        fetchPaymentPlanDetails,
+        user,
+        setFetching,
+        setFormData,
+        setPlanCreated,
+    ]);
+
+    React.useEffect(() => {
+        handleRequestPlanDetails();
     }, []);
 
     return (
@@ -342,7 +396,7 @@ function SubscriptionsModel({
                                         id={amountInputId}
                                         className="peer ps-8 pe-12"
                                         placeholder="0.00"
-                                        type="text"
+                                        type="number"
                                         required
                                         onChange={handleChange}
                                         value={formData.inrAmountPerMonth}
@@ -375,10 +429,10 @@ function SubscriptionsModel({
                     ) : (
                         <div className="p-3 flex h-full flex-col">
                             <div className="flex justify-between items-center">
-                                <span>Plan name</span>
+                                <span>{formData.planName}</span>
                                 <div className="flex items-center gap-x-2">
                                     <span className="font-medium">
-                                        $10/month
+                                        ₹{formData.inrAmountPerMonth}/month
                                     </span>
                                     <Button
                                         disabled
@@ -391,22 +445,27 @@ function SubscriptionsModel({
                                 </div>
                             </div>
                             <div className="text-sm font-medium py-3 text-neutral-500">
-                                Your channel name (Aditya Sharma) and member
-                                status may be publicly visible and shared by the
-                                channel with third parties (to provide perks).
+                                {formData.planDetails}
                             </div>
                         </div>
                     )}
                     {planCreated ? null : (
                         <DialogFooter className="border-t px-6 py-4">
                             <DialogClose asChild>
-                                <Button type="button" variant="outline">
+                                <Button
+                                    disabled={loading}
+                                    type="button"
+                                    variant="outline"
+                                >
                                     Cancel
                                 </Button>
                             </DialogClose>
-                            <DialogClose asChild>
-                                <Button type="submit">Create plan</Button>
-                            </DialogClose>
+                            <Button disabled={loading} type="submit">
+                                Create plan{" "}
+                                {loading && (
+                                    <LoaderCircle className="animate-spin" />
+                                )}
+                            </Button>
                         </DialogFooter>
                     )}
                 </form>

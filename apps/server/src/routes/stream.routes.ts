@@ -12,6 +12,7 @@ import {
     streamerAuthMiddeware,
 } from "../middleware/auth.middleware";
 import { upload } from "../middleware/multer.middeware";
+import { getChannelPlanDetails } from "../controller/user.controller";
 
 const router = Router();
 
@@ -27,6 +28,8 @@ router
     .get(streamerAuthMiddeware, getAllStreams);
 
 router.route("/fetchYoutubeData").post(fetchYoutubeData);
+
+router.route("/get-plans").get(getChannelPlanDetails);
 
 router.route("/:id").get(getStreamById);
 

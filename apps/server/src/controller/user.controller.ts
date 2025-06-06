@@ -1,9 +1,25 @@
 import { eq } from "drizzle-orm";
 import { msg91AuthKey } from "../lib/constants";
-import { createBeneficiary } from "../services/payments.service";
+import {
+    createBeneficiary,
+    createRazorpayPlan,
+} from "../services/payments.service";
 import { uploadDocumentOnCloudinary } from "../lib/cloudinary";
-import { TokenTable, User, StreamerRequest } from "@pkgs/drizzle-client";
-import { ApiError, ApiResponse, asyncHandler, ErrCodes } from "@pkgs/lib";
+import { TokenTable, User, StreamerRequest, Plans } from "@pkgs/drizzle-client";
+import {
+    ApiError,
+    ApiResponse,
+    asyncHandler,
+    ErrCodes,
+    hasPermission,
+    logger,
+    MiddlewareUserT,
+} from "@pkgs/lib";
+import { handleZodError } from "@pkgs/zod-client";
+import {
+    createPaymentPlanSchema,
+    getChannelPlanDetailSchema,
+} from "@pkgs/zod-client/validators";
 
 /**
  * For logout remove the cookies and clear the caches
@@ -282,6 +298,89 @@ const getAllWatchHistory = asyncHandler(async (req, res) => {
     );
 });
 
+const createPaymentPlan = asyncHandler(async (req, res) => {
+    const { inrAmountPerMonth, planDetails, planName } = handleZodError(
+        createPaymentPlanSchema.safeParse(req.body)
+    );
+
+    if (!hasPermission(req.user as MiddlewareUserT, "plan:create"))
+        throw new ApiError(
+            401,
+            "You are not authorized to create a plan.",
+            ErrCodes.UNAUTHORIZED
+        );
+
+    await db.transaction(async (tx) => {
+        const [result] = await tx
+            .insert(Plans)
+            .values({
+                amount: inrAmountPerMonth,
+                details: planDetails,
+                name: planName,
+                streamerId: req.user.id,
+            })
+            .returning()
+            .execute();
+        if (!result) throw new ApiError(400, "Failed to create plan.");
+        try {
+            const plan = await createRazorpayPlan(
+                planName,
+                planDetails,
+                inrAmountPerMonth
+            );
+            const [updatedResult] = await tx
+                .update(Plans)
+                .set({ razorpayPlanId: plan.id })
+                .where(eq(Plans.id, result.id))
+                .returning()
+                .execute();
+            return res
+                .status(201)
+                .json(
+                    new ApiResponse(
+                        201,
+                        { plan: updatedResult },
+                        "Payment plan created"
+                    )
+                );
+        } catch (error) {
+            tx.rollback();
+            throw error;
+        }
+    });
+
+    throw new ApiError(200, "Failed to create plan.");
+});
+
+const getChannelPlanDetails = asyncHandler(async (req, res) => {
+    const { streamerId } = handleZodError(
+        getChannelPlanDetailSchema.safeParse(req.query)
+    );
+
+    if (!hasPermission(req.user as MiddlewareUserT, "plan:view"))
+        throw new ApiError(
+            401,
+            "You are not authorized to create a plan.",
+            ErrCodes.UNAUTHORIZED
+        );
+
+    const [result] = await db
+        .select({
+            planAmount: Plans.amount,
+            planDetails: Plans.details,
+            planName: Plans.name,
+            streamerId: Plans.streamerId,
+        })
+        .from(Plans)
+        .where(eq(Plans.streamerId, streamerId))
+        .execute();
+
+    if (!result)
+        throw new ApiError(400, "Failed to fetch streamer plan details.");
+
+    res.status(200).json(new ApiResponse(200, { plan: result }));
+});
+
 export {
     logoutHandler,
     getUserHandler,
@@ -289,4 +388,6 @@ export {
     applyForStreamer,
     applyForStreamerV2,
     getAllWatchHistory,
+    createPaymentPlan,
+    getChannelPlanDetails,
 };
