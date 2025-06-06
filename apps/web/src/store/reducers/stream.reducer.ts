@@ -12,6 +12,11 @@ export interface BasicChatT {
     markRead: boolean;
     upVotes: number;
     downVotes: number;
+    reply: {
+        messageId: number | null;
+        message: string | null;
+        username: string | null;
+    };
     user: Partial<StreamUserT> | { [key: string]: any };
     pinned: boolean;
     createdAt: Date;

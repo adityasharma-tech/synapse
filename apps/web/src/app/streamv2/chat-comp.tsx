@@ -23,7 +23,14 @@ import {
     upVoteDownBasicChat,
 } from "@/store/reducers/stream.reducer";
 import { SocketEventEnum } from "@pkgs/lib/shared";
-import React, { FormEventHandler, useCallback, useRef, useState } from "react";
+import { MessageSquareMoreIcon, X } from "lucide-react";
+import React, {
+    FormEventHandler,
+    MouseEventHandler,
+    useCallback,
+    useRef,
+    useState,
+} from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
@@ -43,6 +50,7 @@ export default function ChatWindowComponent({
     const navigate = useNavigate();
     // state hooks
     const streamState = useAppSelector((state) => state.stream);
+    const user = useAppSelector((state) => state.app.user);
 
     // special state for basic message type
     // const [optimisticMessages, setOptimisticMessages] = useOptimistic(streamState.basicChats)
@@ -52,6 +60,15 @@ export default function ChatWindowComponent({
     const [loading, setLoading] = useState(false);
     const [_, setPaymentLoading] = useState(false);
     const [__, setPayDialogOpen] = useState(false);
+    const [replyMessage, setReplyMessage] = useState<{
+        messageId: string | null;
+        message: string | null;
+        username: string | null;
+    }>({
+        messageId: null,
+        message: null,
+        username: null,
+    });
     const [premiumChatForm] = useState<{
         paymentAmount: number;
         message: string;
@@ -77,10 +94,22 @@ export default function ChatWindowComponent({
                 socket.emit(SocketEventEnum.CHAT_CREATE_EVENT, {
                     message,
                     streamId,
+                    replyMessageId: replyMessage.messageId ?? undefined,
+                    replyMessage: replyMessage.message ?? undefined,
+                    replyUsername: replyMessage.username ?? undefined,
                 });
             setMessage("");
+            setReplyMessage({ message: null, messageId: null, username: null });
         },
-        [socket, SocketEventEnum, message, streamId, setMessage]
+        [
+            socket,
+            SocketEventEnum,
+            message,
+            streamId,
+            setMessage,
+            replyMessage,
+            setReplyMessage,
+        ]
     );
 
     // need to remove this if role==="viewer"
@@ -206,7 +235,7 @@ export default function ChatWindowComponent({
     }, []);
 
     // ...
-    const handleMakePayment: FormEventHandler<HTMLFormElement> = useCallback(
+    const handleMakePayment: MouseEventHandler<HTMLButtonElement> = useCallback(
         async (e) => {
             e.preventDefault();
             if (streamId)
@@ -336,6 +365,10 @@ export default function ChatWindowComponent({
     }, [socket, SocketEventEnum, streamId]);
 
     React.useEffect(() => {
+        console.log(streamState.typerNames);
+    }, [streamState]);
+
+    React.useEffect(() => {
         if (streamId)
             (async () => {
                 await requestHandler(
@@ -398,8 +431,6 @@ export default function ChatWindowComponent({
         })();
     }, []);
 
-    console.log(handleMakePayment);
-
     if (loading) return <LoadingComp />;
 
     return (
@@ -454,26 +485,85 @@ export default function ChatWindowComponent({
                 </button>
             </div>
 
-            <div className="relative border flex flex-col overflow-y-auto gap-y-2 fill-indigo-600 border-neutral-900 flex-1 rounded-md ">
+            <div className="relative border flex flex-col overflow-y-auto gap-y-0.5 fill-indigo-600 border-neutral-900 flex-1 rounded-md ">
                 {streamState.basicChats.map((chat) => (
                     <ChatComponent
                         key={chat.id}
+                        myMessage={
+                            user?.username
+                                ? user.username == chat.user.username
+                                : false
+                        }
                         message={chat.message}
                         profileColor="oklch(76.9% 0.188 70.08)"
                         username={chat.user.username}
                         upvotes={chat.upVotes}
                         downvotes={chat.downVotes}
+                        reply={chat.reply}
                         handleDownVoteChat={() => handleDownVoteChat(chat.id)}
                         handleMarkDone={() => handleUpdateMarkDone(chat.id)}
                         handleUpVoteChat={() => handleUpVoteChat(chat.id)}
+                        handleReply={() =>
+                            setReplyMessage({
+                                message: chat.message,
+                                messageId: chat.id,
+                                username: chat.user.username,
+                            })
+                        }
                     />
                 ))}
                 <div ref={lastMessageRef}></div>
             </div>
             <form
                 onSubmit={handleSendMessage}
-                className="flex flex-col gap-y-2"
+                className="flex flex-col gap-y-2 relative"
             >
+                {replyMessage.messageId ? (
+                    <div className="absolute bottom-20 px-3 py-3 bg-neutral-900 rounded right-0 left-0">
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setReplyMessage({
+                                    message: null,
+                                    messageId: null,
+                                    username: null,
+                                })
+                            }
+                            className="hover:bg-neutral-950 absolute top-2 right-2 rounded md:cursor-pointer p-1 focus:outline-none"
+                        >
+                            <X className="size-5" />
+                        </button>
+                        <div className="flex gap-x-3">
+                            <svg
+                                className="size-6 stroke-white"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                            >
+                                <path
+                                    d="M20 17v-1.2c0-1.68 0-2.52-.327-3.162a3 3 0 00-1.311-1.311C17.72 11 16.88 11 15.2 11H4m0 0l4-4m-4 4l4 4"
+                                    strokeWidth={2}
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
+                            <span className="font-semibold text-neutral-500">
+                                Replying to:
+                            </span>
+                        </div>
+                        <div className="text-xs text-neutral-200 pt-3 flex items-center gap-x-2">
+                            <div className="flex gap-x-1 items-center">
+                                <img
+                                    className="size-5 rounded-full"
+                                    src={`https://avatar.iran.liara.run/public?id=${replyMessage.username}`}
+                                />
+                                <span className="text-sm truncate font-medium text-emerald-600">
+                                    {replyMessage.username}
+                                </span>
+                            </div>
+                            {replyMessage.message}
+                        </div>
+                    </div>
+                ) : null}
                 <div className="flex gap-x-2 items-center pr-1 focus-within:border-indigo-600 rounded border text-neutral-100 border-neutral-600 focus-within:ring-2 ring-indigo-700">
                     <input
                         onChange={(e) => {
@@ -515,7 +605,7 @@ export default function ChatWindowComponent({
                 <div className="flex justify-between">
                     <div>
                         {streamState.typerNames.length > 0 ? (
-                            <div className="flex items-center gap-x-2 text-sm font-medium absolute -top-10 bg-black/10 px-3 rounded-t-md py-1 backdrop-blur-md left-0 right-0">
+                            <div className="flex items-center gap-x-2 text-sm font-medium bg-black/10 px-3 rounded-t-md backdrop-blur-md left-0 right-0">
                                 <span className="loading loading-dots loading-lg" />
                                 {streamState.typerNames.map((user) => (
                                     <span
@@ -529,9 +619,18 @@ export default function ChatWindowComponent({
                             </div>
                         ) : null}
                     </div>
-                    <button className="font-medium bg-indigo-700 px-2 py-1 rounded md:cursor-pointer active:ring-3 ring-indigo-800/30">
-                        Message
-                    </button>
+                    <div className="flex gap-x-2">
+                        <button className="font-medium bg-indigo-700 px-2 py-1 rounded md:cursor-pointer active:ring-3 ring-indigo-800/30">
+                            Message
+                        </button>
+                        <button
+                            onClick={handleMakePayment}
+                            hidden
+                            className="font-medium bg-indigo-700 px-2 py-1 rounded md:cursor-pointer active:ring-3 ring-indigo-800/30"
+                        >
+                            Pay now
+                        </button>
+                    </div>
                 </div>
             </form>
         </section>
@@ -544,97 +643,123 @@ interface ChatComponentPropT {
     username: string;
     upvotes: number;
     downvotes: number;
+    reply: {
+        messageId: number | null;
+        message: string | null;
+        username: string | null;
+    };
+    myMessage: boolean;
     handleDownVoteChat: () => void;
     handleUpVoteChat: () => void;
     handleMarkDone: () => void;
+    handleReply: () => void;
 }
 
 function ChatComponent(props: ChatComponentPropT) {
     return (
-        <div className="relative group flex w-full px-2 py-1 items-center hover:bg-neutral-900">
-            <div className="flex gap-x-1 items-center">
-                <img
-                    className="size-5 rounded-full"
-                    src={`https://avatar.iran.liara.run/public?id=${props.username}`}
-                />
-                <span
-                    style={{
-                        color: props.profileColor,
-                    }}
-                    className="text-sm truncate font-medium"
-                >
-                    {props.username}
-                </span>
-            </div>
-            <div>
-                <p className="text-neutral-200 text-sm flex-1 px-2">
-                    {props.message}
-                </p>
-            </div>
-            {props.upvotes != props.downvotes ? (
-                <div
-                    className={`ml-auto p-1 ${props.upvotes > props.downvotes ? "text-emerald-300" : "text-rose-600"} font-medium flex gap-x-1 text-sm items-center`}
-                >
-                    <span>
-                        {props.upvotes > props.downvotes
-                            ? props.upvotes - props.downvotes
-                            : props.downvotes - props.upvotes}
+        <div
+            className={`relative group w-full px-2 py-1.5 hover:bg-neutral-900 ${props.myMessage ? "border-l-2 border-amber-400 bg-amber-300/5" : ""}`}
+        >
+            {props.reply.messageId ? (
+                <div className="text-xs text-neutral-500 pb-1 flex gap-x-1 items-center">
+                    <MessageSquareMoreIcon className="size-3 text-neutral-500" />
+                    <span className="font-semibold">
+                        {props.reply.username}:{" "}
                     </span>
-                    <svg
-                        style={{
-                            rotate:
-                                props.upvotes < props.downvotes
-                                    ? "180deg"
-                                    : undefined,
-                        }}
-                        className={`size-4 -mt-0.5 ${props.upvotes > props.downvotes ? "fill-emerald-300" : "fill-rose-600"}`}
-                        viewBox="0 0 24 24"
-                    >
-                        <path d="M4 14h4v7a1 1 0 001 1h6a1 1 0 001-1v-7h4a1.001 1.001 0 00.781-1.625l-8-10c-.381-.475-1.181-.475-1.562 0l-8 10A1.001 1.001 0 004 14z" />
-                    </svg>
+                    <span className="truncate max-w-lg">
+                        {props.reply.message}
+                    </span>
                 </div>
             ) : null}
-            <div className="absolute z-20 -bottom-4 opacity-80 hover:opacity-100 group-hover:flex hidden bg-neutral-800 border border-neutral-800 right-16 rounded">
-                <button
-                    onClick={props.handleUpVoteChat}
-                    className="hover:bg-neutral-900 rounded md:cursor-pointer p-1 focus:outline-none"
-                >
-                    <svg className="size-5" viewBox="0 0 24 24" fill="none">
-                        <path
-                            d="M7.24 11v9H5.63c-.9 0-1.62-.72-1.62-1.61v-5.77c0-.89.73-1.62 1.62-1.62h1.61zM18.5 9.5h-4.78V6c0-1.1-.9-2-1.99-2h-.09c-.4 0-.76.24-.92.61L7.99 11v9h9.2c.73 0 1.35-.52 1.48-1.24l1.32-7.5c.16-.92-.54-1.76-1.48-1.76h-.01z"
-                            className="fill-neutral-400"
-                        />
-                    </svg>
-                </button>
-                <button
-                    onClick={props.handleDownVoteChat}
-                    className="hover:bg-neutral-900 rounded md:cursor-pointer p-1 focus:outline-none"
-                >
-                    <svg
-                        className="size-4.5 rotate-180"
-                        viewBox="0 0 24 24"
-                        fill="none"
+            <div className={`flex items-center`}>
+                <div className="flex gap-x-1 items-center">
+                    <img
+                        className="size-5 rounded-full"
+                        src={`https://avatar.iran.liara.run/public?id=${props.username}`}
+                    />
+                    <span
+                        style={{
+                            color: props.profileColor,
+                        }}
+                        className="text-sm truncate font-medium"
                     >
-                        <path
-                            d="M7.24 11v9H5.63c-.9 0-1.62-.72-1.62-1.61v-5.77c0-.89.73-1.62 1.62-1.62h1.61zM18.5 9.5h-4.78V6c0-1.1-.9-2-1.99-2h-.09c-.4 0-.76.24-.92.61L7.99 11v9h9.2c.73 0 1.35-.52 1.48-1.24l1.32-7.5c.16-.92-.54-1.76-1.48-1.76h-.01z"
-                            className="fill-neutral-400"
-                        />
-                    </svg>
-                </button>
-                <button className="hover:bg-neutral-900 rounded md:cursor-pointer p-1 focus:outline-none">
-                    <svg
-                        className="size-4.5 stroke-white"
-                        viewBox="0 0 24 24"
-                        fill="none"
+                        {props.username}
+                    </span>
+                </div>
+                <div>
+                    <p className="text-neutral-200 text-sm flex-1 px-2">
+                        {props.message}
+                    </p>
+                </div>
+                {props.upvotes != props.downvotes ? (
+                    <div
+                        className={`ml-auto p-1 ${props.upvotes > props.downvotes ? "text-emerald-300" : "text-rose-600"} font-medium flex gap-x-1 text-sm items-center`}
                     >
-                        <path
-                            d="M20 17v-1.2c0-1.68 0-2.52-.327-3.162a3 3 0 00-1.311-1.311C17.72 11 16.88 11 15.2 11H4m0 0l4-4m-4 4l4 4"
-                            strokeWidth={2}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        />
-                    </svg>
-                </button>
+                        <span>
+                            {props.upvotes > props.downvotes
+                                ? props.upvotes - props.downvotes
+                                : props.downvotes - props.upvotes}
+                        </span>
+                        <svg
+                            style={{
+                                rotate:
+                                    props.upvotes < props.downvotes
+                                        ? "180deg"
+                                        : undefined,
+                            }}
+                            className={`size-4 -mt-0.5 ${props.upvotes > props.downvotes ? "fill-emerald-300" : "fill-rose-600"}`}
+                            viewBox="0 0 24 24"
+                        >
+                            <path d="M4 14h4v7a1 1 0 001 1h6a1 1 0 001-1v-7h4a1.001 1.001 0 00.781-1.625l-8-10c-.381-.475-1.181-.475-1.562 0l-8 10A1.001 1.001 0 004 14z" />
+                        </svg>
+                    </div>
+                ) : null}
+                <div className="absolute z-20 -bottom-4 opacity-80 hover:opacity-100 group-hover:flex hidden bg-neutral-800 border border-neutral-800 right-16 rounded">
+                    <button
+                        onClick={props.handleUpVoteChat}
+                        className="hover:bg-neutral-900 rounded md:cursor-pointer p-1 focus:outline-none"
+                    >
+                        <svg className="size-5" viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M7.24 11v9H5.63c-.9 0-1.62-.72-1.62-1.61v-5.77c0-.89.73-1.62 1.62-1.62h1.61zM18.5 9.5h-4.78V6c0-1.1-.9-2-1.99-2h-.09c-.4 0-.76.24-.92.61L7.99 11v9h9.2c.73 0 1.35-.52 1.48-1.24l1.32-7.5c.16-.92-.54-1.76-1.48-1.76h-.01z"
+                                className="fill-neutral-400"
+                            />
+                        </svg>
+                    </button>
+                    <button
+                        onClick={props.handleDownVoteChat}
+                        className="hover:bg-neutral-900 rounded md:cursor-pointer p-1 focus:outline-none"
+                    >
+                        <svg
+                            className="size-4.5 rotate-180"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                        >
+                            <path
+                                d="M7.24 11v9H5.63c-.9 0-1.62-.72-1.62-1.61v-5.77c0-.89.73-1.62 1.62-1.62h1.61zM18.5 9.5h-4.78V6c0-1.1-.9-2-1.99-2h-.09c-.4 0-.76.24-.92.61L7.99 11v9h9.2c.73 0 1.35-.52 1.48-1.24l1.32-7.5c.16-.92-.54-1.76-1.48-1.76h-.01z"
+                                className="fill-neutral-400"
+                            />
+                        </svg>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={props.handleReply}
+                        className="hover:bg-neutral-900 rounded md:cursor-pointer p-1 focus:outline-none"
+                    >
+                        <svg
+                            className="size-4.5 stroke-white"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                        >
+                            <path
+                                d="M20 17v-1.2c0-1.68 0-2.52-.327-3.162a3 3 0 00-1.311-1.311C17.72 11 16.88 11 15.2 11H4m0 0l4-4m-4 4l4 4"
+                                strokeWidth={2}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
     );

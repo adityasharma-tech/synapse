@@ -30,6 +30,9 @@ interface BasicChatT {
     downVotes: number;
     user: Partial<UserT>;
     pinned?: boolean;
+    replyMessageId?: number;
+    replyMessage?: string;
+    replyUsername?: string;
 }
 
 interface JoinStreamHandlerPayloadT {
@@ -91,6 +94,7 @@ async function chatCreateHandler(
             streamUid: payload.streamId,
             userId: socket.user?.id,
             message: payload.message,
+            replyToId: payload.replyMessageId,
             updatedAt: new Date(),
         })
         .returning()
@@ -111,6 +115,11 @@ async function chatCreateHandler(
                     username: socket.user?.username,
                     profilePicture: socket.user?.profilePicture,
                     role: socket.user?.role ?? "viewer",
+                },
+                reply: {
+                    username: payload.replyUsername,
+                    messageId: payload.replyMessageId,
+                    message: payload.replyMessage,
                 },
                 pinned: false,
             }
