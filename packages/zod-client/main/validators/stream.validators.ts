@@ -8,6 +8,14 @@ const createStreamSchema = z.object({
     thumbnailUrl: z.string().optional(),
 });
 
+const createSubscriptionSchema = z.object({
+    streamerId: z.number().nonnegative(),
+});
+
+export type CreateSubscriptionPayloadT = z.infer<
+    typeof createSubscriptionSchema
+>;
+
 export type CreateStreamPayloadT = z.infer<typeof createStreamSchema>;
 
-export { createStreamSchema };
+export { createStreamSchema, createSubscriptionSchema };

@@ -281,7 +281,7 @@ function SubscriptionsModel({
     const user = useAppSelector((state) => state.app.user);
 
     const [loading, setLoading] = useState<boolean>(false);
-    const [fetching, setFetching] = useState<boolean>(true);
+    const [_, setFetching] = useState<boolean>(true);
     const [planCreated, setPlanCreated] = useState<boolean>(false);
     const [formData, setFormData] = useState<{
         planName: string;

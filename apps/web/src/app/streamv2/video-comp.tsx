@@ -1,4 +1,19 @@
+import { Button } from "@/components/ui/btn";
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import {
+    fetchPaymentPlanDetails,
+    startStreamerSubscription,
+} from "@/lib/apiClient";
+import { requestHandler } from "@/lib/requestHandler";
 import { useAppSelector } from "@/store";
+import { DialogTrigger } from "@radix-ui/react-dialog";
+import React, { FormEvent, useCallback } from "react";
 import { Link } from "react-router";
 
 export default function VideoWindowComponent() {
@@ -42,9 +57,12 @@ export default function VideoWindowComponent() {
                         </div>
                     </div>
                     <div>
-                        <button className="uppercase font-medium bg-rose-700 px-1.5 py-0.5 rounded mx-3 md:cursor-pointer active:ring-3 text-sm ring-rose-800/30">
-                            subscribe
-                        </button>
+                        <SubscribeStreamerModel
+                            details={{
+                                streamerName: streamState.metadata.channelName,
+                                streamerId: streamState.metadata.streamerId,
+                            }}
+                        />
                     </div>
                 </div>
                 <div className="flex items-center">
@@ -78,5 +96,129 @@ export default function VideoWindowComponent() {
                 </div>
             </div>
         </section>
+    );
+}
+
+function SubscribeStreamerModel({
+    details,
+}: React.PropsWithChildren<{
+    details: any;
+}>) {
+    const [loading, setLoading] = React.useState(false);
+    const [fetching, setFetching] = React.useState(false);
+    const [isModelOpen, setModelOpen] = React.useState(false);
+    const [planDetails, setPlanDetails] = React.useState<{
+        planName: string;
+        inrAmountPerMonth: number;
+        planDetails: string;
+    } | null>(null);
+
+    const handleSubmit = useCallback(
+        async (e: FormEvent) => {
+            e.preventDefault();
+            await requestHandler(
+                startStreamerSubscription({ streamerId: details.streamerId }),
+                setLoading,
+                () => {},
+                undefined,
+                undefined
+            );
+        },
+        [requestHandler, startStreamerSubscription, details, setLoading]
+    );
+
+    const handleRequestPlanDetails = useCallback(async () => {
+        if (details.streamerId != 0)
+            await requestHandler(
+                fetchPaymentPlanDetails({ streamerId: details.streamerId }),
+                setFetching,
+                (data) => {
+                    setPlanDetails({
+                        inrAmountPerMonth: data.data.plan.planAmount,
+                        planDetails: data.data.plan.planDetails,
+                        planName: data.data.plan.planName,
+                    });
+                },
+                undefined,
+                false
+            );
+    }, [
+        requestHandler,
+        fetchPaymentPlanDetails,
+        setFetching,
+        setPlanDetails,
+        details,
+    ]);
+
+    React.useEffect(() => {
+        handleRequestPlanDetails();
+    }, [details.streamerId]);
+
+    return (
+        <Dialog open={isModelOpen} onOpenChange={setModelOpen}>
+            <DialogTrigger>
+                <div className="uppercase font-medium bg-rose-700 px-1.5 py-0.5 rounded mx-3 md:cursor-pointer active:ring-3 text-sm ring-rose-800/30">
+                    subscribe
+                </div>
+            </DialogTrigger>
+            <DialogContent className="overflow-y-visible max-w-xl p-0">
+                {fetching || !planDetails ? (
+                    <div></div>
+                ) : (
+                    <form
+                        onSubmit={handleSubmit}
+                        className="flex flex-col gap-0 [&>button:last-child]:top-3.5"
+                    >
+                        <DialogHeader className="contents space-y-0 text-left">
+                            <DialogTitle className="border-b px-6 py-4 text-base">
+                                Subscribe to {planDetails.planName}
+                            </DialogTitle>
+                        </DialogHeader>
+                        <div className="h-full flex flex-col gap-y-2 p-5">
+                            <div className="flex gap-x-1 items-start">
+                                <img
+                                    className="size-10 rounded-full"
+                                    src={`https://avatar.iran.liara.run/public?id={props.username}`}
+                                />
+                                <div className="flex flex-col px-3">
+                                    <span className="text-emerald-500 font-semibold">
+                                        Subscription by {details.streamerName}
+                                    </span>
+                                    <div className="text-sm">
+                                        Monthly recurring charge, starting{" "}
+                                        {new Date().toLocaleDateString(
+                                            "en-US",
+                                            {
+                                                month: "long",
+                                                day: "numeric",
+                                                year: "numeric",
+                                            }
+                                        )}
+                                        . Cancel anytime from Subscription page.
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="border-t mt-3" />
+                            <div className="py-3">
+                                <div className="flex justify-end text-xl text-neutral-200 font-semibold gap-x-10">
+                                    <span>Total including GST:</span>
+                                    <span>
+                                        ₹{planDetails.inrAmountPerMonth}
+                                        <span className="text-base">
+                                            /month
+                                        </span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <DialogFooter className="border-t px-6 py-4">
+                            <Button disabled={loading} type="submit">
+                                Review Purchase
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                )}
+            </DialogContent>
+        </Dialog>
     );
 }

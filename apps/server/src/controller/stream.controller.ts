@@ -1,7 +1,10 @@
 import { env, handleZodError } from "@pkgs/zod-client";
 import { google } from "googleapis";
 import { v4 as uuidv4 } from "uuid";
-import { createRazorpayOrder } from "../services/payments.service";
+import {
+    createRazorpayOrder,
+    startRazorpaySubscription,
+} from "../services/payments.service";
 import { and, count, eq, or, sql } from "drizzle-orm";
 import {
     ChatMessage,
@@ -9,6 +12,8 @@ import {
     Stream,
     User,
     StreamerRequest,
+    Plans,
+    Subsciptions,
 } from "@pkgs/drizzle-client";
 import {
     asyncHandler,
@@ -19,7 +24,10 @@ import {
     logger,
     MiddlewareUserT,
 } from "@pkgs/lib";
-import { createStreamSchema } from "@pkgs/zod-client/validators";
+import {
+    createStreamSchema,
+    createSubscriptionSchema,
+} from "@pkgs/zod-client/validators";
 import { uploadDocumentOnCloudinary } from "../lib/cloudinary";
 import { alias } from "drizzle-orm/pg-core";
 
@@ -379,6 +387,41 @@ const makePremiumChat = asyncHandler(async (req, res) => {
     );
 });
 
+const createSubscription = asyncHandler(async (req, res) => {
+    const { streamerId } = handleZodError(
+        createSubscriptionSchema.safeParse(req.body)
+    );
+
+    const [plan] = await db
+        .select()
+        .from(Plans)
+        .where(eq(Plans.streamerId, streamerId))
+        .execute();
+
+    if (!plan) throw new ApiError(500, "Invalid subsciption id.");
+
+    const result = await startRazorpaySubscription(
+        plan.razorpayPlanId,
+        req.user.email
+    );
+
+    const [subsciption] = await db
+        .insert(Subsciptions)
+        .values({
+            paymentUrl: result.short_url,
+            planId: plan.id,
+            razorpaySubscriptionId: result.id,
+            status: result.status,
+            userId: req.user.id,
+        })
+        .returning()
+        .execute();
+
+    res.status(200).json(
+        new ApiResponse(200, subsciption, "You are now a subscriber.")
+    );
+});
+
 export {
     createNewStream,
     getAllStreams,
@@ -386,4 +429,5 @@ export {
     getAllChatsByStreamingId,
     makePremiumChat,
     fetchYoutubeData,
+    createSubscription,
 };

@@ -53,6 +53,7 @@ interface UpdateMetadataPayloadT {
     streamRunning?: boolean;
     channelName?: string;
     title?: string;
+    streamerId?: number;
 }
 
 // Define a type for the slice state
@@ -72,6 +73,7 @@ interface DashStreamReducer {
         title: string;
         subscribed: boolean;
         profileImage: string;
+        streamerId: number;
     };
 }
 
@@ -91,6 +93,7 @@ const initialState: DashStreamReducer = {
         title: "",
         subscribed: false,
         profileImage: "",
+        streamerId: 0,
     },
 };
 
@@ -166,12 +169,12 @@ export const streamSlice = createSlice({
                 return console.error(`Cann't find message to be updated.`);
 
             state.basicChats[updateIndex].upVotes++;
-            state.basicChats = state.basicChats.sort(
-                (pre, post) =>
-                    post.upVotes -
-                    post.downVotes -
-                    (pre.upVotes - pre.downVotes)
-            );
+            // state.basicChats = state.basicChats.sort(
+            //     (pre, post) =>
+            //         post.upVotes -
+            //         post.downVotes -
+            //         (pre.upVotes - pre.downVotes)
+            // );
         },
 
         // removing the upvotings of the basic chat
@@ -186,12 +189,12 @@ export const streamSlice = createSlice({
                 return console.error(`Cann't find message to be updated.`);
 
             state.basicChats[updateIndex].upVotes--;
-            state.basicChats = state.basicChats.sort(
-                (pre, post) =>
-                    post.upVotes -
-                    post.downVotes -
-                    (pre.upVotes - pre.downVotes)
-            );
+            // state.basicChats = state.basicChats.sort(
+            //     (pre, post) =>
+            //         post.upVotes -
+            //         post.downVotes -
+            //         (pre.upVotes - pre.downVotes)
+            // );
         },
 
         // downvoting a basic chat
@@ -206,12 +209,12 @@ export const streamSlice = createSlice({
                 return console.error(`Cann't find message to be updated.`);
 
             state.basicChats[updateIndex].downVotes++;
-            state.basicChats = state.basicChats.sort(
-                (pre, post) =>
-                    post.upVotes -
-                    post.downVotes -
-                    (pre.upVotes - pre.downVotes)
-            );
+            // state.basicChats = state.basicChats.sort(
+            //     (pre, post) =>
+            //         post.upVotes -
+            //         post.downVotes -
+            //         (pre.upVotes - pre.downVotes)
+            // );
         },
 
         // removing the down voted basic chat
@@ -226,12 +229,12 @@ export const streamSlice = createSlice({
                 return console.error(`Cann't find message to be updated.`);
 
             state.basicChats[updateIndex].downVotes--;
-            state.basicChats = state.basicChats.sort(
-                (pre, post) =>
-                    post.upVotes -
-                    post.downVotes -
-                    (pre.upVotes - pre.downVotes)
-            );
+            // state.basicChats = state.basicChats.sort(
+            //     (pre, post) =>
+            //         post.upVotes -
+            //         post.downVotes -
+            //         (pre.upVotes - pre.downVotes)
+            // );
         },
 
         // mark read done
@@ -286,6 +289,8 @@ export const streamSlice = createSlice({
                 state.metadata.title = action.payload.title;
             if (action.payload.channelName)
                 state.metadata.channelName = action.payload.channelName;
+            if (action.payload.streamerId)
+                state.metadata.streamerId = action.payload.streamerId;
         },
     },
 

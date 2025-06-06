@@ -365,10 +365,6 @@ export default function ChatWindowComponent({
     }, [socket, SocketEventEnum, streamId]);
 
     React.useEffect(() => {
-        console.log(streamState.typerNames);
-    }, [streamState]);
-
-    React.useEffect(() => {
         if (streamId)
             (async () => {
                 await requestHandler(
@@ -384,6 +380,7 @@ export default function ChatWindowComponent({
                                     channelName:
                                         result.data.stream.streamerName,
                                     title: result.data.stream.streamTitle,
+                                    streamerId: result.data.stream.streamerId,
                                 })
                             );
                     },
@@ -658,7 +655,7 @@ interface ChatComponentPropT {
 function ChatComponent(props: ChatComponentPropT) {
     return (
         <div
-            className={`relative group w-full px-2 py-1.5 hover:bg-neutral-900 ${props.myMessage ? "border-l-2 border-amber-400 bg-amber-300/5" : ""}`}
+            className={`relative group w-full px-2 py-1 hover:bg-neutral-900 ${props.myMessage ? "border-l-2 border-amber-400 bg-amber-300/5" : ""}`}
         >
             {props.reply.messageId ? (
                 <div className="text-xs text-neutral-500 pb-1 flex gap-x-1 items-center">
@@ -693,7 +690,7 @@ function ChatComponent(props: ChatComponentPropT) {
                 </div>
                 {props.upvotes != props.downvotes ? (
                     <div
-                        className={`ml-auto p-1 ${props.upvotes > props.downvotes ? "text-emerald-300" : "text-rose-600"} font-medium flex gap-x-1 text-sm items-center`}
+                        className={`ml-auto ${props.upvotes > props.downvotes ? "text-emerald-300" : "text-rose-600"} font-medium flex gap-x-1 text-sm items-center`}
                     >
                         <span>
                             {props.upvotes > props.downvotes
@@ -707,7 +704,7 @@ function ChatComponent(props: ChatComponentPropT) {
                                         ? "180deg"
                                         : undefined,
                             }}
-                            className={`size-4 -mt-0.5 ${props.upvotes > props.downvotes ? "fill-emerald-300" : "fill-rose-600"}`}
+                            className={`size-4.5 -mt-0.5 ${props.upvotes > props.downvotes ? "fill-emerald-300" : "fill-rose-600"}`}
                             viewBox="0 0 24 24"
                         >
                             <path d="M4 14h4v7a1 1 0 001 1h6a1 1 0 001-1v-7h4a1.001 1.001 0 00.781-1.625l-8-10c-.381-.475-1.181-.475-1.562 0l-8 10A1.001 1.001 0 004 14z" />

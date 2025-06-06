@@ -1,0 +1,2 @@
+ALTER TABLE "upgrade"."token_table" ALTER COLUMN "reset_password_token_expiry" SET DEFAULT '2025-06-06 18:46:44.857';--> statement-breakpoint
+ALTER TABLE "upgrade"."token_table" ALTER COLUMN "email_verification_token_expiry" SET DEFAULT '2025-06-06 18:46:44.857';

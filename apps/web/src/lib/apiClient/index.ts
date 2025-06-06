@@ -14,6 +14,7 @@ import {
     CreateStreamPayloadT,
     CreatePlanPayloadT,
     GetChannelPlanDetailPayloadT,
+    CreateSubscriptionPayloadT,
 } from "@pkgs/zod-client/validators";
 import { env } from "../../lib/utils";
 
@@ -159,6 +160,10 @@ function fetchPaymentPlanDetails(payload: GetChannelPlanDetailPayloadT) {
     return apiClient.get(`/streams/get-plans?${searchParams.toString()}`);
 }
 
+function startStreamerSubscription(payload: CreateSubscriptionPayloadT) {
+    return apiClient.post("/user/subscribe", payload);
+}
+
 export {
     getUser,
     loginUser,
@@ -181,4 +186,5 @@ export {
     fetchPaymentPlanDetails,
     resendEmailVerification,
     downloadApplicationAsCsv,
+    startStreamerSubscription,
 };

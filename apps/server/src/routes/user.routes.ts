@@ -9,6 +9,7 @@ import {
     updateUserHandler,
 } from "../controller/user.controller";
 import { upload } from "../middleware/multer.middeware";
+import { createSubscription } from "../controller/stream.controller";
 
 const router = Router();
 
@@ -26,5 +27,7 @@ router
     .post(upload.single("document"), applyForStreamerV2);
 
 router.route("/create-plan").post(createPaymentPlan);
+
+router.route("/subscribe").post(createSubscription);
 
 export default router;

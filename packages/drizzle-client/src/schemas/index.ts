@@ -8,3 +8,4 @@ export * from "./tokenTable.sql";
 export * from "./user.sql";
 export * from "./permission.sql";
 export * from "./plans.sql";
+export * from "./subscriptions.sql";

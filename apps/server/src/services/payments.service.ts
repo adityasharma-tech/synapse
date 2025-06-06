@@ -611,6 +611,31 @@ const createRazorpayPlan = async function (
     }
 };
 
+const startRazorpaySubscription = async function (
+    planId: string,
+    email: string
+) {
+    const instance = getRazorpayInstance();
+    try {
+        return await instance.subscriptions.create({
+            plan_id: planId,
+            total_count: 999,
+            quantity: 1,
+            customer_notify: true,
+            notify_info: {
+                notify_email: email,
+            },
+        });
+    } catch (error) {
+        logger.error(`Failed while creating plans: ${JSON.stringify(error)}`);
+        throw new ApiError(
+            500,
+            "Failed to start subscription.",
+            ErrCodes.DEFAULT_RES
+        );
+    }
+};
+
 export {
     createBeneficiary,
     createCfOrder,
@@ -618,4 +643,5 @@ export {
     getRazorpayInstance,
     setupRazorpayAccount,
     createRazorpayPlan,
+    startRazorpaySubscription,
 };
