@@ -68,10 +68,10 @@ export default function Main() {
                             ) : null}
                         </Route>
                     ) : null}
-                    <Route element={<ChatStreamLayout />}>
-                        <Route path="stream/:streamId" element={<StreamV2 />} />
+                    <Route path="stream" element={<ChatStreamLayout />}>
+                        <Route path=":streamId" element={<StreamV2 />} />
                         <Route
-                            path="stream/:streamId/chat"
+                            path=":streamId/chat"
                             element={<ChatComponent />}
                         />
                     </Route>

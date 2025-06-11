@@ -45,11 +45,16 @@ const SocketProvider = ({
             transports: ["websocket", "webtransport"],
         });
         setSocket(socketClient);
+        return socketClient;
     }, [io, setSocket, backendURL, streamId]);
 
     // run as soon as page load trigger
     React.useEffect(() => {
-        handleConnectSocket();
+        const nSocket = handleConnectSocket();
+
+        return () => {
+            nSocket.disconnect();
+        };
     }, [user]);
 
     return (

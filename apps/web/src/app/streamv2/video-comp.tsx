@@ -10,7 +10,9 @@ import {
     fetchPaymentPlanDetails,
     startStreamerSubscription,
 } from "@/lib/apiClient";
+import { razorpayKeyId } from "@/lib/constants";
 import { requestHandler } from "@/lib/requestHandler";
+import { loadScript } from "@/lib/utils";
 import { useAppSelector } from "@/store";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { LoaderCircle } from "lucide-react";
@@ -114,13 +116,41 @@ function SubscribeStreamerModel({
         planDetails: string;
     } | null>(null);
 
+    const user = useAppSelector((state) => state.app.user);
+
+    const handleRazorpaySubscriptionCheckout = useCallback(
+        (props: { subscriptionId: string }) => {
+            const options = {
+                key: razorpayKeyId,
+                subscription_id: props.subscriptionId,
+                name: user?.firstName + " " + user?.lastName,
+                description: "subscription for streamer",
+                prefill: {
+                    name: user?.firstName + " " + user?.lastName,
+                    email: user?.email,
+                },
+            };
+
+            // @ts-ignore
+            const rzpay = new window.Razorpay(options);
+            rzpay.open();
+        },
+        [user]
+    );
+
     const handleSubmit = useCallback(
         async (e: FormEvent) => {
             e.preventDefault();
             await requestHandler(
                 startStreamerSubscription({ streamerId: details.streamerId }),
                 setLoading,
-                () => {},
+                (data) => {
+                    if (!data.success) return;
+
+                    handleRazorpaySubscriptionCheckout({
+                        subscriptionId: data.data.razorpaySubscriptionId,
+                    });
+                },
                 undefined,
                 undefined
             );
@@ -154,6 +184,14 @@ function SubscribeStreamerModel({
     React.useEffect(() => {
         handleRequestPlanDetails();
     }, [details.streamerId]);
+
+    React.useEffect(() => {
+        loadScript("https://checkout.razorpay.com/v1/checkout.js").catch(
+            (err) => {
+                console.error(`Failed to load razorpay api.`, err);
+            }
+        );
+    }, [loadScript]);
 
     return (
         <Dialog open={isModelOpen} onOpenChange={setModelOpen}>
