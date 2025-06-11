@@ -40,6 +40,7 @@ const ROLES = {
         "stream:view",
         "chat:own-upvote",
         "chat:own-downvote",
+        "plan:view",
     ],
 } as const;
 

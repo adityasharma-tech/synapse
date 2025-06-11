@@ -3,7 +3,7 @@ import { schema, timestamps } from "./helpers.sql";
 import { Plans } from "./plans.sql";
 import { User } from "./user.sql";
 
-const subStatus = schema.enum("subsStatusEnum", [
+export const subStatus = schema.enum("subsStatusEnum", [
     "created",
     "authenticated",
     "active",
@@ -13,6 +13,8 @@ const subStatus = schema.enum("subsStatusEnum", [
     "completed",
     "expired",
 ]);
+
+export type SubsciptionStatusT = (typeof subStatus.enumValues)[number];
 
 const Subsciptions = schema.table(
     "subscriptions",

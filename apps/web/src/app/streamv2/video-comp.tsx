@@ -13,6 +13,7 @@ import {
 import { requestHandler } from "@/lib/requestHandler";
 import { useAppSelector } from "@/store";
 import { DialogTrigger } from "@radix-ui/react-dialog";
+import { LoaderCircle } from "lucide-react";
 import React, { FormEvent, useCallback } from "react";
 import { Link } from "react-router";
 
@@ -213,6 +214,10 @@ function SubscribeStreamerModel({
                         </div>
                         <DialogFooter className="border-t px-6 py-4">
                             <Button disabled={loading} type="submit">
+                                <LoaderCircle
+                                    aria-hidden={!loading}
+                                    className="animate-spin aria-hidden:hidden"
+                                />
                                 Review Purchase
                             </Button>
                         </DialogFooter>

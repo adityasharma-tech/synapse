@@ -1,6 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { UserT } from "../../lib/types";
 import { setAllPreChats } from "../actions/stream.actions";
+import { Role } from "@pkgs/lib";
+import { SubsciptionStatusT } from "@pkgs/drizzle-client";
 
 interface StreamUserT extends UserT {
     fullName: string;
@@ -64,7 +66,7 @@ interface DashStreamReducer {
     premiumChats: PremiumChatT[];
     stream: any;
     typerNames: TypingEventPayloadT[];
-    userRole: "streamer" | "viewer" | "admin";
+    userRole: Role;
     totalQuestions: number;
     videoUrl?: string;
     currentViewers: number;
@@ -75,6 +77,10 @@ interface DashStreamReducer {
         profileImage: string;
         streamerId: number;
     };
+    subscription: {
+        id: string;
+        status: SubsciptionStatusT;
+    } | null;
 }
 
 // Define the initial state using that type
@@ -95,6 +101,7 @@ const initialState: DashStreamReducer = {
         profileImage: "",
         streamerId: 0,
     },
+    subscription: null,
 };
 
 export const streamSlice = createSlice({

@@ -360,7 +360,7 @@ const getChannelPlanDetails = asyncHandler(async (req, res) => {
     if (!hasPermission(req.user as MiddlewareUserT, "plan:view"))
         throw new ApiError(
             401,
-            "You are not authorized to create a plan.",
+            "You are not authorized to get a plan.",
             ErrCodes.UNAUTHORIZED
         );
 
