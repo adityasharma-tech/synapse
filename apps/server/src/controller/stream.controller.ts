@@ -400,6 +400,22 @@ const createSubscription = asyncHandler(async (req, res) => {
 
     if (!plan) throw new ApiError(500, "Invalid subsciption id.");
 
+    const [preSubscription] = await db
+        .select()
+        .from(Subsciptions)
+        .where(
+            and(
+                eq(Subsciptions.planId, plan.id),
+                eq(Subsciptions.userId, req.user.id)
+            )
+        )
+        .execute();
+
+    if (preSubscription)
+        return res
+            .status(200)
+            .json(new ApiResponse(200, { subsciption: preSubscription }));
+
     const result = await startRazorpaySubscription(
         plan.razorpayPlanId,
         req.user.email
@@ -422,6 +438,39 @@ const createSubscription = asyncHandler(async (req, res) => {
     );
 });
 
+const getStreamerSubscriptionDetails = asyncHandler(async (req, res) => {
+    const { id: streamerId } = req.params;
+
+    const [subsciption] = await db
+        .select({
+            status: Subsciptions.status,
+            planId: Plans.id,
+            streamerId: Plans.streamerId,
+            userId: Subsciptions.userId,
+            subscriptionId: Subsciptions.id,
+        })
+        .from(Plans)
+        .where(eq(Plans.streamerId, Number(streamerId)))
+        .leftJoin(Subsciptions, eq(Subsciptions.planId, Plans.id))
+        .groupBy(
+            Plans.streamerId,
+            Subsciptions.planId,
+            Plans.id,
+            Subsciptions.status,
+            Plans.streamerId,
+            Subsciptions.userId,
+            Subsciptions.id
+        )
+        .execute();
+
+    if (!subsciption || !subsciption.subscriptionId)
+        throw new ApiError(400, "You are not subscribed to this streamer.");
+
+    res.status(200).json(
+        new ApiResponse(200, { subsciption }, "We may got your subscription")
+    );
+});
+
 export {
     createNewStream,
     getAllStreams,
@@ -430,4 +479,5 @@ export {
     makePremiumChat,
     fetchYoutubeData,
     createSubscription,
+    getStreamerSubscriptionDetails,
 };

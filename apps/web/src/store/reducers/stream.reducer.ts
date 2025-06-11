@@ -58,6 +58,12 @@ interface UpdateMetadataPayloadT {
     streamerId?: number;
 }
 
+interface UpdateSubscriptionDataPayloadT {
+    status: SubsciptionStatusT;
+    streamerId: number;
+    subscriptionId: number;
+}
+
 // Define a type for the slice state
 interface DashStreamReducer {
     streamRunning: boolean;
@@ -78,8 +84,9 @@ interface DashStreamReducer {
         streamerId: number;
     };
     subscription: {
-        id: string;
         status: SubsciptionStatusT;
+        streamerId: number;
+        subscriptionId: number;
     } | null;
 }
 
@@ -299,6 +306,13 @@ export const streamSlice = createSlice({
             if (action.payload.streamerId)
                 state.metadata.streamerId = action.payload.streamerId;
         },
+
+        updateSubscriptionData: (
+            state,
+            action: PayloadAction<UpdateSubscriptionDataPayloadT>
+        ) => {
+            state.subscription = action.payload;
+        },
     },
 
     // extra reducers for async thunks
@@ -335,6 +349,7 @@ export const {
     downVoteDownBasicChat,
     updateUserRole,
     updateMetadata,
+    updateSubscriptionData,
 } = streamSlice.actions;
 
 export default streamSlice.reducer;

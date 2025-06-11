@@ -6,14 +6,17 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
     fetchPaymentPlanDetails,
+    getStreamerSubscriptionDetail,
     startStreamerSubscription,
 } from "@/lib/apiClient";
 import { razorpayKeyId } from "@/lib/constants";
 import { requestHandler } from "@/lib/requestHandler";
 import { loadScript } from "@/lib/utils";
-import { useAppSelector } from "@/store";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { updateSubscriptionData } from "@/store/reducers/stream.reducer";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { LoaderCircle } from "lucide-react";
 import React, { FormEvent, useCallback } from "react";
@@ -109,6 +112,8 @@ function SubscribeStreamerModel({
 }>) {
     const [loading, setLoading] = React.useState(false);
     const [fetching, setFetching] = React.useState(false);
+    const [subscriptionDetailsLoading, setSubscriptionDetailsLoading] =
+        React.useState(true);
     const [isModelOpen, setModelOpen] = React.useState(false);
     const [planDetails, setPlanDetails] = React.useState<{
         planName: string;
@@ -117,9 +122,14 @@ function SubscribeStreamerModel({
     } | null>(null);
 
     const user = useAppSelector((state) => state.app.user);
+    const subscriptionDetails = useAppSelector(
+        (state) => state.stream.subscription
+    );
+    const dispatch = useAppDispatch();
 
     const handleRazorpaySubscriptionCheckout = useCallback(
         (props: { subscriptionId: string }) => {
+            setModelOpen(false);
             const options = {
                 key: razorpayKeyId,
                 subscription_id: props.subscriptionId,
@@ -135,7 +145,7 @@ function SubscribeStreamerModel({
             const rzpay = new window.Razorpay(options);
             rzpay.open();
         },
-        [user]
+        [user, setModelOpen, window]
     );
 
     const handleSubmit = useCallback(
@@ -181,8 +191,42 @@ function SubscribeStreamerModel({
         details,
     ]);
 
+    const handleGetUserSubscriptionDetails = useCallback(async () => {
+        if (details.streamerId != 0)
+            await requestHandler(
+                getStreamerSubscriptionDetail({
+                    streamerId: details.streamerId,
+                }),
+                setSubscriptionDetailsLoading,
+                async (data) => {
+                    if (data.data.subsciption.status != "active")
+                        await handleRequestPlanDetails();
+                    dispatch(
+                        updateSubscriptionData({
+                            status: data.data.subsciption.status,
+                            streamerId: data.data.subsciption.streamerId,
+                            subscriptionId:
+                                data.data.subsciption.subscriptionId,
+                        })
+                    );
+                },
+                async () => {
+                    await handleRequestPlanDetails();
+                },
+                false
+            );
+    }, [
+        details,
+        requestHandler,
+        getStreamerSubscriptionDetail,
+        setSubscriptionDetailsLoading,
+        handleRequestPlanDetails,
+        dispatch,
+        updateSubscriptionData,
+    ]);
+
     React.useEffect(() => {
-        handleRequestPlanDetails();
+        handleGetUserSubscriptionDetails();
     }, [details.streamerId]);
 
     React.useEffect(() => {
@@ -193,16 +237,33 @@ function SubscribeStreamerModel({
         );
     }, [loadScript]);
 
-    return (
+    return subscriptionDetails?.status == "active" &&
+        subscriptionDetails.subscriptionId ? (
+        <div className="uppercase font-medium bg-neutral-100 px-1.5 py-0.5 rounded mx-3 active:ring-3 text-sm text-neutral-800 ring-rose-800/30">
+            subscribed
+        </div>
+    ) : (
         <Dialog open={isModelOpen} onOpenChange={setModelOpen}>
             <DialogTrigger>
-                <div className="uppercase font-medium bg-rose-700 px-1.5 py-0.5 rounded mx-3 md:cursor-pointer active:ring-3 text-sm ring-rose-800/30">
-                    subscribe
-                </div>
+                {subscriptionDetailsLoading ? (
+                    <Skeleton className="px-14 h-7 mx-5" />
+                ) : (
+                    <div className="uppercase font-medium bg-rose-700 px-1.5 py-0.5 rounded mx-3 md:cursor-pointer active:ring-3 text-sm ring-rose-800/30">
+                        subscribe
+                    </div>
+                )}
             </DialogTrigger>
             <DialogContent className="overflow-y-visible max-w-xl p-0">
                 {fetching || !planDetails ? (
-                    <div></div>
+                    <div className="px-5 py-5">
+                        <div className="flex flex-col space-y-3">
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-[250px]" />
+                                <Skeleton className="h-4 w-[200px]" />
+                            </div>
+                            <Skeleton className="h-[125px] w-full rounded-xl" />
+                        </div>
+                    </div>
                 ) : (
                     <form
                         onSubmit={handleSubmit}

@@ -2,6 +2,7 @@ import axios, { CreateAxiosDefaults } from "axios";
 import {
     GetAllStreamsPayloadT,
     GetStreamByIdPayloadT,
+    GetStreamerSubscriptionDetailPayloadT,
     LoginUserPayloadT,
     MakePremiumChatOrderPayloadT,
     ResendEmailVerificationPayloadT,
@@ -164,6 +165,12 @@ function startStreamerSubscription(payload: CreateSubscriptionPayloadT) {
     return apiClient.post("/user/subscribe", payload);
 }
 
+function getStreamerSubscriptionDetail(
+    payload: GetStreamerSubscriptionDetailPayloadT
+) {
+    return apiClient.get(`/streams/subscription/${payload.streamerId}`);
+}
+
 export {
     getUser,
     loginUser,
@@ -187,4 +194,5 @@ export {
     resendEmailVerification,
     downloadApplicationAsCsv,
     startStreamerSubscription,
+    getStreamerSubscriptionDetail,
 };

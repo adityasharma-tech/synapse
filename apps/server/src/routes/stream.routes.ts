@@ -6,6 +6,7 @@ import {
     getAllStreams,
     getStreamById,
     makePremiumChat,
+    getStreamerSubscriptionDetails,
 } from "../controller/stream.controller";
 import {
     authMiddleware,
@@ -30,6 +31,8 @@ router
 router.route("/fetchYoutubeData").post(fetchYoutubeData);
 
 router.route("/get-plans").get(getChannelPlanDetails);
+
+router.route("/subscription/:id").get(getStreamerSubscriptionDetails);
 
 router.route("/:id").get(getStreamById);
 

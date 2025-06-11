@@ -3,9 +3,9 @@ import { createClient as createRedisClient } from "redis";
 
 const redisClient = createRedisClient({
     url: env.REDIS_CONNECT_URI,
-    pingInterval: 3000,
     socket: {
         tls: true,
+        keepAlive: 1000,
     },
 });
 

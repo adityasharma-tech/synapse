@@ -7,6 +7,7 @@ CREATE TYPE "upgrade"."roles" AS ENUM('streamer', 'viewer', 'admin');--> stateme
 CREATE TYPE "upgrade"."effects" AS ENUM('allow', 'disallow');--> statement-breakpoint
 CREATE TYPE "upgrade"."resources" AS ENUM('stream', 'user', 'chat', 'order', 'streamer-requests');--> statement-breakpoint
 CREATE TYPE "upgrade"."targets" AS ENUM('streamer', 'viewer', 'admin', 'user');--> statement-breakpoint
+CREATE TYPE "upgrade"."subsStatusEnum" AS ENUM('created', 'authenticated', 'active', 'pending', 'halted', 'cancelled', 'completed', 'expired');--> statement-breakpoint
 CREATE TABLE "upgrade"."chats" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "upgrade"."chats_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"stream_uid" varchar,
@@ -16,6 +17,7 @@ CREATE TABLE "upgrade"."chats" (
 	"mark_read" boolean DEFAULT false NOT NULL,
 	"up_votes" integer[] DEFAULT '{}' NOT NULL,
 	"down_votes" integer[] DEFAULT '{}' NOT NULL,
+	"reply_to_id" integer,
 	"pinned" boolean DEFAULT false NOT NULL,
 	"payment_status" varchar DEFAULT 'IDLE' NOT NULL,
 	"updated_at" timestamp,
@@ -56,9 +58,11 @@ CREATE TABLE "upgrade"."streams" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "upgrade"."streams_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"streaming_uid" varchar NOT NULL,
 	"stream_title" varchar NOT NULL,
-	"streaming_token" varchar NOT NULL,
-	"youtube_video_url" varchar,
+	"chat_slow_mode" boolean DEFAULT false,
+	"about" varchar DEFAULT '',
+	"video_url" varchar,
 	"streamer_id" integer NOT NULL,
+	"thumbnail_url" varchar NOT NULL,
 	"updated_at" timestamp,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
@@ -95,9 +99,9 @@ CREATE TABLE "upgrade"."token_table" (
 	"user_refresh_token" varchar,
 	"streamer_verification_token" varchar,
 	"reset_password_token" varchar,
-	"reset_password_token_expiry" timestamp DEFAULT '2025-05-31 17:30:02.290',
+	"reset_password_token_expiry" timestamp DEFAULT '2025-06-11 08:16:34.912',
 	"email_verification_token" varchar,
-	"email_verification_token_expiry" timestamp DEFAULT '2025-05-31 17:30:02.290',
+	"email_verification_token_expiry" timestamp DEFAULT '2025-06-11 08:16:34.912',
 	"updated_at" timestamp,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
@@ -125,13 +129,38 @@ CREATE TABLE "upgrade"."users" (
 CREATE TABLE "upgrade"."permissions" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "upgrade"."permissions_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"target" "upgrade"."targets" NOT NULL,
-	"target_id" integer,
+	"target_id" integer NOT NULL,
 	"resource" "upgrade"."resources" NOT NULL,
-	"resource_id" integer,
+	"resource_id" integer NOT NULL,
 	"effect" "upgrade"."effects" DEFAULT 'allow',
 	"action" varchar(255) NOT NULL,
 	"updated_at" timestamp,
 	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "upgrade"."plans" (
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "upgrade"."plans_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+	"name" varchar(255) NOT NULL,
+	"details" varchar NOT NULL,
+	"amount" integer NOT NULL,
+	"razorpay_plan_id" varchar(255) DEFAULT '' NOT NULL,
+	"streamer_id" integer NOT NULL,
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "plans_razorpayPlanId_unique" UNIQUE("razorpay_plan_id"),
+	CONSTRAINT "plans_streamerId_unique" UNIQUE("streamer_id")
+);
+--> statement-breakpoint
+CREATE TABLE "upgrade"."subscriptions" (
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "upgrade"."subscriptions_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+	"plan_id" integer NOT NULL,
+	"status" "upgrade"."subsStatusEnum" NOT NULL,
+	"razorpay_subscription_id" varchar(255) NOT NULL,
+	"payment_url" varchar NOT NULL,
+	"user_id" integer NOT NULL,
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "subscriptions_razorpaySubscriptionId_unique" UNIQUE("razorpay_subscription_id")
 );
 --> statement-breakpoint
 ALTER TABLE "upgrade"."chats" ADD CONSTRAINT "chats_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "upgrade"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -140,6 +169,9 @@ ALTER TABLE "upgrade"."payouts" ADD CONSTRAINT "payouts_user_id_users_id_fk" FOR
 ALTER TABLE "upgrade"."streams" ADD CONSTRAINT "streams_streamer_id_users_id_fk" FOREIGN KEY ("streamer_id") REFERENCES "upgrade"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "upgrade"."streamer_request" ADD CONSTRAINT "streamer_request_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "upgrade"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "upgrade"."token_table" ADD CONSTRAINT "token_table_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "upgrade"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "upgrade"."plans" ADD CONSTRAINT "plans_streamer_id_users_id_fk" FOREIGN KEY ("streamer_id") REFERENCES "upgrade"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "upgrade"."subscriptions" ADD CONSTRAINT "subscriptions_plan_id_plans_id_fk" FOREIGN KEY ("plan_id") REFERENCES "upgrade"."plans"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "upgrade"."subscriptions" ADD CONSTRAINT "subscriptions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "upgrade"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "streamUidIdx" ON "upgrade"."chats" USING btree ("stream_uid");--> statement-breakpoint
 CREATE INDEX "cfOrderIdIdx" ON "upgrade"."orders" USING btree ("cf_order_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "streamingUidIdx" ON "upgrade"."streams" USING btree ("streaming_uid");--> statement-breakpoint
@@ -147,4 +179,6 @@ CREATE UNIQUE INDEX "razorpayAccountIdIdx" ON "upgrade"."streamer_request" USING
 CREATE INDEX "accountEmailIdx" ON "upgrade"."streamer_request" USING btree ("account_email");--> statement-breakpoint
 CREATE UNIQUE INDEX "emailIdx" ON "upgrade"."users" USING btree ("email");--> statement-breakpoint
 CREATE UNIQUE INDEX "usernameIdx" ON "upgrade"."users" USING btree ("username");--> statement-breakpoint
-CREATE UNIQUE INDEX "wholeIndex" ON "upgrade"."permissions" USING btree ("target","target_id","resource","resource_id","effect","action");
+CREATE UNIQUE INDEX "wholeIndex" ON "upgrade"."permissions" USING btree ("target","target_id","resource","resource_id","effect","action");--> statement-breakpoint
+CREATE INDEX "planIdIndex" ON "upgrade"."subscriptions" USING btree ("plan_id");--> statement-breakpoint
+CREATE INDEX "userIdIndex" ON "upgrade"."subscriptions" USING btree ("user_id");

@@ -247,7 +247,7 @@ export type ActionT = (typeof data)[number]["action"];
             .insert(User)
             .values([
                 {
-                    email: "admin@admin.com",
+                    email: process.env.ADMIN_EMAIL!,
                     firstName: "Admin",
                     lastName: "User",
                     passwordHash,

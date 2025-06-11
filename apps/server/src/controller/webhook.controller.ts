@@ -237,4 +237,36 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, "Sucess"));
 });
 
-export { handleVerifyCfOrder, handleVerfiyRazorpayOrder };
+const handleUpdateSubscriptionStatus = asyncHandler(async (req, res) => {
+    const razorpaySignature = req.headers["x-razorpay-signature"];
+    const body = req.body;
+
+    // create a signature using the razorpay webhook secret and the payload
+    // data and match with the header signature to make sure to accept only
+    // requests from razorpay side
+    const generatedSignature = crypto
+        .createHmac("sha256", env.SUBSCRIPTION_WEBHOOK_KEY)
+        .update(JSON.stringify(body))
+        .digest("hex");
+
+    // ...
+    if (generatedSignature !== razorpaySignature) {
+        throw new ApiError(401, "Invalid signature");
+    }
+
+    const event = body;
+
+    // logging event data for debugging
+    logger.debug(`subscription event payload: ${JSON.stringify(event)}`);
+
+    switch (event.status) {
+        case "authenticated":
+            break;
+    }
+});
+
+export {
+    handleVerifyCfOrder,
+    handleVerfiyRazorpayOrder,
+    handleUpdateSubscriptionStatus,
+};

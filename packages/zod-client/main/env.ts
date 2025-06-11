@@ -91,6 +91,8 @@ const zodEnv = z.object({
     // FGA_API_URL: z.string(),
     // FGA_MODEL_ID: z.string().optional(),
     // FGA_STORE_ID: z.string().optional(),
+
+    SUBSCRIPTION_WEBHOOK_KEY: z.string(),
 });
 
 const env = zodEnv.parse(process.env);

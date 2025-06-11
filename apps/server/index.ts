@@ -7,6 +7,6 @@ const PORT = env.PORT || 5174;
 /**
  * start server
  */
-server.listen(PORT, () => {
+server.listen({ port: PORT, host: "0.0.0.0" }, () => {
     logger.info(`Server is running on port http://localhost:${PORT}`);
 });

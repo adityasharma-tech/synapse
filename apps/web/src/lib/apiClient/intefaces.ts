@@ -53,6 +53,10 @@ interface SSOGoogleAuthPayloadT {
     select_by: string;
 }
 
+interface GetStreamerSubscriptionDetailPayloadT {
+    streamerId: string;
+}
+
 export type {
     LoginUserPayloadT,
     SignupUserPayloadT,
@@ -63,4 +67,5 @@ export type {
     GetStreamByIdPayloadT,
     MakePremiumChatOrderPayloadT,
     SSOGoogleAuthPayloadT,
+    GetStreamerSubscriptionDetailPayloadT,
 };
