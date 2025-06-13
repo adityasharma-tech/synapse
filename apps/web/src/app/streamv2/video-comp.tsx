@@ -237,7 +237,8 @@ function SubscribeStreamerModel({
         );
     }, [loadScript]);
 
-    return subscriptionDetails?.status == "active" &&
+    return (subscriptionDetails?.status == "active" ||
+        subscriptionDetails?.status == "authenticated") &&
         subscriptionDetails.subscriptionId ? (
         <div className="uppercase font-medium bg-neutral-100 px-1.5 py-0.5 rounded mx-3 active:ring-3 text-sm text-neutral-800 ring-rose-800/30">
             subscribed

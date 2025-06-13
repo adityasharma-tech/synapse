@@ -10,6 +10,7 @@ import {
     corsOrigins,
     SocketEventEnum,
     ApiResponse,
+    logger,
 } from "@pkgs/lib";
 import { rateLimit } from "express-rate-limit";
 import { redisClient } from "./services/redis.service";
@@ -73,10 +74,17 @@ app.use(
         origin: corsOrigins,
     })
 );
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
-app.use(morgan("dev"));
+app.use(
+    morgan(":method :url :status :response-time ms - :res[content-length]", {
+        stream: {
+            write: (message) => logger.http(message.trim().toString()),
+        },
+    })
+);
 app.use(helmet());
 app.use(limiter);
 // app.set("trust proxy", true);

@@ -259,7 +259,7 @@ const handleUpdateSubscriptionStatus = asyncHandler(async (req, res) => {
     // logging event data for debugging
     logger.debug(`subscription event payload: ${JSON.stringify(event)}`);
 
-    db.transaction(async (tx) => {
+    await db.transaction(async (tx) => {
         try {
             if (event.event == "subscription.activated") {
                 const subscriptionEntity = event.payload.subscription.entity;
@@ -293,13 +293,24 @@ const handleUpdateSubscriptionStatus = asyncHandler(async (req, res) => {
                         }),
                     })
                     .execute();
+            } else if (event.event == "subscription.charged") {
+                const subscriptionEntity = event.payload.subscription.entity;
+                await tx
+                    .update(Subsciptions)
+                    .set({ status: subscriptionEntity.status })
+                    .where(
+                        eq(
+                            Subsciptions.razorpaySubscriptionId,
+                            subscriptionEntity.id
+                        )
+                    );
             } else {
-                throw new ApiError(400, "Failed to call webhook");
+                return res
+                    .status(302)
+                    .json(new ApiError(303, "Invalid event type."));
             }
         } catch (error) {
-            logger.error(
-                `Error during calling webhook updateSubscriptionData: `
-            );
+            logger.error(`Error during calling webhook ${event.event}: `);
             logger.error(error);
             tx.rollback();
             throw new ApiError(400, "Failed to call webhook");
