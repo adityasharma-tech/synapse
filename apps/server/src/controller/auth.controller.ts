@@ -96,7 +96,7 @@ const loginHandler = asyncHandler(async (req, res) => {
 
     await db
         .update(TokenTable)
-        .set({ userRefreshToken: refreshToken, updatedAt: new Date() })
+        .set({ userRefreshToken: refreshToken })
         .where(eq(TokenTable.userId, user.id))
         .execute();
 
@@ -395,38 +395,57 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
         );
     }
 
-    const users = await db
-        .select()
+    const [user] = await db
+        .select({
+            userId: User.id,
+            username: User.username,
+            role: User.role,
+            firstName: User.firstName,
+            lastName: User.lastName,
+            profilePicture: User.profilePicture,
+            emailVerified: User.emailVerified,
+            email: User.email,
+        })
         .from(User)
         .innerJoin(TokenTable, eq(User.id, TokenTable.userId))
         .where(eq(TokenTable.userRefreshToken, refreshToken))
+        .groupBy(
+            User.id,
+            User.username,
+            User.role,
+            User.firstName,
+            User.lastName,
+            User.profilePicture,
+            User.emailVerified,
+            User.email,
+            TokenTable.userId,
+            TokenTable.userRefreshToken
+        )
         .limit(1)
         .execute();
 
-    if (!users || users.length <= 0)
+    if (!user)
         throw new ApiError(400, "User not found with provided refreshToken.");
-
-    const user = users[0];
 
     const {
         refreshToken: newRefreshToken,
         accessToken: newAccessToken,
         cookieOptions,
     } = getSigningTokens({
-        id: user.users.id,
-        firstName: user.users.firstName,
-        lastName: user.users.lastName,
-        email: user.users.email,
-        role: user.users.role ?? "viewer",
-        username: user.users.username,
-        profilePicture: user.users.profilePicture ?? "",
-        emailVerified: user.users.emailVerified,
+        id: user.userId,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role ?? "viewer",
+        username: user.username,
+        profilePicture: user.profilePicture ?? "",
+        emailVerified: user.emailVerified,
     });
 
     await db
         .update(TokenTable)
-        .set({ userRefreshToken: newRefreshToken, updatedAt: new Date() })
-        .where(eq(TokenTable.userId, user.users.id))
+        .set({ userRefreshToken: newRefreshToken })
+        .where(eq(TokenTable.userId, user.userId))
         .execute();
 
     res.cookie("refreshToken", newRefreshToken, cookieOptions);
@@ -601,7 +620,7 @@ const googleSignupHandler = asyncHandler(async (req, res) => {
         .insert(User)
         .values({
             firstName: payload.given_name,
-            lastName: payload.family_name,
+            lastName: payload.family_name ?? "",
             username,
             email: payload.email,
             phoneNumber: "",

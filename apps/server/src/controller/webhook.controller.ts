@@ -5,7 +5,7 @@ import { Server } from "socket.io";
 import { eq, sql } from "drizzle-orm";
 import { Cashfree } from "cashfree-pg";
 import { getRazorpayInstance } from "../services/payments.service";
-import { ChatMessage, Order, User } from "@pkgs/drizzle-client";
+import { ChatMessage, Order, Subsciptions, User } from "@pkgs/drizzle-client";
 import {
     logger,
     ApiError,
@@ -259,10 +259,54 @@ const handleUpdateSubscriptionStatus = asyncHandler(async (req, res) => {
     // logging event data for debugging
     logger.debug(`subscription event payload: ${JSON.stringify(event)}`);
 
-    switch (event.status) {
-        case "authenticated":
-            break;
-    }
+    db.transaction(async (tx) => {
+        try {
+            if (event.event == "subscription.activated") {
+                const subscriptionEntity = event.payload.subscription.entity;
+                const orderEntity = event.payload.payment.entity;
+                const [updatedSubscription] = await tx
+                    .update(Subsciptions)
+                    .set({ status: subscriptionEntity.status })
+                    .where(
+                        eq(
+                            Subsciptions.razorpaySubscriptionId,
+                            subscriptionEntity.id
+                        )
+                    )
+                    .returning();
+                if (!updatedSubscription)
+                    throw new ApiError(
+                        400,
+                        "Failed to update subscription status"
+                    );
+                await tx
+                    .insert(Order)
+                    .values({
+                        cfOrderId: orderEntity.order_id,
+                        orderAmount: orderEntity.amount,
+                        orderExpiryTime: new Date().toLocaleDateString(),
+                        userId: 3,
+                        orderStatus: orderEntity.status,
+                        orderCurrency: orderEntity.currency,
+                        orderNote: JSON.stringify({
+                            invoiceId: orderEntity.invoice_id,
+                        }),
+                    })
+                    .execute();
+            } else {
+                throw new ApiError(400, "Failed to call webhook");
+            }
+        } catch (error) {
+            logger.error(
+                `Error during calling webhook updateSubscriptionData: `
+            );
+            logger.error(error);
+            tx.rollback();
+            throw new ApiError(400, "Failed to call webhook");
+        }
+    });
+
+    res.status(200).json(new ApiResponse(200, null));
 });
 
 export {

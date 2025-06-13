@@ -317,7 +317,9 @@ function SubscribeStreamerModel({
                                     aria-hidden={!loading}
                                     className="animate-spin aria-hidden:hidden"
                                 />
-                                Review Purchase
+                                {subscriptionDetails?.status == "created"
+                                    ? "Pay now"
+                                    : "Review Purchase"}
                             </Button>
                         </DialogFooter>
                     </form>
