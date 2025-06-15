@@ -50,6 +50,8 @@ import {
     SmileIcon,
     UserPenIcon,
     XIcon,
+    ImageIcon,
+    UploadIcon,
 } from "lucide-react";
 import React, {
     ChangeEvent,
@@ -192,7 +194,7 @@ export default function DashboardPage() {
                                         className="opacity-60"
                                         aria-hidden="true"
                                     />
-                                    <span>Custom emoji</span>
+                                    <span>Custom emotes</span>
                                 </DropdownMenuItem>
                             </button>
                             {user?.role != "streamer" ? (
@@ -279,13 +281,46 @@ function VideoSkeleton() {
     return (
         <div className="flex flex-col p-3 gap-y-3">
             <Skeleton className="h-[50%]" />
-
             <div className="flex items-center space-x-4">
                 <Skeleton className="h-8 w-8 rounded-full" />
                 <div className="space-y-2 flex-1">
                     <Skeleton className="h-3 w-[90%]" />
                     <Skeleton className="h-3 w-[60%]" />
                 </div>
+            </div>
+        </div>
+    );
+}
+
+interface SingleCustomEmojiPreviewPropT {
+    id: string;
+    imageUrl: string;
+    name: string;
+    onDelete: (id: string) => void;
+}
+
+function SingleCustomEmojiPreview({
+    imageUrl,
+    id,
+    name,
+    onDelete,
+}: SingleCustomEmojiPreviewPropT) {
+    return (
+        <div className="p-2 rounded-md border group border-neutral-600 relative flex items-center gap-x-2">
+            <button
+                onClick={() => onDelete(id)}
+                type="button"
+                className="absolute group-hover:block hidden -top-2 -right-2 rounded-full border border-neutral-600 bg-neutral-900 p-0.5"
+            >
+                <XIcon className="size-3.5" />
+            </button>
+            <div>
+                <img className="size-5" src={imageUrl} alt={id} />
+            </div>
+            <div>
+                <span className="text-sm font-medium text-neutral-200">
+                    {name}
+                </span>
             </div>
         </div>
     );
@@ -298,16 +333,266 @@ function CustomEmojiModal({
     isModelOpen: boolean;
     setModelOpen: (val: boolean) => void;
 }) {
+    const maxSizeMB = 1;
+    const maxSize = maxSizeMB * 1024 * 1024;
+
+    const [
+        { files, isDragging, errors },
+        {
+            handleDragEnter,
+            handleDragLeave,
+            handleDragOver,
+            handleDrop,
+            openFileDialog,
+            removeFile,
+            getInputProps,
+        },
+    ] = useFileUpload({
+        accept: "image/svg+xml,image/png,image/jpeg,image/jpg,image/gif",
+        maxSize,
+    });
+
+    const previewUrl = files[0]?.preview || null;
+    // const fileName = files[0]?.file.name || null;
+
+    const emoteNameInputId = useId();
+
     return (
         <Dialog open={isModelOpen} onOpenChange={setModelOpen}>
-            <DialogContent className="overflow-y-visible max-w-xl p-0">
-                <form className="flex flex-col gap-0 [&>button:last-child]:top-3.5">
-                    <DialogHeader className="contents space-y-0 text-left">
-                        <DialogTitle className="border-b px-6 py-4 text-base">
-                            Your channel plans
-                        </DialogTitle>
-                    </DialogHeader>
-                </form>
+            <DialogContent className="overflow-y-visible max-w-3xl p-0">
+                <DialogHeader className="contents space-y-0 text-left">
+                    <DialogTitle className="border-b px-6 py-4 text-base">
+                        Subscriber emotes
+                    </DialogTitle>
+                </DialogHeader>
+                <div className="h-[50vh] px-5 flex-col overflow-auto">
+                    <div className="mb-2 text-sm text-neutral-400 font-medium">
+                        Upload new emote
+                    </div>
+                    <form className="flex w-full gap-x-3">
+                        <div className="flex w-2/5 flex-col gap-2">
+                            <div className="relative">
+                                <div
+                                    onDragEnter={handleDragEnter}
+                                    onDragLeave={handleDragLeave}
+                                    onDragOver={handleDragOver}
+                                    onDrop={handleDrop}
+                                    data-dragging={isDragging || undefined}
+                                    className="border-input data-[dragging=true]:bg-accent/50 has-[input:focus]:border-ring has-[input:focus]:ring-ring/50 relative flex min-h-52 flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed p-4 transition-colors has-[input:focus]:ring-[3px]"
+                                >
+                                    <input
+                                        {...getInputProps()}
+                                        className="sr-only"
+                                        aria-label="Upload image file"
+                                    />
+                                    {previewUrl ? (
+                                        <div className="absolute inset-0 flex items-center justify-center p-4">
+                                            <img
+                                                src={previewUrl}
+                                                alt={
+                                                    files[0]?.file?.name ||
+                                                    "Uploaded image"
+                                                }
+                                                className="mx-auto max-h-full rounded object-contain"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center px-4 py-3 text-center">
+                                            <div
+                                                className="bg-background mb-2 flex size-11 shrink-0 items-center justify-center rounded-full border"
+                                                aria-hidden="true"
+                                            >
+                                                <ImageIcon className="size-4 opacity-60" />
+                                            </div>
+                                            <p className="mb-1.5 text-sm font-medium">
+                                                Drop your image here
+                                            </p>
+                                            <p className="text-muted-foreground text-xs">
+                                                SVG, PNG, JPG or GIF (max.{" "}
+                                                {maxSizeMB}MB)
+                                            </p>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="mt-4"
+                                                onClick={openFileDialog}
+                                            >
+                                                <UploadIcon
+                                                    className="-ms-1 size-4 opacity-60"
+                                                    aria-hidden="true"
+                                                />
+                                                Select image
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {previewUrl && (
+                                    <div className="absolute top-4 right-4">
+                                        <button
+                                            type="button"
+                                            className="focus-visible:border-ring focus-visible:ring-ring/50 z-50 flex size-8 cursor-pointer items-center justify-center rounded-full bg-black/60 text-white transition-[color,box-shadow] outline-none hover:bg-black/80 focus-visible:ring-[3px]"
+                                            onClick={() =>
+                                                removeFile(files[0]?.id)
+                                            }
+                                            aria-label="Remove image"
+                                        >
+                                            <XIcon
+                                                className="size-4"
+                                                aria-hidden="true"
+                                            />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            {errors.length > 0 && (
+                                <div
+                                    className="text-destructive flex items-center gap-1 text-xs"
+                                    role="alert"
+                                >
+                                    <AlertCircleIcon className="size-3 shrink-0" />
+                                    <span>{errors[0]}</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex w-3/5 justify-between flex-col">
+                            <div className="*:not-first:mt-2">
+                                <Label htmlFor={emoteNameInputId}>
+                                    Emote name
+                                </Label>
+                                <Input
+                                    id={emoteNameInputId}
+                                    placeholder="Weird laugh"
+                                    type="text"
+                                    required
+                                    name="emote-name"
+                                />
+                                <p
+                                    className="text-muted-foreground mt-2 text-xs"
+                                    role="region"
+                                    aria-live="polite"
+                                >
+                                    Familliar name for your emote.
+                                </p>
+                            </div>
+                            <div className="flex justify-end">
+                                <Button>Save</Button>
+                            </div>
+                        </div>
+                    </form>
+                    <div className="w-full h-px bg-neutral-800 my-5" />
+                    <div className="grid grid-cols-5 lg:grid-cols-4 md:grid-cols-3 gap-4 pb-5">
+                        <SingleCustomEmojiPreview
+                            id="happy_emoji"
+                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
+                            name="Happy emoji"
+                            onDelete={() => {}}
+                        />
+                        <SingleCustomEmojiPreview
+                            id="happy_emoji"
+                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
+                            name="Happy emoji"
+                            onDelete={() => {}}
+                        />
+                        <SingleCustomEmojiPreview
+                            id="happy_emoji"
+                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
+                            name="Happy emoji"
+                            onDelete={() => {}}
+                        />
+                        <SingleCustomEmojiPreview
+                            id="happy_emoji"
+                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
+                            name="Happy emoji"
+                            onDelete={() => {}}
+                        />
+                        <SingleCustomEmojiPreview
+                            id="happy_emoji"
+                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
+                            name="Happy emoji"
+                            onDelete={() => {}}
+                        />
+                        <SingleCustomEmojiPreview
+                            id="happy_emoji"
+                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
+                            name="Happy emoji"
+                            onDelete={() => {}}
+                        />
+                        <SingleCustomEmojiPreview
+                            id="happy_emoji"
+                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
+                            name="Happy emoji"
+                            onDelete={() => {}}
+                        />
+                        <SingleCustomEmojiPreview
+                            id="happy_emoji"
+                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
+                            name="Happy emoji"
+                            onDelete={() => {}}
+                        />
+                        <SingleCustomEmojiPreview
+                            id="happy_emoji"
+                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
+                            name="Happy emoji"
+                            onDelete={() => {}}
+                        />
+                        <SingleCustomEmojiPreview
+                            id="happy_emoji"
+                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
+                            name="Happy emoji"
+                            onDelete={() => {}}
+                        />
+                        <SingleCustomEmojiPreview
+                            id="happy_emoji"
+                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
+                            name="Happy emoji"
+                            onDelete={() => {}}
+                        />
+                        <SingleCustomEmojiPreview
+                            id="happy_emoji"
+                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
+                            name="Happy emoji"
+                            onDelete={() => {}}
+                        />
+                        <SingleCustomEmojiPreview
+                            id="happy_emoji"
+                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
+                            name="Happy emoji"
+                            onDelete={() => {}}
+                        />
+                        <SingleCustomEmojiPreview
+                            id="happy_emoji"
+                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
+                            name="Happy emoji"
+                            onDelete={() => {}}
+                        />
+                        <SingleCustomEmojiPreview
+                            id="happy_emoji"
+                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
+                            name="Happy emoji"
+                            onDelete={() => {}}
+                        />
+                        <SingleCustomEmojiPreview
+                            id="happy_emoji"
+                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
+                            name="Happy emoji"
+                            onDelete={() => {}}
+                        />
+                        <SingleCustomEmojiPreview
+                            id="happy_emoji"
+                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
+                            name="Happy emoji"
+                            onDelete={() => {}}
+                        />
+                        <SingleCustomEmojiPreview
+                            id="happy_emoji"
+                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
+                            name="Happy emoji"
+                            onDelete={() => {}}
+                        />
+                    </div>
+                </div>
             </DialogContent>
         </Dialog>
     );

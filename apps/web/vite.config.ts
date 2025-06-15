@@ -21,4 +21,14 @@ export default defineConfig({
             "@pkgs": path.resolve(__dirname, "../../packages"),
         },
     },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    lodash: ["lodash"],
+                    axios: ["axios"],
+                },
+            },
+        },
+    },
 });
