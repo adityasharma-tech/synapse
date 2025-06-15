@@ -1,22 +1,33 @@
-import { useRef } from "react";
+import { useState } from "react";
 import ChatComponent from "./chat-comp";
 import VideoComponent from "./video-comp";
 
 export default function StreamV2() {
-    const chatWindowRef = useRef<HTMLDivElement>(null);
-    const videoWindowRef = useRef<HTMLDivElement>(null);
+    const [chatOpen, setChatOpen] = useState(true);
     return (
-        <div className="bg-neutral-950 h-full flex flex-col md:flex-row p-3 gap-y-3">
-            <div ref={videoWindowRef} className="h-1/3 md:w-3/5 md:h-full mr-3">
-                <VideoComponent />
-            </div>
+        <div
+            data-chat-open={chatOpen}
+            className="bg-neutral-950 h-full flex flex-col md:flex-row p-3 gap-y-3"
+        >
             <div
-                ref={chatWindowRef}
-                aria-expanded={"true"}
-                className="h-2/3 aria-[expanded='false']:w-0 aria-[expanded='false']:overflow-hidden md:w-2/5 md:h-full"
+                data-chat-open={chatOpen}
+                className="h-1/3 data-[chat-open=false]:w-full data-[chat-open=false]:mr-0 md:w-3/5 md:h-full mr-3"
             >
-                <ChatComponent />
+                <VideoComponent
+                    isChatOpen={chatOpen}
+                    setChatOpen={setChatOpen}
+                />
             </div>
+            {chatOpen ? (
+                <div
+                    aria-expanded={chatOpen}
+                    className="h-2/3 md:w-2/5 md:h-full"
+                >
+                    <ChatComponent
+                        toogleWindowOpen={() => setChatOpen((prev) => !prev)}
+                    />
+                </div>
+            ) : null}
         </div>
     );
 }

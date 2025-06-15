@@ -1,4 +1,4 @@
-// user type
+import { userRolesEnum } from "@pkgs/drizzle-client";
 interface UserT {
     id: number;
     firstName: string;
@@ -7,7 +7,7 @@ interface UserT {
     email: string;
     profilePicture?: string;
     phoneNumber: string;
-    role: "streamer" | "viewer" | "admin";
+    role: (typeof userRolesEnum.enumValues)[number];
     emailVerified: boolean;
 }
 

@@ -1,4 +1,6 @@
 import LoadingComp from "@/components/loading";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useSocket } from "@/hooks/socket.hook";
 import { createPremiumChatOrder, getStreamById } from "@/lib/apiClient";
 import { razorpayKeyId } from "@/lib/constants";
@@ -26,13 +28,19 @@ import { SocketEventEnum } from "@pkgs/lib/shared";
 import { MessageSquareMoreIcon, X } from "lucide-react";
 import React, {
     FormEventHandler,
-    MouseEventHandler,
     useCallback,
+    useId,
     useRef,
     useState,
 } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
+import { BasicChatComp } from "../stream";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 
 export default function ChatWindowComponent({
     toogleWindowOpen,
@@ -52,14 +60,17 @@ export default function ChatWindowComponent({
     const streamState = useAppSelector((state) => state.stream);
     const user = useAppSelector((state) => state.app.user);
 
+    const paymentAmountInputId = useId();
+
     // special state for basic message type
     // const [optimisticMessages, setOptimisticMessages] = useOptimistic(streamState.basicChats)
 
     // local states
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
-    const [_, setPaymentLoading] = useState(false);
+    const [paymentLoading, setPaymentLoading] = useState(false);
     const [__, setPayDialogOpen] = useState(false);
+    const [superchatEnabled, setSuperchatEnabled] = useState(false);
     const [replyMessage, setReplyMessage] = useState<{
         messageId: string | null;
         message: string | null;
@@ -69,13 +80,8 @@ export default function ChatWindowComponent({
         message: null,
         username: null,
     });
-    const [premiumChatForm] = useState<{
-        paymentAmount: number;
-        message: string;
-    }>({
-        paymentAmount: 20,
-        message: "Thank you!",
-    });
+    const [superchatAmount, setSuperchatAmount] = useState(20);
+
     const [paymentSessionId, setPaymentSessionId] = useState<string | null>(
         null
     );
@@ -88,8 +94,10 @@ export default function ChatWindowComponent({
 
     // send message by admin TODO: handle permission on server side, check if he is admin or not and add a check mark and highlight
     const handleSendMessage: FormEventHandler<HTMLFormElement> = useCallback(
-        (e) => {
+        async (e) => {
             e.preventDefault();
+            if (superchatEnabled) return await handleMakePayment();
+
             if (socket && message.trim() != "")
                 socket.emit(SocketEventEnum.CHAT_CREATE_EVENT, {
                     message,
@@ -102,6 +110,7 @@ export default function ChatWindowComponent({
             setReplyMessage({ message: null, messageId: null, username: null });
         },
         [
+            superchatEnabled,
             socket,
             SocketEventEnum,
             message,
@@ -235,33 +244,41 @@ export default function ChatWindowComponent({
     }, []);
 
     // ...
-    const handleMakePayment: MouseEventHandler<HTMLButtonElement> = useCallback(
-        async (e) => {
-            e.preventDefault();
-            if (streamId)
-                await requestHandler(
-                    createPremiumChatOrder({
-                        streamId: streamId,
-                        ...premiumChatForm,
-                    }),
-                    setPaymentLoading,
-                    async (data) => {
-                        const orderId = data.data.orderId;
-                        await handleRazorpayPayment(orderId);
-                    }
-                );
-        },
-        [
-            streamId,
-            requestHandler,
-            createPremiumChatOrder,
-            premiumChatForm,
+    const handleMakePayment = useCallback(async () => {
+        if (!streamId) return;
+
+        if (superchatAmount < 1)
+            return toast.error("Superchat minimum payment amount is ₹1.");
+
+        await requestHandler(
+            createPremiumChatOrder({
+                message,
+                streamId: streamId,
+                paymentAmount: superchatAmount,
+            }),
             setPaymentLoading,
-            setPaymentSessionId,
-            toast,
-            handleCheckout,
-        ]
-    );
+            async (data) => {
+                const orderId = data.data.orderId;
+                await handleRazorpayPayment(orderId);
+            },
+            undefined,
+            false
+        );
+        setMessage("");
+        setSuperchatEnabled(false);
+    }, [
+        streamId,
+        requestHandler,
+        createPremiumChatOrder,
+        setSuperchatEnabled,
+        message,
+        superchatAmount,
+        setPaymentLoading,
+        setMessage,
+        setPaymentSessionId,
+        toast.error,
+        handleCheckout,
+    ]);
 
     // handler to register all the socket events/listeners
     const handleRegisterSocketEvents = useCallback(() => {
@@ -482,15 +499,18 @@ export default function ChatWindowComponent({
                 </button>
             </div>
 
-            <div className="relative border flex flex-col overflow-y-auto gap-y-0.5 fill-indigo-600 border-neutral-900 flex-1 rounded-md ">
+            <div className="relative border flex flex-col overflow-y-auto gap-y-0.5 fill-indigo-600 border-neutral-900 flex-1 rounded-md">
                 {streamState.basicChats.map((chat) => (
                     <ChatComponent
+                        id={chat.id}
+                        markRead={chat.markRead}
                         key={chat.id}
                         myMessage={
                             user?.username
                                 ? user.username == chat.user.username
                                 : false
                         }
+                        superchatAmount={chat.paymentAmount}
                         message={chat.message}
                         profileColor="oklch(76.9% 0.188 70.08)"
                         username={chat.user.username}
@@ -509,7 +529,49 @@ export default function ChatWindowComponent({
                         }
                     />
                 ))}
+                {streamState.basicChats.length <= 0 && (
+                    <span className="absolute top-1/2 right-1/2 translate-1/2 text-sm text-neutral-600">
+                        No messages yet
+                    </span>
+                )}
                 <div ref={lastMessageRef}></div>
+                <div
+                    aria-hidden={!superchatEnabled}
+                    className="sticky aria-hidden:hidden bottom-2 mt-auto left-2 max-w-xs"
+                >
+                    <div className="mx-auto flex h-full w-full items-center justify-center">
+                        <div className="w-full rounded-md bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 p-px">
+                            <div className="flex justify-between flex-col bg-neutral-950/90 h-full w-full rounded-md p-2 ">
+                                <div className="*:not-first:mt-2">
+                                    <Label htmlFor={paymentAmountInputId}>
+                                        Superchat
+                                    </Label>
+                                    <div className="relative">
+                                        <Input
+                                            required
+                                            id={paymentAmountInputId}
+                                            value={superchatAmount}
+                                            onChange={(e) =>
+                                                setSuperchatAmount(
+                                                    +e.target.value
+                                                )
+                                            }
+                                            className="peer ps-6 pe-12 border-0 border-b focus-visible:ring-0 text-md"
+                                            placeholder="0.00"
+                                            type="number"
+                                        />
+                                        <span className="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-sm peer-disabled:opacity-50">
+                                            ₹
+                                        </span>
+                                        <span className="text-muted-foreground pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-sm peer-disabled:opacity-50">
+                                            INR
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <form
                 onSubmit={handleSendMessage}
@@ -561,8 +623,9 @@ export default function ChatWindowComponent({
                         </div>
                     </div>
                 ) : null}
-                <div className="flex gap-x-2 items-center pr-1 focus-within:border-indigo-600 rounded border text-neutral-100 border-neutral-600 focus-within:ring-2 ring-indigo-700">
+                <div className="flex gap-x-1 items-center pr-1 focus-within:border-indigo-600 rounded border text-neutral-100 border-neutral-600 focus-within:ring-2 ring-indigo-700">
                     <input
+                        required
                         onChange={(e) => {
                             setMessage(e.target.value);
                             throttle(handleStartTyping, 4000);
@@ -573,31 +636,52 @@ export default function ChatWindowComponent({
                         className="py-1.5 px-2 outline-none flex-1"
                     />
                     <button
+                        onClick={() => setSuperchatEnabled((prev) => !prev)}
                         type="button"
-                        className="hover:bg-neutral-800 rounded md:cursor-pointer"
+                        aria-checked={superchatEnabled}
+                        className="hover:bg-neutral-900 aria-checked:hover:bg-neutral-900 aria-checked:bg-neutral-800 p-1.5 rounded md:cursor-pointer"
                     >
                         <svg
-                            className="size-7 stroke-zinc-200 stroke-1"
-                            viewBox="0 0 24 24"
-                            fill="none"
+                            className="size-4 fill-zinc-200"
+                            viewBox="0 0 512 512"
                         >
-                            <path
-                                d="M9 14c.181.472.478.891.864 1.219a3.336 3.336 0 004.252.03c.39-.32.695-.735.884-1.205"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                            <path
-                                clipRule="evenodd"
-                                d="M19 12a7 7 0 11-14 0 7 7 0 0114 0z"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                            <path
-                                d="M9 11v-1M13 10.174a1.093 1.093 0 002 0"
-                                strokeLinecap="round"
-                            />
+                            <path d="M386.415 193.208h-98.934L359.434 0H161.566l-35.981 280.151h80.943L170.557 512z" />
                         </svg>
                     </button>
+
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <button
+                                type="button"
+                                className="hover:bg-neutral-800 rounded md:cursor-pointer"
+                            >
+                                <svg
+                                    className="size-7 stroke-zinc-200 stroke-1"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                >
+                                    <path
+                                        d="M9 14c.181.472.478.891.864 1.219a3.336 3.336 0 004.252.03c.39-.32.695-.735.884-1.205"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                    <path
+                                        clipRule="evenodd"
+                                        d="M19 12a7 7 0 11-14 0 7 7 0 0114 0z"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                    <path
+                                        d="M9 11v-1M13 10.174a1.093 1.093 0 002 0"
+                                        strokeLinecap="round"
+                                    />
+                                </svg>
+                            </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64 min-h-64 mr-2 mb-2 bg-neutral-900">
+                            <div className="h-full grid"></div>
+                        </PopoverContent>
+                    </Popover>
                 </div>
                 <div className="flex justify-between">
                     <div>
@@ -617,15 +701,11 @@ export default function ChatWindowComponent({
                         ) : null}
                     </div>
                     <div className="flex gap-x-2">
-                        <button className="font-medium bg-indigo-700 px-2 py-1 rounded md:cursor-pointer active:ring-3 ring-indigo-800/30">
-                            Message
-                        </button>
                         <button
-                            onClick={handleMakePayment}
-                            hidden
+                            disabled={paymentLoading}
                             className="font-medium bg-indigo-700 px-2 py-1 rounded md:cursor-pointer active:ring-3 ring-indigo-800/30"
                         >
-                            Pay now
+                            Message
                         </button>
                     </div>
                 </div>
@@ -635,6 +715,7 @@ export default function ChatWindowComponent({
 }
 
 interface ChatComponentPropT {
+    id: string;
     message: string;
     profileColor: string;
     username: string;
@@ -646,6 +727,8 @@ interface ChatComponentPropT {
         username: string | null;
     };
     myMessage: boolean;
+    markRead: boolean;
+    superchatAmount?: number;
     handleDownVoteChat: () => void;
     handleUpVoteChat: () => void;
     handleMarkDone: () => void;
@@ -653,6 +736,27 @@ interface ChatComponentPropT {
 }
 
 function ChatComponent(props: ChatComponentPropT) {
+    if (props.superchatAmount && props.superchatAmount > 0) {
+        return (
+            <BasicChatComp
+                paymentAmount={props.superchatAmount}
+                handleDownVoteChat={props.handleDownVoteChat}
+                handleUpVoteChat={props.handleUpVoteChat}
+                createdAt={new Date()}
+                downVotes={props.downvotes}
+                handleMarkDone={props.handleMarkDone}
+                id={props.id}
+                markRead={props.markRead}
+                message={props.message}
+                pinned={false}
+                upVotes={props.upvotes}
+                updatedAt={new Date()}
+                user={{ fullName: props.username }}
+                orderId={"order"}
+                reply={{} as any}
+            />
+        );
+    }
     return (
         <div
             className={`relative group w-full px-2 py-1 hover:bg-neutral-900 ${props.myMessage ? "border-l-2 border-amber-400 bg-amber-300/5" : ""}`}

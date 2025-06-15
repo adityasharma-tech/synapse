@@ -23,6 +23,11 @@ export interface BasicChatT {
     pinned: boolean;
     createdAt: Date;
     updatedAt: Date;
+
+    // superchat data
+    orderId?: string;
+    paymentAmount?: number;
+    paymentCurrency?: string;
 }
 
 export interface PremiumChatT extends BasicChatT {
@@ -152,7 +157,7 @@ export const streamSlice = createSlice({
 
         // add a premium (payment chat)
         addPremiumChat: (state, action: PayloadAction<PremiumChatT>) => {
-            state.premiumChats.push(action.payload);
+            state.basicChats.push(action.payload);
             state.totalQuestions++;
         },
 
@@ -327,7 +332,8 @@ export const streamSlice = createSlice({
 
             action.payload.forEach((chat: any) => {
                 chat.orderId
-                    ? state.premiumChats.push(chat)
+                    ? state.premiumChats.push(chat) &&
+                      state.basicChats.push(chat)
                     : state.basicChats.push(chat);
             });
         });

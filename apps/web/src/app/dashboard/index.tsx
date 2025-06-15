@@ -47,6 +47,7 @@ import {
     LogOutIcon,
     MessageSquareCodeIcon,
     Reply,
+    SmileIcon,
     UserPenIcon,
     XIcon,
 } from "lucide-react";
@@ -68,6 +69,8 @@ export default function DashboardPage() {
     const [previousStreams, setPreviousStreams] = React.useState<any[]>([]);
     const [subscriptionDialogOpen, setSubscriptionDialogOpen] =
         React.useState<boolean>(false);
+    const [customEmojiDialogOpen, setCustomEmojiDialogOpen] =
+        useState<boolean>(false);
 
     const handleFetchStreams = React.useCallback(async () => {
         await requestHandler(
@@ -92,6 +95,11 @@ export default function DashboardPage() {
                 isModelOopen={subscriptionDialogOpen}
                 setModelOpen={setSubscriptionDialogOpen}
             />
+            <CustomEmojiModal
+                isModelOpen={customEmojiDialogOpen}
+                setModelOpen={setCustomEmojiDialogOpen}
+            />
+
             <div className="bg-neutral-900 pr-2 flex justify-between items-center h-12">
                 <Link to="/">
                     <img
@@ -174,16 +182,31 @@ export default function DashboardPage() {
                                     <span>Subscriptions</span>
                                 </DropdownMenuItem>
                             </button>
-                            <Link to="/dashboard/apply">
+                            <button
+                                className="w-full"
+                                onClick={() => setCustomEmojiDialogOpen(true)}
+                            >
                                 <DropdownMenuItem>
-                                    <UserPenIcon
+                                    <SmileIcon
                                         size={16}
                                         className="opacity-60"
                                         aria-hidden="true"
                                     />
-                                    <span>Apply for streamer</span>
+                                    <span>Custom emoji</span>
                                 </DropdownMenuItem>
-                            </Link>
+                            </button>
+                            {user?.role != "streamer" ? (
+                                <Link to="/dashboard/apply">
+                                    <DropdownMenuItem>
+                                        <UserPenIcon
+                                            size={16}
+                                            className="opacity-60"
+                                            aria-hidden="true"
+                                        />
+                                        <span>Apply for streamer</span>
+                                    </DropdownMenuItem>
+                                </Link>
+                            ) : null}
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <Link to="/user/logout">
@@ -265,6 +288,28 @@ function VideoSkeleton() {
                 </div>
             </div>
         </div>
+    );
+}
+
+function CustomEmojiModal({
+    isModelOpen,
+    setModelOpen,
+}: {
+    isModelOpen: boolean;
+    setModelOpen: (val: boolean) => void;
+}) {
+    return (
+        <Dialog open={isModelOpen} onOpenChange={setModelOpen}>
+            <DialogContent className="overflow-y-visible max-w-xl p-0">
+                <form className="flex flex-col gap-0 [&>button:last-child]:top-3.5">
+                    <DialogHeader className="contents space-y-0 text-left">
+                        <DialogTitle className="border-b px-6 py-4 text-base">
+                            Your channel plans
+                        </DialogTitle>
+                    </DialogHeader>
+                </form>
+            </DialogContent>
+        </Dialog>
     );
 }
 

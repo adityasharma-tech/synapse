@@ -657,7 +657,7 @@ interface BasicChatCompPropT extends PremiumChatT {
     role?: "streamer" | "viewer" | "admin";
 }
 
-function BasicChatComp(props: PropsWithChildren<BasicChatCompPropT>) {
+export function BasicChatComp(props: PropsWithChildren<BasicChatCompPropT>) {
     return (
         <div
             data-premium={props.orderId ? true : false}
@@ -673,7 +673,7 @@ function BasicChatComp(props: PropsWithChildren<BasicChatCompPropT>) {
                     <span className="font-medium">{props.user.fullName}</span>
                     {props.paymentAmount ? (
                         <span className="font-semibold text-emerald-600">
-                            ${Math.floor(props.paymentAmount / 100)}
+                            ₹{Math.floor(props.paymentAmount / 100)}
                         </span>
                     ) : null}
                 </div>
