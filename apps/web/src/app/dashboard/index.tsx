@@ -38,7 +38,6 @@ import {
     AlertCircleIcon,
     BadgeDollarSign,
     BoltIcon,
-    BookOpenIcon,
     ChevronDownIcon,
     ImageUpIcon,
     IndianRupee,
@@ -52,6 +51,7 @@ import {
     XIcon,
     ImageIcon,
     UploadIcon,
+    ListTodo,
 } from "lucide-react";
 import React, {
     ChangeEvent,
@@ -160,14 +160,18 @@ export default function DashboardPage() {
                                 />
                                 <span>Option 2</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <BookOpenIcon
-                                    size={16}
-                                    className="opacity-60"
-                                    aria-hidden="true"
-                                />
-                                <span>Option 3</span>
-                            </DropdownMenuItem>
+                            {user && user.role == "admin" ? (
+                                <Link to="streamer-applications">
+                                    <DropdownMenuItem>
+                                        <ListTodo
+                                            size={16}
+                                            className="opacity-60"
+                                            aria-hidden="true"
+                                        />
+                                        <span>Applications</span>
+                                    </DropdownMenuItem>{" "}
+                                </Link>
+                            ) : null}
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
@@ -306,7 +310,7 @@ function SingleCustomEmojiPreview({
     onDelete,
 }: SingleCustomEmojiPreviewPropT) {
     return (
-        <div className="p-2 rounded-md border group border-neutral-600 relative flex items-center gap-x-2">
+        <div className="p-2 rounded border group border-neutral-700 bg-neutral-800/50 relative flex items-center gap-x-2">
             <button
                 onClick={() => onDelete(id)}
                 type="button"
@@ -318,7 +322,12 @@ function SingleCustomEmojiPreview({
                 <img className="size-5" src={imageUrl} alt={id} />
             </div>
             <div>
-                <span className="text-sm font-medium text-neutral-200">
+                <span
+                    style={{
+                        fontFamily: "Poppins",
+                    }}
+                    className="text-sm font-medium text-neutral-200"
+                >
                     {name}
                 </span>
             </div>

@@ -9,3 +9,4 @@ export * from "./user.sql";
 export * from "./permission.sql";
 export * from "./plans.sql";
 export * from "./subscriptions.sql";
+export * from "./emotes.sql";

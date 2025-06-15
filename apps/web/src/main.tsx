@@ -1,26 +1,26 @@
 // pages imports
 import App from "./app";
+import StreamV2 from "./app/streamv2";
 import LoginPage from "./app/auth/login";
 import SignupPage from "./app/auth/signup";
 import VerifyPage from "./app/auth/verify";
 import LogoutPage from "./app/user/logout";
 import DashboardPage from "./app/dashboard";
+import ChatComponent from "./app/streamv2/chat-comp";
 import ApplyForStreamer from "./app/dashboard/apply";
 import StreamerApplicationsPage from "./app/dashboard/streamer-applications";
 
 // layouts
 import RootLayout from "./app/_layout";
-import { NotFound } from "./app/_not-found";
 import AuthLayout from "./app/auth/_layout";
+import { NotFound } from "./app/_not-found";
 import DashboardLayout from "./app/dashboard/_layout";
+import ChatStreamLayout from "./app/streamv2/_layout";
 
 import { useEffect } from "react";
+import { fetchUser } from "./store/actions/user.actions";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { useAppDispatch, useAppSelector } from "./store";
-import { fetchUser } from "./store/actions/user.actions";
-import ChatStreamLayout from "./app/streamv2/_layout";
-import StreamV2 from "./app/streamv2";
-import ChatComponent from "./app/streamv2/chat-comp";
 
 export default function Main() {
     const dispatch = useAppDispatch();
