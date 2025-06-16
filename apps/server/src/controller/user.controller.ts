@@ -403,7 +403,7 @@ const uploadCustomEmotes = asyncHandler(async (req, res) => {
         uploadCustomEmotesSchema.safeParse(req.body)
     );
 
-    const code = ":" + generateUsername() + "_" + preCode + ":";
+    const code = ":" + req.user.id + "_" + preCode + ":";
 
     const imageUrl = await uploadDocumentOnCloudinary(req.file.path, {
         transformation: {

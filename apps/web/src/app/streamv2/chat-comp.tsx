@@ -2,6 +2,9 @@ import LoadingComp from "@/components/loading";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSocket } from "@/hooks/socket.hook";
+import React from "react";
+import Picker from "@emoji-mart/react";
+import data from "@emoji-mart/data";
 import {
     createPremiumChatOrder,
     getEmoteByStreamerId,
@@ -31,13 +34,7 @@ import {
 } from "@/store/reducers/stream.reducer";
 import { SocketEventEnum } from "@pkgs/lib/shared";
 import { MessageSquareMoreIcon, X } from "lucide-react";
-import React, {
-    FormEventHandler,
-    useCallback,
-    useId,
-    useRef,
-    useState,
-} from "react";
+import { FormEventHandler, useCallback, useId, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { BasicChatComp } from "../stream";
@@ -90,6 +87,7 @@ export default function ChatWindowComponent({
     const [paymentSessionId, setPaymentSessionId] = useState<string | null>(
         null
     );
+    const [emojiDialogOpen, setEmojiDialogOpen] = useState(false);
 
     // cashfree states
     const [cashfree] = useState<any>(null);
@@ -596,6 +594,19 @@ export default function ChatWindowComponent({
                         </div>
                     </div>
                 </div>
+                <div
+                    style={{
+                        position: "fixed",
+                        bottom: 100,
+                        right: 8,
+                        marginTop: "auto",
+                    }}
+                >
+                    <Picker
+                        data={data}
+                        onEmojiSelect={(a: any) => console.log(a)}
+                    />
+                </div>
             </div>
             <form
                 onSubmit={handleSendMessage}
@@ -673,50 +684,56 @@ export default function ChatWindowComponent({
                         </svg>
                     </button>
 
+                    <button
+                        onClick={() => setEmojiDialogOpen((p) => !p)}
+                        type="button"
+                        className="hover:bg-neutral-800 rounded md:cursor-pointer"
+                    >
+                        <svg
+                            className="size-7 stroke-zinc-200 stroke-1"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                        >
+                            <path
+                                d="M9 14c.181.472.478.891.864 1.219a3.336 3.336 0 004.252.03c.39-.32.695-.735.884-1.205"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                            <path
+                                clipRule="evenodd"
+                                d="M19 12a7 7 0 11-14 0 7 7 0 0114 0z"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                            <path
+                                d="M9 11v-1M13 10.174a1.093 1.093 0 002 0"
+                                strokeLinecap="round"
+                            />
+                        </svg>
+                    </button>
+
                     <Popover>
-                        <PopoverTrigger asChild>
-                            <button
-                                type="button"
-                                className="hover:bg-neutral-800 rounded md:cursor-pointer"
+                        <PopoverTrigger asChild></PopoverTrigger>
+                        {/* <PopoverContent className="mr-2 mb-2 p-2 bg-neutral-900">
+                            <Suspense fallback="Loading...">
+                            </Suspense>
+                            <div
+                                hidden
+                                className="h-full flex flex-wrap w-full"
                             >
-                                <svg
-                                    className="size-7 stroke-zinc-200 stroke-1"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                >
-                                    <path
-                                        d="M9 14c.181.472.478.891.864 1.219a3.336 3.336 0 004.252.03c.39-.32.695-.735.884-1.205"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                    <path
-                                        clipRule="evenodd"
-                                        d="M19 12a7 7 0 11-14 0 7 7 0 0114 0z"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                    <path
-                                        d="M9 11v-1M13 10.174a1.093 1.093 0 002 0"
-                                        strokeLinecap="round"
-                                    />
-                                </svg>
-                            </button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-64 min-h-64 mr-2 mb-2 bg-neutral-900">
-                            <div className="h-full grid">
                                 {streamState.customEmotes.map((item) => (
                                     <div
                                         className="p-1 hover:bg-neutral-800 rounded"
                                         key={item.code}
                                     >
                                         <img
-                                            className="size-4"
+                                            className="size-5"
                                             src={item.imageUrl}
                                         />
                                     </div>
                                 ))}
                             </div>
-                        </PopoverContent>
+                        </PopoverContent> */}
                     </Popover>
                 </div>
                 <div className="flex justify-between">
