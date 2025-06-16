@@ -2,7 +2,11 @@ import LoadingComp from "@/components/loading";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSocket } from "@/hooks/socket.hook";
-import { createPremiumChatOrder, getStreamById } from "@/lib/apiClient";
+import {
+    createPremiumChatOrder,
+    getEmoteByStreamerId,
+    getStreamById,
+} from "@/lib/apiClient";
 import { razorpayKeyId } from "@/lib/constants";
 import { requestHandler } from "@/lib/requestHandler";
 import { loadScript, useDebounce, useThrottle } from "@/lib/utils";
@@ -17,6 +21,7 @@ import {
     registerTypingEvent,
     removeBasicChat,
     removeTypingEvent,
+    setAllEmotes,
     updateBasicChat,
     updateMetadata,
     updateStreamId,
@@ -445,6 +450,24 @@ export default function ChatWindowComponent({
         })();
     }, []);
 
+    React.useEffect(() => {
+        if (streamState.metadata.streamerId) {
+            (async () => {
+                await requestHandler(
+                    getEmoteByStreamerId({
+                        streamerId: streamState.metadata.streamerId,
+                    }),
+                    undefined,
+                    ({ data }) => {
+                        dispatch(setAllEmotes(data));
+                    },
+                    undefined,
+                    false
+                );
+            })();
+        }
+    }, [streamId, streamState.metadata.streamerId]);
+
     if (loading) return <LoadingComp />;
 
     return (
@@ -480,10 +503,11 @@ export default function ChatWindowComponent({
                     hidden={searchParams.get("popout") ? true : false}
                     onClick={() => {
                         window.open(
-                            `http://localhost:5173/stream/${streamId}/chat?popout=true`,
+                            `/stream/${streamId}/chat?popout=true`,
                             "StreamChat",
                             "popup=true"
                         );
+                        toogleWindowOpen && toogleWindowOpen();
                     }}
                     className="hover:bg-neutral-950 p-1.5 rounded md:cursor-pointer"
                 >
@@ -679,7 +703,19 @@ export default function ChatWindowComponent({
                             </button>
                         </PopoverTrigger>
                         <PopoverContent className="w-64 min-h-64 mr-2 mb-2 bg-neutral-900">
-                            <div className="h-full grid"></div>
+                            <div className="h-full grid">
+                                {streamState.customEmotes.map((item) => (
+                                    <div
+                                        className="p-1 hover:bg-neutral-800 rounded"
+                                        key={item.code}
+                                    >
+                                        <img
+                                            className="size-4"
+                                            src={item.imageUrl}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
                         </PopoverContent>
                     </Popover>
                 </div>

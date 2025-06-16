@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from "react-router";
+import { Outlet, useNavigate, useSearchParams } from "react-router";
 import { useAppSelector } from "../../store";
 import React from "react";
 
@@ -7,9 +7,14 @@ import React from "react";
 export default function AuthLayout() {
     const app = useAppSelector((state) => state.app);
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
 
     React.useEffect(() => {
-        if (!app.appLoading && app.user) navigate("/dashboard");
+        if (!app.appLoading && app.user) {
+            if (searchParams.has("redirect_uri"))
+                navigate(searchParams.get("redirect_uri") ?? "");
+            else navigate("/dashboard");
+        }
     }, [app.appLoading]);
 
     return <Outlet />;

@@ -69,6 +69,12 @@ interface UpdateSubscriptionDataPayloadT {
     subscriptionId: number;
 }
 
+interface CustomEmoteType {
+    code: string;
+    name: string;
+    imageUrl: string;
+}
+
 // Define a type for the slice state
 interface DashStreamReducer {
     streamRunning: boolean;
@@ -93,6 +99,7 @@ interface DashStreamReducer {
         streamerId: number;
         subscriptionId: number;
     } | null;
+    customEmotes: CustomEmoteType[];
 }
 
 // Define the initial state using that type
@@ -114,6 +121,7 @@ const initialState: DashStreamReducer = {
         streamerId: 0,
     },
     subscription: null,
+    customEmotes: [],
 };
 
 export const streamSlice = createSlice({
@@ -318,6 +326,10 @@ export const streamSlice = createSlice({
         ) => {
             state.subscription = action.payload;
         },
+
+        setAllEmotes(state, action: PayloadAction<CustomEmoteType[]>) {
+            state.customEmotes = action.payload;
+        },
     },
 
     // extra reducers for async thunks
@@ -356,6 +368,7 @@ export const {
     updateUserRole,
     updateMetadata,
     updateSubscriptionData,
+    setAllEmotes,
 } = streamSlice.actions;
 
 export default streamSlice.reducer;

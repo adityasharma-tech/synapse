@@ -65,11 +65,19 @@ export default function LoginPage() {
                     clientId: credentialResponse.clientId ?? "",
                     credential: credentialResponse.credential ?? "",
                     select_by: credentialResponse.select_by ?? "btn",
-                })
+                }),
+                undefined,
+                () => {
+                    dispatch(fetchUser());
+                    const redirectUri = new URLSearchParams(
+                        window.location.search
+                    ).get("redirect_uri");
+                    if (redirectUri) navigate(redirectUri);
+                    else navigate("/dashboard");
+                }
             );
-            dispatch(fetchUser());
         },
-        [requestHandler, ssoGoogleLogin]
+        [requestHandler, ssoGoogleLogin, navigate]
     );
 
     return (

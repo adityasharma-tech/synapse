@@ -17,6 +17,9 @@ const ROLES = {
         "plan:create",
         "plan:view",
         "plan:update",
+        "emote:create",
+        "emote:delete",
+        "emote:delete-own",
     ],
     streamer: [
         "chat:create",
@@ -31,6 +34,8 @@ const ROLES = {
         "stream:update",
         "stream:view",
         "stream:user:block",
+        "emote:create",
+        "emote:delete-own",
     ],
     viewer: [
         "chat:create",

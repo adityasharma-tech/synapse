@@ -1,11 +1,17 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { msg91AuthKey } from "../lib/constants";
 import {
     createBeneficiary,
     createRazorpayPlan,
 } from "../services/payments.service";
 import { uploadDocumentOnCloudinary } from "../lib/cloudinary";
-import { TokenTable, User, StreamerRequest, Plans } from "@pkgs/drizzle-client";
+import {
+    TokenTable,
+    User,
+    StreamerRequest,
+    Plans,
+    Emote,
+} from "@pkgs/drizzle-client";
 import {
     ApiError,
     ApiResponse,
@@ -19,7 +25,9 @@ import { handleZodError } from "@pkgs/zod-client";
 import {
     createPaymentPlanSchema,
     getChannelPlanDetailSchema,
+    uploadCustomEmotesSchema,
 } from "@pkgs/zod-client/validators";
+import { generateUsername } from "../../src/lib/utils";
 
 /**
  * For logout remove the cookies and clear the caches
@@ -381,13 +389,83 @@ const getChannelPlanDetails = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, { plan: result }));
 });
 
+const uploadCustomEmotes = asyncHandler(async (req, res) => {
+    if (!hasPermission(req.user as MiddlewareUserT, "emote:create"))
+        throw new ApiError(403, "You have no permission to create emotes.");
+
+    if (!req.file)
+        throw new ApiError(
+            400,
+            "Please upload the emoji image as your choice."
+        );
+
+    const { code: preCode, name } = handleZodError(
+        uploadCustomEmotesSchema.safeParse(req.body)
+    );
+
+    const code = ":" + generateUsername() + "_" + preCode + ":";
+
+    const imageUrl = await uploadDocumentOnCloudinary(req.file.path, {
+        transformation: {
+            height: 28,
+            width: 28,
+        },
+    });
+
+    if (!imageUrl)
+        throw new ApiError(
+            400,
+            "Failed to upload image to third party provider."
+        );
+
+    await db
+        .insert(Emote)
+        .values({ code, imageUrl, name, streamerId: req.user.id })
+        .execute();
+
+    res.status(200).json(new ApiResponse(200, null, "custom emote created"));
+});
+
+const getAllEmotesForAStreamer = asyncHandler(async (req, res) => {
+    const { streamerId } = req.params;
+
+    const emotes = await db
+        .select({
+            code: Emote.code,
+            name: Emote.name,
+            imageUrl: Emote.imageUrl,
+        })
+        .from(Emote)
+        .where(eq(Emote.streamerId, Number(streamerId)))
+        .execute();
+
+    res.status(200).json(new ApiResponse(200, emotes));
+});
+
+const deleteEmoteByCode = asyncHandler(async (req, res) => {
+    if (!hasPermission(req.user as MiddlewareUserT, "emote:delete-own"))
+        throw new ApiError(403, "You have no permission to create emotes.");
+
+    const { id } = req.params;
+
+    await db
+        .delete(Emote)
+        .where(and(eq(Emote.code, id), eq(Emote.streamerId, req.user.id)))
+        .execute();
+
+    res.status(200).json(new ApiResponse(200, null, "Emote deleted."));
+});
+
 export {
     logoutHandler,
     getUserHandler,
-    updateUserHandler,
     applyForStreamer,
+    deleteEmoteByCode,
+    createPaymentPlan,
+    updateUserHandler,
+    uploadCustomEmotes,
     applyForStreamerV2,
     getAllWatchHistory,
-    createPaymentPlan,
     getChannelPlanDetails,
+    getAllEmotesForAStreamer,
 };

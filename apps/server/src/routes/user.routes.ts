@@ -4,9 +4,12 @@ import { userRouteValidators } from "../middleware/validator.middleware";
 import {
     applyForStreamerV2,
     createPaymentPlan,
+    deleteEmoteByCode,
+    getAllEmotesForAStreamer,
     getUserHandler,
     logoutHandler,
     updateUserHandler,
+    uploadCustomEmotes,
 } from "../controller/user.controller";
 import { upload } from "../middleware/multer.middeware";
 import { createSubscription } from "../controller/stream.controller";
@@ -29,5 +32,11 @@ router
 router.route("/create-plan").post(createPaymentPlan);
 
 router.route("/subscribe").post(createSubscription);
+
+router.route("/emotes").post(upload.single("emoji"), uploadCustomEmotes);
+
+router.route("/emotes/:streamerId").get(getAllEmotesForAStreamer);
+
+router.route("/emote/:id").delete(deleteEmoteByCode);
 
 export default router;

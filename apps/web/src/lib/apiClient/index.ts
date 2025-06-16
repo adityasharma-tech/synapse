@@ -171,6 +171,22 @@ function getStreamerSubscriptionDetail(
     return apiClient.get(`/streams/subscription/${payload.streamerId}`);
 }
 
+function uploadCustomEmotes(payload: FormData) {
+    return apiClient.post("/user/emotes", payload, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+}
+
+function getEmoteByStreamerId(payload: { streamerId: number }) {
+    return apiClient.get(`/user/emotes/${payload.streamerId}`);
+}
+
+function deleteEmoteByCode(payload: { code: string }) {
+    return apiClient.delete(`/user/emote/${payload.code}`);
+}
+
 export {
     getUser,
     loginUser,
@@ -185,8 +201,11 @@ export {
     startNewStream,
     applyForStreamer,
     ssoGoogleRegister,
+    deleteEmoteByCode,
     acceptApplication,
+    uploadCustomEmotes,
     getYoutubeVideoData,
+    getEmoteByStreamerId,
     fetchAllApplications,
     getAllChatByStreamId,
     createPremiumChatOrder,

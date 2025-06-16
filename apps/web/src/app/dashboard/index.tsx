@@ -26,10 +26,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import {
     createNewPlan,
+    deleteEmoteByCode,
     fetchPaymentPlanDetails,
     getAllStreams,
+    getEmoteByStreamerId,
     getYoutubeVideoData,
     startNewStream,
+    uploadCustomEmotes,
 } from "@/lib/apiClient";
 import { requestHandler } from "@/lib/requestHandler";
 import { useDebounce } from "@/lib/utils";
@@ -63,6 +66,7 @@ import React, {
     useState,
 } from "react";
 import { Link, useNavigate } from "react-router";
+import { toast } from "sonner";
 
 export default function DashboardPage() {
     const user = useAppSelector((state) => state.app.user);
@@ -301,6 +305,7 @@ interface SingleCustomEmojiPreviewPropT {
     imageUrl: string;
     name: string;
     onDelete: (id: string) => void;
+    isDeleting: boolean;
 }
 
 function SingleCustomEmojiPreview({
@@ -308,10 +313,15 @@ function SingleCustomEmojiPreview({
     id,
     name,
     onDelete,
+    isDeleting,
 }: SingleCustomEmojiPreviewPropT) {
     return (
-        <div className="p-2 rounded border group border-neutral-700 bg-neutral-800/50 relative flex items-center gap-x-2">
+        <div
+            aria-busy={isDeleting}
+            className="p-2 aria-busy:opacity-70 rounded border group border-neutral-700 bg-neutral-800/50 relative flex items-center gap-x-2"
+        >
             <button
+                disabled={isDeleting}
                 onClick={() => onDelete(id)}
                 type="button"
                 className="absolute group-hover:block hidden -top-2 -right-2 rounded-full border border-neutral-600 bg-neutral-900 p-0.5"
@@ -363,22 +373,115 @@ function CustomEmojiModal({
 
     const previewUrl = files[0]?.preview || null;
     // const fileName = files[0]?.file.name || null;
+    const [name, setName] = useState("");
+    const [code, setCode] = useState("");
+
+    const [loading, setLoading] = useState(false);
+    const [_, setFetching] = useState(true);
+    const [deletingEmoteId, setDeleting] = useState<string | null>(null);
+
+    const [emotes, setEmotes] = useState<
+        {
+            code: string;
+            name: string;
+            imageUrl: string;
+        }[]
+    >([]);
 
     const emoteNameInputId = useId();
+    const user = useAppSelector((state) => state.app.user);
+
+    const handleFetchEmotes = useCallback(async () => {
+        if (user)
+            await requestHandler(
+                getEmoteByStreamerId({ streamerId: user.id }),
+                setFetching,
+                ({ data }) => {
+                    setEmotes(data);
+                },
+                undefined,
+                false
+            );
+    }, [user, requestHandler, getEmoteByStreamerId, setFetching, setEmotes]);
+
+    const handleDeleteEmoteByCode = useCallback(
+        async (id: string) => {
+            setDeleting(id);
+            await requestHandler(
+                deleteEmoteByCode({ code: id }),
+                undefined,
+                () => {
+                    handleFetchEmotes();
+                },
+                undefined,
+                false
+            );
+            setDeleting(null);
+        },
+        [setDeleting, requestHandler, deleteEmoteByCode, handleFetchEmotes]
+    );
+
+    const handleSubmit = useCallback(
+        async (e: FormEvent) => {
+            e.preventDefault();
+
+            if (!(files[0].file instanceof File))
+                return toast.error("Please select any file.");
+
+            const formData = new FormData();
+            console.log(files[0].file);
+            formData.set("emoji", files[0].file);
+            formData.set("name", name);
+            formData.set("code", code);
+
+            await requestHandler(
+                uploadCustomEmotes(formData),
+                setLoading,
+                () => {
+                    setName("");
+                    setCode("");
+                    removeFile(files[0].id);
+                    handleFetchEmotes();
+                },
+                undefined,
+                false
+            );
+        },
+        [
+            files,
+            name,
+            code,
+            requestHandler,
+            uploadCustomEmotes,
+            setLoading,
+            toast,
+            setName,
+            setCode,
+            removeFile,
+            handleFetchEmotes,
+        ]
+    );
+
+    React.useEffect(() => {
+        handleFetchEmotes();
+    }, [user]);
 
     return (
         <Dialog open={isModelOpen} onOpenChange={setModelOpen}>
-            <DialogContent className="overflow-y-visible max-w-3xl p-0">
+            <DialogContent className="overflow-y-visible max-w-5xl p-0">
                 <DialogHeader className="contents space-y-0 text-left">
                     <DialogTitle className="border-b px-6 py-4 text-base">
                         Subscriber emotes
                     </DialogTitle>
                 </DialogHeader>
-                <div className="h-[50vh] px-5 flex-col overflow-auto">
+                <div className="h-[70vh] px-5 flex-col overflow-auto">
                     <div className="mb-2 text-sm text-neutral-400 font-medium">
                         Upload new emote
                     </div>
-                    <form className="flex w-full gap-x-3">
+                    <form
+                        onSubmit={handleSubmit}
+                        className="flex w-full gap-x-3"
+                    >
                         <div className="flex w-2/5 flex-col gap-2">
                             <div className="relative">
                                 <div
@@ -465,141 +568,78 @@ function CustomEmojiModal({
                                 </div>
                             )}
                         </div>
-                        <div className="flex w-3/5 justify-between flex-col">
-                            <div className="*:not-first:mt-2">
-                                <Label htmlFor={emoteNameInputId}>
-                                    Emote name
-                                </Label>
-                                <Input
-                                    id={emoteNameInputId}
-                                    placeholder="Weird laugh"
-                                    type="text"
-                                    required
-                                    name="emote-name"
-                                />
-                                <p
-                                    className="text-muted-foreground mt-2 text-xs"
-                                    role="region"
-                                    aria-live="polite"
-                                >
-                                    Familliar name for your emote.
-                                </p>
+                        <div className="flex w-3/5 justify-between flex-col gap-y-5">
+                            <div>
+                                <div className="*:not-first:mt-2">
+                                    <Label htmlFor={emoteNameInputId}>
+                                        Emote name
+                                    </Label>
+                                    <Input
+                                        id={emoteNameInputId}
+                                        value={name}
+                                        onChange={(e) => {
+                                            setName(e.target.value);
+                                        }}
+                                        placeholder="Weird laugh"
+                                        type="text"
+                                        required
+                                        name="emote-name"
+                                    />
+                                </div>
+                                <div className="mt-2">
+                                    <Label>Emote id</Label>
+                                    <Input
+                                        value={code}
+                                        onChange={(e) =>
+                                            setCode(
+                                                e.target.value
+                                                    .toLowerCase()
+                                                    .trim()
+                                                    .replace(" ", "")
+                                            )
+                                        }
+                                        placeholder="smiling"
+                                        type="text"
+                                        required
+                                        name="emote-id"
+                                    />
+                                    <p
+                                        className="text-muted-foreground mt-2 text-xs"
+                                        role="region"
+                                        aria-live="polite"
+                                    >
+                                        Will generate code for emote like
+                                        :username_emoteid:
+                                    </p>
+                                </div>
                             </div>
                             <div className="flex justify-end">
-                                <Button>Save</Button>
+                                <Button
+                                    disabled={loading}
+                                    data-loading={loading}
+                                    className="data-[loading=false]:px-10"
+                                >
+                                    <LoaderCircle
+                                        aria-hidden={!loading}
+                                        className="size-4 aria-hidden:hidden animate-spin"
+                                    />
+                                    Save
+                                </Button>
                             </div>
                         </div>
                     </form>
                     <div className="w-full h-px bg-neutral-800 my-5" />
                     <div className="grid grid-cols-5 lg:grid-cols-4 md:grid-cols-3 gap-4 pb-5">
-                        <SingleCustomEmojiPreview
-                            id="happy_emoji"
-                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
-                            name="Happy emoji"
-                            onDelete={() => {}}
-                        />
-                        <SingleCustomEmojiPreview
-                            id="happy_emoji"
-                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
-                            name="Happy emoji"
-                            onDelete={() => {}}
-                        />
-                        <SingleCustomEmojiPreview
-                            id="happy_emoji"
-                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
-                            name="Happy emoji"
-                            onDelete={() => {}}
-                        />
-                        <SingleCustomEmojiPreview
-                            id="happy_emoji"
-                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
-                            name="Happy emoji"
-                            onDelete={() => {}}
-                        />
-                        <SingleCustomEmojiPreview
-                            id="happy_emoji"
-                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
-                            name="Happy emoji"
-                            onDelete={() => {}}
-                        />
-                        <SingleCustomEmojiPreview
-                            id="happy_emoji"
-                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
-                            name="Happy emoji"
-                            onDelete={() => {}}
-                        />
-                        <SingleCustomEmojiPreview
-                            id="happy_emoji"
-                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
-                            name="Happy emoji"
-                            onDelete={() => {}}
-                        />
-                        <SingleCustomEmojiPreview
-                            id="happy_emoji"
-                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
-                            name="Happy emoji"
-                            onDelete={() => {}}
-                        />
-                        <SingleCustomEmojiPreview
-                            id="happy_emoji"
-                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
-                            name="Happy emoji"
-                            onDelete={() => {}}
-                        />
-                        <SingleCustomEmojiPreview
-                            id="happy_emoji"
-                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
-                            name="Happy emoji"
-                            onDelete={() => {}}
-                        />
-                        <SingleCustomEmojiPreview
-                            id="happy_emoji"
-                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
-                            name="Happy emoji"
-                            onDelete={() => {}}
-                        />
-                        <SingleCustomEmojiPreview
-                            id="happy_emoji"
-                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
-                            name="Happy emoji"
-                            onDelete={() => {}}
-                        />
-                        <SingleCustomEmojiPreview
-                            id="happy_emoji"
-                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
-                            name="Happy emoji"
-                            onDelete={() => {}}
-                        />
-                        <SingleCustomEmojiPreview
-                            id="happy_emoji"
-                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
-                            name="Happy emoji"
-                            onDelete={() => {}}
-                        />
-                        <SingleCustomEmojiPreview
-                            id="happy_emoji"
-                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
-                            name="Happy emoji"
-                            onDelete={() => {}}
-                        />
-                        <SingleCustomEmojiPreview
-                            id="happy_emoji"
-                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
-                            name="Happy emoji"
-                            onDelete={() => {}}
-                        />
-                        <SingleCustomEmojiPreview
-                            id="happy_emoji"
-                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
-                            name="Happy emoji"
-                            onDelete={() => {}}
-                        />
-                        <SingleCustomEmojiPreview
-                            id="happy_emoji"
-                            imageUrl="https://assets.help.twitch.tv/article/img/Twitch-Emote-Icons/doghero2.png"
-                            name="Happy emoji"
-                            onDelete={() => {}}
-                        />
+                        {emotes.map((emote) => (
+                            <SingleCustomEmojiPreview
+                                key={emote.code}
+                                id={emote.code}
+                                imageUrl={emote.imageUrl}
+                                name={emote.name}
+                                onDelete={handleDeleteEmoteByCode}
+                                isDeleting={emote.code == deletingEmoteId}
+                            />
+                        ))}
                     </div>
                 </div>
             </DialogContent>

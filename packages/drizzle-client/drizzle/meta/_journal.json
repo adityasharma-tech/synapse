@@ -15,6 +15,13 @@
             "when": 1750001591249,
             "tag": "0001_chunky_punisher",
             "breakpoints": true
+        },
+        {
+            "idx": 2,
+            "version": "7",
+            "when": 1750067655127,
+            "tag": "0002_salty_spectrum",
+            "breakpoints": true
         }
     ]
 }
