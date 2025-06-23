@@ -1,5 +1,6 @@
 import http from "http";
 import cors from "cors";
+import pm2 from "@pm2/io";
 import morgan from "morgan";
 import helmet from "helmet";
 import express from "express";
@@ -39,6 +40,9 @@ const io = new SocketIO(server, {
     cookie: true,
     transports: ["websocket", "webtransport"],
 });
+
+// pm2
+pm2.init();
 
 // socket.io middlewares
 io.engine.use(helmet());
@@ -87,6 +91,8 @@ app.use(
 );
 app.use(helmet());
 app.use(limiter);
+app.use(pm2.expressErrorHandler());
+
 // app.set("trust proxy", true);
 
 /**

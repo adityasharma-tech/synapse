@@ -668,7 +668,7 @@ export function BasicChatComp(props: PropsWithChildren<BasicChatCompPropT>) {
                 <div className="flex gap-x-3 items-center dark:text-neutral-50 text-neutral-800 font-medium">
                     <img
                         className="size-8 rounded-full"
-                        src={`https://avatar.iran.liara.run/public?id=${props.user.username}`}
+                        src={`https://placehold.co/400?id=${props.user.username}`}
                     />
                     <span className="font-medium">{props.user.fullName}</span>
                     {props.paymentAmount ? (

@@ -197,7 +197,7 @@ export default function Home() {
                                     <div className="flex gap-x-3 items-center dark:text-neutral-50 text-neutral-800 font-medium">
                                         <img
                                             className="size-8 rounded-full"
-                                            src={`https://avatar.iran.liara.run/public?id=${idx}`}
+                                            src={`https://placehold.co/400?id=${idx}`}
                                         />
                                         <span className="font-medium">
                                             {chat.name}

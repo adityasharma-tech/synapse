@@ -875,7 +875,7 @@ function VideoModel(props: {
             <div className="flex gap-x-1 items-center">
                 <img
                     className="size-5 rounded-full"
-                    src={`https://avatar.iran.liara.run/public?id=${props.streamerId}`}
+                    src={`https://placehold.co/400?id=${props.streamerId}`}
                 />
                 <span className="text-sm truncate font-medium text-emerald-500">
                     {props.streamerName}
@@ -900,7 +900,7 @@ function NotificationModel() {
                 <div className="flex gap-x-1 items-center">
                     <img
                         className="size-5 rounded-full"
-                        src={`https://avatar.iran.liara.run/public?id={props.username}`}
+                        src={`https://placehold.co/400?id={props.username}`}
                     />
                     <span className="text-sm truncate font-medium text-emerald-500">
                         srvjha:

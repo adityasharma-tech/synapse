@@ -82,7 +82,7 @@ export default function VideoWindowComponent({
                 <div className="flex items-center gap-x-2">
                     <img
                         className="size-10 rounded-full"
-                        src={`https://avatar.iran.liara.run/public?id=${streamState.metadata.channelName}`}
+                        src={`https://placehold.co/400?id=${streamState.metadata.channelName}`}
                     />
                     <div>
                         <div className="font-medium mb-1">
@@ -309,7 +309,7 @@ function SubscribeStreamerModel({
                             <div className="flex gap-x-1 items-start">
                                 <img
                                     className="size-10 rounded-full"
-                                    src={`https://avatar.iran.liara.run/public?id={props.username}`}
+                                    src={`https://placehold.co/400?id={props.username}`}
                                 />
                                 <div className="flex flex-col px-3">
                                     <span className="text-emerald-500 font-semibold">

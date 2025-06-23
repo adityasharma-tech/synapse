@@ -3,8 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSocket } from "@/hooks/socket.hook";
 import React from "react";
-import Picker from "@emoji-mart/react";
-import data from "@emoji-mart/data";
 import {
     createPremiumChatOrder,
     getEmoteByStreamerId,
@@ -43,6 +41,8 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
+import EmojiPicker from "@/components/emoji-picker";
+import { SuperInput } from "./custom-input";
 
 export default function ChatWindowComponent({
     toogleWindowOpen,
@@ -94,6 +94,7 @@ export default function ChatWindowComponent({
 
     // refs
     const lastMessageRef = useRef<HTMLDivElement | null>(null);
+    const inputDivRef = useRef<HTMLDivElement>(null);
 
     // send message by admin TODO: handle permission on server side, check if he is admin or not and add a check mark and highlight
     const handleSendMessage: FormEventHandler<HTMLFormElement> = useCallback(
@@ -471,7 +472,7 @@ export default function ChatWindowComponent({
     return (
         <section
             data-popout={searchParams.get("popout") ? "true" : "false"}
-            className="h-full data-[popout='true']:p-3 data-[popout='true']:bg-neutral-950 flex flex-col gap-y-3"
+            className="h-full data-[popout='true']:p-3 data-[popout='true']:bg-neutral-950 flex flex-col gap-y-3 p-2"
         >
             <div className="bg-neutral-900 rounded-md flex items-center h-9 justify-between px-1">
                 <button
@@ -594,19 +595,6 @@ export default function ChatWindowComponent({
                         </div>
                     </div>
                 </div>
-                <div
-                    style={{
-                        position: "fixed",
-                        bottom: 100,
-                        right: 8,
-                        marginTop: "auto",
-                    }}
-                >
-                    <Picker
-                        data={data}
-                        onEmojiSelect={(a: any) => console.log(a)}
-                    />
-                </div>
             </div>
             <form
                 onSubmit={handleSendMessage}
@@ -648,7 +636,7 @@ export default function ChatWindowComponent({
                             <div className="flex gap-x-1 items-center">
                                 <img
                                     className="size-5 rounded-full"
-                                    src={`https://avatar.iran.liara.run/public?id=${replyMessage.username}`}
+                                    src={`https://placehold.co/400?id=${replyMessage.username}`}
                                 />
                                 <span className="text-sm truncate font-medium text-emerald-600">
                                     {replyMessage.username}
@@ -658,17 +646,15 @@ export default function ChatWindowComponent({
                         </div>
                     </div>
                 ) : null}
-                <div className="flex gap-x-1 items-center pr-1 focus-within:border-indigo-600 rounded border text-neutral-100 border-neutral-600 focus-within:ring-2 ring-indigo-700">
-                    <input
-                        required
-                        onChange={(e) => {
-                            setMessage(e.target.value);
+                <div className="flex gap-x-1 items-center  pr-1 focus-within:border-indigo-600 rounded border text-neutral-100 border-neutral-600 focus-within:ring-2 ring-indigo-700">
+                    <SuperInput
+                        ref={inputDivRef}
+                        value={message}
+                        onChange={(value: string) => {
+                            setMessage(value);
                             throttle(handleStartTyping, 4000);
                             debounce(handleStopTyping, 3000);
                         }}
-                        value={message}
-                        placeholder="Send a message"
-                        className="py-1.5 px-2 outline-none flex-1"
                     />
                     <button
                         onClick={() => setSuperchatEnabled((prev) => !prev)}
@@ -684,56 +670,87 @@ export default function ChatWindowComponent({
                         </svg>
                     </button>
 
-                    <button
-                        onClick={() => setEmojiDialogOpen((p) => !p)}
-                        type="button"
-                        className="hover:bg-neutral-800 rounded md:cursor-pointer"
-                    >
-                        <svg
-                            className="size-7 stroke-zinc-200 stroke-1"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                        >
-                            <path
-                                d="M9 14c.181.472.478.891.864 1.219a3.336 3.336 0 004.252.03c.39-.32.695-.735.884-1.205"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                            <path
-                                clipRule="evenodd"
-                                d="M19 12a7 7 0 11-14 0 7 7 0 0114 0z"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                            <path
-                                d="M9 11v-1M13 10.174a1.093 1.093 0 002 0"
-                                strokeLinecap="round"
-                            />
-                        </svg>
-                    </button>
-
                     <Popover>
-                        <PopoverTrigger asChild></PopoverTrigger>
-                        {/* <PopoverContent className="mr-2 mb-2 p-2 bg-neutral-900">
-                            <Suspense fallback="Loading...">
-                            </Suspense>
-                            <div
-                                hidden
-                                className="h-full flex flex-wrap w-full"
-                            >
-                                {streamState.customEmotes.map((item) => (
-                                    <div
-                                        className="p-1 hover:bg-neutral-800 rounded"
-                                        key={item.code}
-                                    >
-                                        <img
-                                            className="size-5"
-                                            src={item.imageUrl}
-                                        />
-                                    </div>
-                                ))}
+                        <PopoverTrigger className="flex justify-center items-center">
+                            <div className="hover:bg-neutral-800 rounded md:cursor-pointer">
+                                <svg
+                                    className="size-7 stroke-zinc-200 stroke-1"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                >
+                                    <path
+                                        d="M9 14c.181.472.478.891.864 1.219a3.336 3.336 0 004.252.03c.39-.32.695-.735.884-1.205"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                    <path
+                                        clipRule="evenodd"
+                                        d="M19 12a7 7 0 11-14 0 7 7 0 0114 0z"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                    <path
+                                        d="M9 11v-1M13 10.174a1.093 1.093 0 002 0"
+                                        strokeLinecap="round"
+                                    />
+                                </svg>
                             </div>
-                        </PopoverContent> */}
+                        </PopoverTrigger>
+                        <PopoverContent className="p-0 mr-2 bg-neutral-950 max-w-64">
+                            <EmojiPicker
+                                data={[
+                                    {
+                                        emojis: streamState.customEmotes.map(
+                                            (i) => ({
+                                                id: i.code,
+                                                imageUrl: i.imageUrl,
+                                                name: i.name,
+                                                shortcodes: i.code,
+                                            })
+                                        ),
+                                        streamerId:
+                                            streamState.metadata.streamerId.toString(),
+                                        streamerName:
+                                            streamState.metadata.channelName,
+                                    },
+                                ]}
+                                onEmojiSelect={(emoji) => {
+                                    if (!inputDivRef.current) return;
+
+                                    const selection = window.getSelection();
+                                    if (!selection || !selection.rangeCount)
+                                        return;
+
+                                    const range = selection.getRangeAt(0);
+                                    range.deleteContents();
+
+                                    const temp = document.createElement("div");
+                                    temp.innerHTML = `<img class="size-5" alt="${emoji.name}" src="${emoji.imageUrl}"/>&nbsp;`;
+
+                                    const frag =
+                                        document.createDocumentFragment();
+                                    let node: ChildNode;
+                                    while (
+                                        (node = temp.firstChild as ChildNode)
+                                    ) {
+                                        frag.appendChild(node);
+                                    }
+
+                                    range.insertNode(frag);
+
+                                    // Move caret to the end after the inserted emoji
+                                    range.collapse(false);
+                                    selection.removeAllRanges();
+                                    selection.addRange(range);
+
+                                    inputDivRef.current.focus();
+                                    setMessage(
+                                        (message) =>
+                                            (message += emoji.shortcodes)
+                                    );
+                                }}
+                            />
+                        </PopoverContent>
                     </Popover>
                 </div>
                 <div className="flex justify-between">
@@ -829,7 +846,7 @@ function ChatComponent(props: ChatComponentPropT) {
                 <div className="flex gap-x-1 items-center">
                     <img
                         className="size-5 rounded-full"
-                        src={`https://avatar.iran.liara.run/public?id=${props.username}`}
+                        src={`https://placehold.co/400?id=${props.username}`}
                     />
                     <span
                         style={{
