@@ -17,6 +17,9 @@ const Stream = schema.table(
             .notNull(),
         thumbnailUrl: t.varchar().notNull(),
         ...timestamps,
+        scheduledTime: t.timestamp(),
+        isScheduled: t.boolean().default(false),
+        endTime: t.timestamp(),
     },
     (table) => [t.uniqueIndex("streamingUidIdx").on(table.streamingUid)]
 );
