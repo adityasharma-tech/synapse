@@ -996,6 +996,7 @@ function GoLiveButton() {
                         chatSlowMode: formData.slowChatMode,
                         youtubeVideoUrl: "https://" + formData.videoUrl.trim(),
                         thumbnailUrl: formData.thumbnail ?? undefined,
+                        isScheduled: false,
                     }),
                     setLoading,
                     (res) => {

@@ -11,7 +11,7 @@ export default defineConfig({
         allowedHosts: [
             "s.uignite.in",
             "localport-3000.adityasharma.live",
-            "google.com",
+            "rambhardwaj.in",
         ],
     },
     base: "/",

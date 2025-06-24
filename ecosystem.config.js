@@ -32,7 +32,7 @@ module.exports = {
         {
             name: "server-1",
             cwd: "./apps/server",
-            script: "yarn build && yarn start",
+            script: "yarn start",
             env: {
                 PORT: 5174,
             },

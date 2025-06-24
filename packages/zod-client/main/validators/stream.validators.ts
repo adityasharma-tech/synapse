@@ -6,6 +6,9 @@ const createStreamSchema = z.object({
     chatSlowMode: z.boolean(),
     about: z.string(),
     thumbnailUrl: z.string().optional(),
+    isScheduled: z.boolean().default(false),
+    scheduledTime: z.string().datetime().optional(),
+    endInMin: z.number().min(10).optional(),
 });
 
 const createSubscriptionSchema = z.object({

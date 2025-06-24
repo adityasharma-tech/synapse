@@ -3,10 +3,11 @@ import React from "react";
 interface SuperInputPropT {
     onChange: (value: string) => void;
     value: string;
+    onEnterPress?: () => void;
 }
 
 const SuperInput = React.forwardRef<HTMLDivElement, SuperInputPropT>(
-    ({ onChange, value }, ref) => {
+    ({ onChange, value, onEnterPress }, ref) => {
         return (
             <div className="flex-1 min-h-8 p-1 relative">
                 <div
@@ -17,6 +18,13 @@ const SuperInput = React.forwardRef<HTMLDivElement, SuperInputPropT>(
                     tabIndex={0}
                     spellCheck
                     autoFocus
+                    onKeyDown={(e) => {
+                        if (e.key == "Enter")
+                            if (onEnterPress) {
+                                e.preventDefault();
+                                onEnterPress();
+                            }
+                    }}
                     aria-placeholder="Enter message here..."
                     suppressContentEditableWarning
                     onInput={(e) =>

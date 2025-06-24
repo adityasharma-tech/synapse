@@ -30,13 +30,30 @@ import {
 } from "@pkgs/zod-client/validators";
 import { uploadDocumentOnCloudinary } from "../lib/cloudinary";
 import { alias } from "drizzle-orm/pg-core";
+import { redisClient } from "../services/redis.service";
 
 /**
  * Controller for streamers to start a new stream
  */
 const createNewStream = asyncHandler(async (req, res) => {
-    const { title, youtubeVideoUrl, chatSlowMode, about, thumbnailUrl } =
-        handleZodError(createStreamSchema.safeParse(req.body));
+    const {
+        title,
+        youtubeVideoUrl,
+        chatSlowMode,
+        about,
+        thumbnailUrl,
+        isScheduled,
+        endInMin,
+        scheduledTime,
+    } = handleZodError(createStreamSchema.safeParse(req.body));
+
+    if (isScheduled)
+        if (!scheduledTime || !endInMin)
+            throw new ApiError(
+                400,
+                "End in Min and Scheduled Time is required field"
+            );
+
     const user = req.user;
 
     let thumbnail: string | null = null;
@@ -62,6 +79,15 @@ const createNewStream = asyncHandler(async (req, res) => {
             about,
             chatSlowMode,
             videoUrl: youtubeVideoUrl,
+            isScheduled,
+            scheduledTime:
+                isScheduled && scheduledTime
+                    ? new Date(Date.parse(scheduledTime))
+                    : undefined,
+            endTime:
+                isScheduled && endInMin
+                    ? new Date(Date.now() + 1000 * endInMin)
+                    : undefined,
         })
         .returning()
         .execute();
@@ -70,6 +96,20 @@ const createNewStream = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Failed to create new stream.");
 
     const stream = streams[0];
+
+    await redisClient.set(
+        `stream:${stream.streamingUid}`,
+        JSON.stringify({
+            title: stream.streamTitle,
+            chatSlowMode: stream.chatSlowMode,
+            videoUrl: youtubeVideoUrl,
+            isScheduled: stream.isScheduled,
+            scheduledTime: stream.scheduledTime,
+            endTime: stream.endTime,
+            streamerName: user.firstName + user.lastName,
+            streamerId: user.id,
+        })
+    );
 
     res.status(201).json(
         new ApiResponse(201, {
@@ -189,33 +229,52 @@ const getStreamById = asyncHandler(async (req, res) => {
     let userRole: Role = "viewer";
 
     if (req.user.role == "admin") userRole = "admin";
-    const [stream] = await db
-        .select({
-            streamTitle: Stream.streamTitle,
-            streamUid: Stream.streamingUid,
-            streamerId: Stream.streamerId,
-            id: Stream.id,
-            youtubeVideoUrl: Stream.videoUrl,
-            about: Stream.about,
-            streamerName: sql`${User.firstName} || ' ' || ${User.lastName}`.as(
-                "streamerName"
-            ),
-        })
-        .from(Stream)
-        .where(eq(Stream.streamingUid, id))
-        .innerJoin(User, eq(User.id, Stream.streamerId))
-        .groupBy(
-            Stream.streamTitle,
-            Stream.streamingUid,
-            Stream.streamerId,
-            Stream.id,
-            Stream.videoUrl,
-            Stream.about,
-            User.id,
-            User.firstName,
-            User.lastName
-        )
-        .execute();
+
+    const cachedStream = await redisClient.get(`stream:${id}`);
+
+    let stream: {
+        streamTitle: string;
+        streamUid: string;
+        streamerId: number;
+        id: number;
+        videoUrl: string | null;
+        about: string | null;
+        streamerName: unknown;
+    };
+
+    if (cachedStream)
+        logger.info(`Using cached value: stream:${id} - ${cachedStream}`);
+
+    if (cachedStream) stream = JSON.parse(cachedStream);
+    else
+        [stream] = await db
+            .select({
+                streamTitle: Stream.streamTitle,
+                streamUid: Stream.streamingUid,
+                streamerId: Stream.streamerId,
+                id: Stream.id,
+                videoUrl: Stream.videoUrl,
+                about: Stream.about,
+                streamerName:
+                    sql`${User.firstName} || ' ' || ${User.lastName}`.as(
+                        "streamerName"
+                    ),
+            })
+            .from(Stream)
+            .where(eq(Stream.streamingUid, id))
+            .innerJoin(User, eq(User.id, Stream.streamerId))
+            .groupBy(
+                Stream.streamTitle,
+                Stream.streamingUid,
+                Stream.streamerId,
+                Stream.id,
+                Stream.videoUrl,
+                Stream.about,
+                User.id,
+                User.firstName,
+                User.lastName
+            )
+            .execute();
 
     if (!stream) throw new ApiError(400, "Stream not found.");
 

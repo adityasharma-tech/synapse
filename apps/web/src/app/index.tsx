@@ -1,6 +1,9 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useRef } from "react";
 import { useNavigate } from "react-router";
-import { useAppSelector } from "../store";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+
+gsap.registerPlugin(useGSAP);
 
 export default function Home() {
     const navigate = useNavigate();
@@ -11,7 +14,8 @@ export default function Home() {
             upvotes: 50,
             downvotes: 2,
             premium: true,
-            payment_amount: 9.99,
+            payment_amount: 110,
+            id: "chat1",
         },
         {
             name: "Ethan Clark",
@@ -19,7 +23,8 @@ export default function Home() {
             upvotes: 40,
             downvotes: 0,
             premium: true,
-            payment_amount: 4.99,
+            payment_amount: 24,
+            id: "chat2",
         },
         {
             name: "Alice Johnson",
@@ -27,6 +32,7 @@ export default function Home() {
             upvotes: 25,
             downvotes: 3,
             premium: false,
+            id: "chat3",
         },
         {
             name: "Bob Williams",
@@ -34,6 +40,7 @@ export default function Home() {
             upvotes: 10,
             downvotes: 1,
             premium: false,
+            id: "chat4",
         },
         {
             name: "Diana Ross",
@@ -41,10 +48,61 @@ export default function Home() {
             upvotes: 15,
             downvotes: 5,
             premium: false,
+            id: "chat5",
         },
     ];
 
-    const user = useAppSelector((state) => state.app.user);
+    const container = useRef<HTMLDivElement>(null);
+
+    useGSAP(
+        () => {
+            if (!container.current) return;
+
+            const items = gsap.utils.toArray<HTMLElement>(
+                container.current.children
+            );
+            if (items.length === 0) return;
+
+            const itemHeight = items[0].offsetHeight;
+            const totalItemsHeight = items.length * itemHeight;
+            const paddingNeeded = 10;
+
+            gsap.set(items, {
+                y: (i) => i * itemHeight,
+                opacity: 1,
+            });
+
+            const tl = gsap.timeline({ repeat: -1 });
+
+            tl.to(
+                items,
+                {
+                    y: `-=${totalItemsHeight + paddingNeeded}`,
+                    duration: items.length / 2,
+                    ease: "none",
+                    modifiers: {
+                        y: function (y, target) {
+                            y = parseFloat(y);
+
+                            if (y < -itemHeight + 100) {
+                                gsap.to(target, { opacity: 0 });
+                            }
+
+                            if (y < -itemHeight) {
+                                y += totalItemsHeight + paddingNeeded;
+                                gsap.set(target, { y, opacity: 0 });
+                                gsap.to(target, { opacity: 1, scale: 1 });
+                            }
+
+                            return y + "px";
+                        },
+                    },
+                },
+                0
+            );
+        },
+        { scope: container }
+    );
 
     const handleToogleDarkMode = useCallback(() => {
         const root = window.document.querySelector("body");
@@ -62,12 +120,6 @@ export default function Home() {
                         className="h-8 w-auto not-dark:hidden"
                         src="/T&W@2x.png"
                     />
-                </div>
-                <div className="flex gap-x-3">
-                    <button className="button btn-ghost">Product</button>
-                    <button className="button btn-ghost">Solutions</button>
-                    <button className="button btn-ghost">Pricing</button>
-                    <button className="button btn-ghost">Privacy Policy</button>
                 </div>
                 <div className="flex gap-x-3">
                     <button
@@ -88,29 +140,20 @@ export default function Home() {
                             />
                         </svg>
                     </button>
-                    {user ? (
+                    <React.Fragment>
                         <button
-                            onClick={() => navigate("/dashboard")}
+                            onClick={() => navigate("/auth/login")}
+                            className="button btn-outline"
+                        >
+                            Log in
+                        </button>
+                        <button
+                            onClick={() => navigate("/auth/signup")}
                             className="button btn-solid"
                         >
-                            Dashboard
+                            Sign up
                         </button>
-                    ) : (
-                        <React.Fragment>
-                            <button
-                                onClick={() => navigate("/auth/login")}
-                                className="button btn-outline"
-                            >
-                                Log in
-                            </button>
-                            <button
-                                onClick={() => navigate("/auth/signup")}
-                                className="button btn-solid"
-                            >
-                                Sign up
-                            </button>
-                        </React.Fragment>
-                    )}
+                    </React.Fragment>
                 </div>
             </header>
             <main>
@@ -186,12 +229,16 @@ export default function Home() {
                             </div>
                         </div>
                     </div>
-                    <div className="h-full">
+                    <div
+                        ref={container}
+                        className="h-full flex flex-col relative"
+                    >
                         {chats.map((chat, idx) => (
                             <div
+                                id={chat.id}
                                 key={idx}
                                 data-premium={chat.premium}
-                                className="px-3 py-3 first:mt-0 mt-3 bg-neutral-100 dark:bg-[#222] rounded-xl data-[premium=true]:border data-[premium=true]:border-amber-300 data-[premium=true]:bg-amber-50 dark:data-[premium=true]:border-amber-300 dark:data-[premium=true]:bg-amber-300/5"
+                                className="px-3 py-3 absolute chat-element w-2xl first:mt-0 mt-3 bg-neutral-100 dark:bg-[#222] rounded-xl data-[premium=true]:border data-[premium=true]:border-amber-300 data-[premium=true]:bg-amber-50 dark:data-[premium=true]:border-amber-300 dark:data-[premium=true]:bg-amber-300/5"
                             >
                                 <div className="flex w-full justify-between">
                                     <div className="flex gap-x-3 items-center dark:text-neutral-50 text-neutral-800 font-medium">
@@ -204,7 +251,7 @@ export default function Home() {
                                         </span>
                                         {chat.payment_amount ? (
                                             <span className="font-semibold text-emerald-600">
-                                                ${chat.payment_amount}
+                                                ₹{chat.payment_amount}
                                             </span>
                                         ) : null}
                                     </div>

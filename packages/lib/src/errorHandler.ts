@@ -12,6 +12,7 @@ type ErrorHandler = (
 const errorHandler: ErrorHandler = (err, _, res, __) => {
     try {
         logger.error(`Server: ${JSON.stringify(err)}`);
+        if (JSON.stringify(err) == "{}") throw new Error();
     } catch (error) {
         console.error(err);
     }

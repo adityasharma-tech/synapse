@@ -87,7 +87,6 @@ export default function ChatWindowComponent({
     const [paymentSessionId, setPaymentSessionId] = useState<string | null>(
         null
     );
-    const [emojiDialogOpen, setEmojiDialogOpen] = useState(false);
 
     // cashfree states
     const [cashfree] = useState<any>(null);
@@ -97,9 +96,9 @@ export default function ChatWindowComponent({
     const inputDivRef = useRef<HTMLDivElement>(null);
 
     // send message by admin TODO: handle permission on server side, check if he is admin or not and add a check mark and highlight
-    const handleSendMessage: FormEventHandler<HTMLFormElement> = useCallback(
-        async (e) => {
-            e.preventDefault();
+    const handleSendMessage = useCallback(
+        async (e?: React.FormEvent) => {
+            if (e) e.preventDefault();
             if (superchatEnabled) return await handleMakePayment();
 
             if (socket && message.trim() != "")
@@ -111,6 +110,8 @@ export default function ChatWindowComponent({
                     replyUsername: replyMessage.username ?? undefined,
                 });
             setMessage("");
+            inputDivRef.current ? (inputDivRef.current.innerHTML = "") : null;
+
             setReplyMessage({ message: null, messageId: null, username: null });
         },
         [
@@ -122,6 +123,7 @@ export default function ChatWindowComponent({
             setMessage,
             replyMessage,
             setReplyMessage,
+            inputDivRef.current,
         ]
     );
 
@@ -393,11 +395,10 @@ export default function ChatWindowComponent({
                     setLoading,
                     (result) => {
                         dispatch(updateUserRole(result.data.userRole));
-                        if (result.data.stream.youtubeVideoUrl)
+                        if (result.data.stream.videoUrl)
                             dispatch(
                                 updateMetadata({
-                                    videoUrl:
-                                        result.data.stream.youtubeVideoUrl,
+                                    videoUrl: result.data.stream.videoUrl,
                                     channelName:
                                         result.data.stream.streamerName,
                                     title: result.data.stream.streamTitle,
@@ -655,6 +656,7 @@ export default function ChatWindowComponent({
                             throttle(handleStartTyping, 4000);
                             debounce(handleStopTyping, 3000);
                         }}
+                        onEnterPress={handleSendMessage}
                     />
                     <button
                         onClick={() => setSuperchatEnabled((prev) => !prev)}

@@ -64,6 +64,7 @@
         "express-validator": "^7.2.1",
         "googleapis": "^148.0.0",
         "helmet": "^8.0.0",
+        "html-entities": "^2.6.0",
         "jsonwebtoken": "^9.0.2",
         "lodash": "^4.17.21",
         "morgan": "^1.10.0",

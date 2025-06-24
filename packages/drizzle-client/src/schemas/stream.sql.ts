@@ -16,10 +16,10 @@ const Stream = schema.table(
             .references(() => User.id)
             .notNull(),
         thumbnailUrl: t.varchar().notNull(),
-        ...timestamps,
         scheduledTime: t.timestamp(),
         isScheduled: t.boolean().default(false),
         endTime: t.timestamp(),
+        ...timestamps,
     },
     (table) => [t.uniqueIndex("streamingUidIdx").on(table.streamingUid)]
 );

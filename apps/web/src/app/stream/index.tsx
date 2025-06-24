@@ -349,8 +349,8 @@ export default function Stream() {
                     setLoading,
                     (result) => {
                         dispatch(updateUserRole(result.data.userRole));
-                        if (result.data.stream.youtubeVideoUrl)
-                            setVideoUrl(result.data.stream.youtubeVideoUrl);
+                        if (result.data.stream.videoUrl)
+                            setVideoUrl(result.data.stream.videoUrl);
                     },
                     () => {
                         navigate("/dashboard");
