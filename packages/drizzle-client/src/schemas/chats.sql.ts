@@ -2,6 +2,15 @@ import * as t from "drizzle-orm/pg-core";
 import { User } from "./user.sql";
 import { schema, timestamps } from "./helpers.sql";
 
+export const paymentStatusEnum = schema.enum("payment_status_enum", [
+    "idle",
+    "created",
+    "attempted",
+    "paid",
+]);
+
+export type PaymentStatusT = (typeof paymentStatusEnum.enumValues)[number];
+
 const ChatMessage = schema.table(
     "chats",
     {
@@ -28,7 +37,7 @@ const ChatMessage = schema.table(
             .notNull(),
         replyToId: t.integer(),
         pinned: t.boolean().default(false).notNull(),
-        paymentStatus: t.varchar().default("IDLE").notNull(),
+        paymentStatus: paymentStatusEnum().default("idle").notNull(),
         ...timestamps,
     },
     (table) => [t.index("streamUidIdx").on(table.streamUid)]

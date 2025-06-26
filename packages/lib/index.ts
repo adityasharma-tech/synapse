@@ -5,4 +5,5 @@ export * from "./src/ApiError";
 export * from "./src/constants";
 export * from "./src/ApiResponse";
 export * from "./src/asyncHandler";
+export * from "./src/KVString";
 export { errorHandler } from "./src/errorHandler";

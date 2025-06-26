@@ -6,16 +6,10 @@ import helmet from "helmet";
 import express from "express";
 import cookieParser from "cookie-parser";
 
-import {
-    errorHandler,
-    corsOrigins,
-    SocketEventEnum,
-    ApiResponse,
-    logger,
-} from "@pkgs/lib";
+import { errorHandler, corsOrigins, ApiResponse, logger } from "@pkgs/lib";
 import { rateLimit } from "express-rate-limit";
 import { redisClient } from "./services/redis.service";
-import { socketHandler } from "./services/socket.service";
+import { socketHandler } from "./services/ws.service";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { DrizzleClient } from "@pkgs/drizzle-client";
 import { Server as SocketIO } from "socket.io";
@@ -55,7 +49,7 @@ io.use(socketAuthMiddleware);
 global.io = io;
 
 // socket connection handlers
-io.on(SocketEventEnum.CONNECTED_EVENT, (socket) => socketHandler(io, socket));
+io.on("connection", (socket) => socketHandler(socket));
 
 /**
  * Rate limiter configuration

@@ -5,6 +5,7 @@
     "devDependencies": {
         "@commitlint/cli": "^19.8.0",
         "@commitlint/config-conventional": "^19.8.0",
+        "@types/msgpack-lite": "^0.1.11",
         "concurrently": "^9.1.2",
         "grpc-tools": "^1.13.0",
         "grpc_tools_node_protoc_ts": "^5.3.3",
@@ -34,6 +35,7 @@
     "dependencies": {
         "bcryptjs": "^3.0.2",
         "drizzle-orm": "0.40.0",
+        "msgpack-lite": "^0.1.26",
         "pg": "^8.15.5",
         "rollup": "4.39.0",
         "ts-proto": "^2.7.0"

@@ -1,4 +1,5 @@
 import { Role } from "./utils";
+import { PaymentStatusT } from "@pkgs/drizzle-client";
 
 interface MiddlewareUserT {
     id: number;
@@ -40,4 +41,13 @@ type rmqMailServiceType =
     | "streamer_application_accepted"
     | "subs_start_streaming";
 
-export type { MiddlewareUserT, rmqMailServiceType, ActionT };
+type chatMessageT = {
+    msg: string;
+    mr: 0 | 1;
+    rid?: string;
+    pn: 0 | 1;
+    ps: PaymentStatusT;
+    ts: Date;
+};
+
+export type { MiddlewareUserT, rmqMailServiceType, ActionT, chatMessageT };

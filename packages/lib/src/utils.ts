@@ -1,4 +1,6 @@
 import { MiddlewareUserT } from "./types";
+import { encode, decode } from "entities";
+
 // Roles
 export type Role = keyof typeof ROLES;
 type Permission = (typeof ROLES)[Role][number];
@@ -10,6 +12,7 @@ const ROLES = {
         "chat:message:own-update",
         "chat:mark-read",
         "chat:view",
+        "chat:pin",
         "stream:create",
         "stream:update",
         "stream:view",
@@ -27,6 +30,7 @@ const ROLES = {
         "chat:message:own-update", // self message update
         "chat:mark-read",
         "chat:view",
+        "chat:pin",
         "plan:create",
         "plan:update",
         "plan:view",

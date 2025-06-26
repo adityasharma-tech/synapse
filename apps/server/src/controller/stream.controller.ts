@@ -344,7 +344,7 @@ const getAllChatsByStreamingId = asyncHandler(async (req, res) => {
             and(
                 eq(ChatMessage.streamUid, String(streamId)),
                 or(
-                    eq(ChatMessage.paymentStatus, "IDLE"),
+                    eq(ChatMessage.paymentStatus, "idle"),
                     eq(ChatMessage.paymentStatus, "paid")
                 )
             )
