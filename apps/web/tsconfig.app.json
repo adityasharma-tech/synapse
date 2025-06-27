@@ -28,5 +28,5 @@
         "noFallthroughCasesInSwitch": true,
         "noUncheckedSideEffectImports": true
     },
-    "include": ["src"]
+    "include": ["src", "src/store/reducers/.temp.stream.reducer.ts"]
 }

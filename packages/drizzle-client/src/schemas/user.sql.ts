@@ -8,6 +8,8 @@ export const userRolesEnum = schema.enum("roles", [
     "admin",
 ]);
 
+export type UserRole = (typeof userRolesEnum.enumValues)[number];
+
 export const lastLoginMethod = schema.enum("last_login_method", [
     "email-password",
     "sso/google",

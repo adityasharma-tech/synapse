@@ -46,8 +46,12 @@ type chatMessageT = {
     mr: 0 | 1;
     rid?: string;
     pn: 0 | 1;
-    ps: PaymentStatusT;
+    ps?: PaymentStatusT;
     ts: Date;
+    pa?: number;
+    un: string;
+    run?: string;
+    rmsg?: string;
 };
 
 export type { MiddlewareUserT, rmqMailServiceType, ActionT, chatMessageT };

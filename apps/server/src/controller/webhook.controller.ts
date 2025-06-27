@@ -11,7 +11,7 @@ import {
     ApiError,
     ApiResponse,
     asyncHandler,
-    SocketEventEnum,
+    socketEvent,
 } from "@pkgs/lib";
 // import { getPayoutChannel } from "../services/queue.service"; // uncomment if you wanna use queue system
 
@@ -57,14 +57,14 @@ const handleVerifyCfOrder = asyncHandler(async (req, res) => {
             .where(eq(ChatMessage.cfOrderId, orderUpdate.cfOrderId))
             .execute();
 
-        if (preChatMessage.paymentStatus === "PAID")
+        if (preChatMessage.paymentStatus === "paid")
             return res
                 .status(200)
                 .json(new ApiResponse(200, "Webhook success"));
 
         const [chatMessage] = await db
             .update(ChatMessage)
-            .set({ paymentStatus: "PAID" })
+            .set({ paymentStatus: "paid" })
             .where(eq(ChatMessage.cfOrderId, orderUpdate.cfOrderId))
             .returning()
             .execute();
@@ -90,20 +90,17 @@ const handleVerifyCfOrder = asyncHandler(async (req, res) => {
 
         if (chatMessage.streamUid) {
             const io = global.io as Server;
-            io.to(chatMessage.streamUid).emit(
-                SocketEventEnum.PAYMENT_CHAT_CREATE_EVENT,
-                {
-                    message: chatMessage.message,
-                    id: String(chatMessage.id),
-                    markRead: false,
-                    upVotes: 0,
-                    downVotes: 0,
-                    user: { ...user, role: "viewer" },
-                    pinned: false,
-                    orderId: orderUpdate.cfOrderId,
-                    paymentAmount: orderUpdate.orderAmount,
-                }
-            );
+            io.to(chatMessage.streamUid).emit(socketEvent.CHAT_PREMIUM, {
+                message: chatMessage.message,
+                id: String(chatMessage.id),
+                markRead: false,
+                upVotes: 0,
+                downVotes: 0,
+                user: { ...user, role: "viewer" },
+                pinned: false,
+                orderId: orderUpdate.cfOrderId,
+                paymentAmount: orderUpdate.orderAmount,
+            });
         }
     }
 
@@ -215,20 +212,17 @@ const handleVerfiyRazorpayOrder = asyncHandler(async (req, res) => {
             if (chatMessage.streamUid) {
                 // send the message to the sockets if not send
                 const io = global.io as Server;
-                io.to(chatMessage.streamUid).emit(
-                    SocketEventEnum.PAYMENT_CHAT_CREATE_EVENT,
-                    {
-                        message: chatMessage.message,
-                        id: String(chatMessage.id),
-                        markRead: false,
-                        upVotes: 0,
-                        downVotes: 0,
-                        user: { ...user, role: "viewer" },
-                        pinned: false,
-                        orderId: orderUpdate.cfOrderId,
-                        paymentAmount: orderUpdate.orderAmount,
-                    }
-                );
+                io.to(chatMessage.streamUid).emit(socketEvent.CHAT_PREMIUM, {
+                    message: chatMessage.message,
+                    id: String(chatMessage.id),
+                    markRead: false,
+                    upVotes: 0,
+                    downVotes: 0,
+                    user: { ...user, role: "viewer" },
+                    pinned: false,
+                    orderId: orderUpdate.cfOrderId,
+                    paymentAmount: orderUpdate.orderAmount,
+                });
             }
         }
     } else {

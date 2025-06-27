@@ -5,7 +5,7 @@ import { parse } from "cookie";
 import { and, eq } from "drizzle-orm";
 import { Stream, User } from "@pkgs/drizzle-client";
 import { ExtendedError, Socket } from "socket.io";
-import { logger, ApiError, SocketEventEnum, ErrCodes } from "@pkgs/lib";
+import { logger, ApiError, socketEvent, ErrCodes } from "@pkgs/lib";
 
 /**
  * @description A function to emit the socket event also disconnecting it so that user can't make any socket request.
@@ -13,7 +13,7 @@ import { logger, ApiError, SocketEventEnum, ErrCodes } from "@pkgs/lib";
  * @param {ApiError} error The ApiError to send error in specific format
  */
 export function disconnectSocketWithError(socket: Socket, error: ApiError) {
-    socket.emit(SocketEventEnum.SOCKET_ERROR_EVENT, error);
+    socket.emit(socketEvent.SOCKET_ERROR, error);
     socket.disconnect();
 }
 

@@ -3,39 +3,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSocket } from "@/hooks/socket.hook";
 import React from "react";
-import {
-    createPremiumChatOrder,
-    getEmoteByStreamerId,
-    getStreamById,
-} from "@/lib/apiClient";
+import { createPremiumChatOrder, getEmoteByStreamerId } from "@/lib/apiClient";
 import { razorpayKeyId } from "@/lib/constants";
 import { requestHandler } from "@/lib/requestHandler";
-import { loadScript, useDebounce, useThrottle } from "@/lib/utils";
-import { useAppDispatch, useAppSelector } from "@/store";
-import { setAllPreChats } from "@/store/actions/stream.actions";
+import { loadScript, useThrottle } from "@/lib/utils";
+import { RootState, store, useAppDispatch, useAppSelector } from "@/store";
 import {
-    addBasicChat,
-    addPremiumChat,
-    downVoteBasicChat,
-    downVoteDownBasicChat,
-    markDoneChat,
-    registerTypingEvent,
-    removeBasicChat,
-    removeTypingEvent,
-    setAllEmotes,
-    updateBasicChat,
-    updateMetadata,
-    updateStreamId,
-    updateUserRole,
-    upVoteBasicChat,
-    upVoteDownBasicChat,
+    addActiveTyper,
+    setCustomEmotes,
+    setStreamDetails,
+    setSubscription,
+    setViewerCount,
 } from "@/store/reducers/stream.reducer";
-import { SocketEventEnum } from "@pkgs/lib/shared";
+import { socketEvent } from "@pkgs/lib/shared";
 import { MessageSquareMoreIcon, X } from "lucide-react";
-import { FormEventHandler, useCallback, useId, useRef, useState } from "react";
+import { useCallback, useId, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
-import { BasicChatComp } from "../stream";
 import {
     Popover,
     PopoverContent,
@@ -43,6 +27,22 @@ import {
 } from "@/components/ui/popover";
 import EmojiPicker from "@/components/emoji-picker";
 import { SuperInput } from "./custom-input";
+import msgpack from "msgpack-lite";
+import { chatMessageT } from "@pkgs/lib";
+import {
+    deleteMessage,
+    downvoteMessage,
+    insertMessage,
+    messageAdapter,
+    remDownvoteMessage,
+    remUpvoteMessage,
+    upvoteMessage,
+} from "@/store/reducers/message.reducer";
+import {
+    useFetchEmotesMutation,
+    useInitiatePremiumChatMutation,
+    useFetchStreamMutation,
+} from "@/store/api/stream.api";
 
 export default function ChatWindowComponent({
     toogleWindowOpen,
@@ -56,11 +56,17 @@ export default function ChatWindowComponent({
     const { socket } = useSocket();
     const dispatch = useAppDispatch();
     const throttle = useThrottle();
-    const debounce = useDebounce();
     const navigate = useNavigate();
     // state hooks
     const streamState = useAppSelector((state) => state.stream);
     const user = useAppSelector((state) => state.app.user);
+    const messages = messageAdapter
+        .getSelectors<RootState>((state) => state.messages)
+        .selectAll(store.getState());
+
+    const [fetchEmotes] = useFetchEmotesMutation();
+    const [fetchStreamData] = useFetchStreamMutation();
+    const [initiatePremiumChat] = useInitiatePremiumChatMutation();
 
     const paymentAmountInputId = useId();
 
@@ -70,6 +76,7 @@ export default function ChatWindowComponent({
     // local states
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
+    const [streamRunning, setStreamRunning] = useState(false);
     const [paymentLoading, setPaymentLoading] = useState(false);
     const [__, setPayDialogOpen] = useState(false);
     const [superchatEnabled, setSuperchatEnabled] = useState(false);
@@ -102,27 +109,31 @@ export default function ChatWindowComponent({
             if (superchatEnabled) return await handleMakePayment();
 
             if (socket && message.trim() != "")
-                socket.emit(SocketEventEnum.CHAT_CREATE_EVENT, {
-                    message,
-                    streamId,
-                    replyMessageId: replyMessage.messageId ?? undefined,
-                    replyMessage: replyMessage.message ?? undefined,
-                    replyUsername: replyMessage.username ?? undefined,
-                });
+                socket.emit(
+                    socketEvent.CHAT_CREATE,
+                    msgpack.encode({
+                        mr: 0,
+                        msg: message,
+                        pn: 0,
+                        ts: new Date(),
+                        rid: replyMessage.messageId ?? undefined,
+                    })
+                );
             setMessage("");
             inputDivRef.current ? (inputDivRef.current.innerHTML = "") : null;
 
             setReplyMessage({ message: null, messageId: null, username: null });
         },
         [
-            superchatEnabled,
             socket,
-            SocketEventEnum,
             message,
             streamId,
             setMessage,
+            socketEvent,
+            msgpack.encode,
             replyMessage,
             setReplyMessage,
+            superchatEnabled,
             inputDivRef.current,
         ]
     );
@@ -132,47 +143,35 @@ export default function ChatWindowComponent({
         (messageId: string) => {
             console.log(streamId);
             if (socket && streamId)
-                socket.emit(SocketEventEnum.CHAT_UPVOTE_EVENT, {
-                    streamId: streamId,
+                socket.emit(socketEvent.CHAT_UVOTE, {
+                    streamId,
                     id: messageId,
                 });
         },
-        [socket, streamId, SocketEventEnum, streamState]
+        [socket, streamId, socketEvent, streamState]
     );
 
     // need to remoe this if role==="streamer"
     const handleDownVoteChat = useCallback(
         (messageId: string) => {
             if (socket && streamId)
-                socket.emit(SocketEventEnum.CHAT_DOWNVOTE_EVENT, {
-                    streamId: streamId,
-                    id: messageId,
-                });
+                socket.emit(socketEvent.CHAT_DVOTE, messageId);
         },
-        [socket, streamId, SocketEventEnum, streamState]
+        [socket, streamId, socketEvent.CHAT_DVOTE, streamState]
     );
 
     // send event to db to update the mark done of that specific chat
     const handleUpdateMarkDone = useCallback(
         (messageId: string) => {
             if (socket && streamId)
-                socket.emit(SocketEventEnum.CHAT_MARK_DONE, {
-                    streamId,
-                    id: messageId,
-                });
-            dispatch(
-                markDoneChat({
-                    id: messageId,
-                })
-            );
+                socket.emit(socketEvent.CHAT_MARK_DONE, messageId);
+            // dispatch(
+            //     markDoneChat({
+            //         id: messageId,
+            //     })
+            // );
         },
-        [
-            streamId,
-            socket,
-            SocketEventEnum.CHAT_MARK_DONE,
-            dispatch,
-            markDoneChat,
-        ]
+        [streamId, socket, socketEvent.CHAT_MARK_DONE, dispatch]
     );
 
     /**
@@ -291,57 +290,47 @@ export default function ChatWindowComponent({
         if (!socket) return console.error(`Socket not registered yet!`);
 
         // create new chats handler
-        socket.on(SocketEventEnum.CHAT_CREATE_EVENT, (chatObject) =>
-            dispatch(addBasicChat(chatObject))
-        );
-
-        // update chats handler
-        socket.on(SocketEventEnum.CHAT_UPDATE_EVENT, (chatObject) =>
-            dispatch(updateBasicChat(chatObject))
+        socket.on(socketEvent.CHAT_CREATE, (id: string, payload: Buffer) =>
+            dispatch(
+                insertMessage({
+                    buffer: payload,
+                    id,
+                })
+            )
         );
 
         // delete basic chat handler
-        socket.on(SocketEventEnum.CHAT_DELETE_EVENT, (chatObject) =>
-            dispatch(removeBasicChat(chatObject))
-        );
-
-        // premium chat listener
-        socket.on(SocketEventEnum.PAYMENT_CHAT_CREATE_EVENT, (chatObject) =>
-            dispatch(addPremiumChat(chatObject))
+        socket.on(socketEvent.CHAT_DELETE, (id: string) =>
+            dispatch(deleteMessage(id))
         );
 
         // specific chat is upvoted
-        socket.on(SocketEventEnum.CHAT_UPVOTE_EVENT, (chatObject) =>
-            dispatch(upVoteBasicChat(chatObject))
+        socket.on(socketEvent.CHAT_UVOTE, (id: string) =>
+            dispatch(upvoteMessage(id))
         );
 
         // specific chat is down voted
-        socket.on(SocketEventEnum.CHAT_DOWNVOTE_EVENT, (chatObject) =>
-            dispatch(downVoteBasicChat(chatObject))
+        socket.on(socketEvent.CHAT_DVOTE, (id: string) =>
+            dispatch(downvoteMessage(id))
         );
 
         // if someone is typing listen events to them
-        socket.on(SocketEventEnum.STREAM_TYPING_EVENT, (chatObject) => {
-            dispatch(registerTypingEvent(chatObject));
+        socket.on(socketEvent.CHAT_TYPING, (username: string) => {
+            dispatch(addActiveTyper(username));
         });
 
-        // if someone stops typing listen events
-        socket.on(SocketEventEnum.STREAM_STOP_TYPING_EVENT, (chatObject) => {
-            dispatch(removeTypingEvent(chatObject));
-        });
-
-        socket.on(SocketEventEnum.GET_STREAM_CONNECTIONS, (chatObject) => {
-            dispatch(updateMetadata(chatObject));
+        socket.on(socketEvent.STREAM_VIEWERS, (viewers: number) => {
+            dispatch(setViewerCount(viewers));
         });
 
         // trigger when someone wants to remove hhis upvotes for a specific chat
-        socket.on(SocketEventEnum.CHAT_UPVOTE_DOWN_EVENT, (chatObject) => {
-            dispatch(upVoteDownBasicChat(chatObject));
+        socket.on(socketEvent.CHAT_REM_UVOTE, (id: string) => {
+            dispatch(remUpvoteMessage(id));
         });
 
         // trigger when someone wants to remove hhis downvotes for a specific chat
-        socket.on(SocketEventEnum.CHAT_DOWNVOTE_DOWN_EVENT, (chatObject) => {
-            dispatch(downVoteDownBasicChat(chatObject));
+        socket.on(socketEvent.CHAT_REM_DVOTE, (id: string) => {
+            dispatch(remDownvoteMessage(id));
         });
 
         socket.onAny(() => {
@@ -350,95 +339,71 @@ export default function ChatWindowComponent({
         });
 
         // error listener
-        socket.on(SocketEventEnum.SOCKET_ERROR_EVENT, (error) => {
+        socket.on(socketEvent.SOCKET_ERROR, (error) => {
             console.error(`Error from socket server: `, error);
         });
     }, [
         socket,
-        SocketEventEnum,
+        socketEvent,
         dispatch,
-        addBasicChat,
-        updateBasicChat,
-        updateMetadata,
-        removeBasicChat,
-        addPremiumChat,
-        upVoteBasicChat,
-        removeTypingEvent,
-        downVoteBasicChat,
         lastMessageRef,
-        upVoteDownBasicChat,
-        downVoteDownBasicChat,
-        registerTypingEvent,
+        setViewerCount,
+        addActiveTyper,
+        insertMessage,
+        deleteMessage,
+        upvoteMessage,
+        downvoteMessage,
+        remDownvoteMessage,
+        remUpvoteMessage,
     ]);
 
     //...
     const handleStartTyping = useCallback(() => {
-        if (socket)
-            socket.emit(SocketEventEnum.STREAM_TYPING_EVENT, {
-                streamId: streamId,
-            });
-    }, [socket, SocketEventEnum, streamId]);
-
-    //...
-    const handleStopTyping = useCallback(() => {
-        if (socket)
-            socket.emit(SocketEventEnum.STREAM_STOP_TYPING_EVENT, {
-                streamId: streamId,
-            });
-    }, [socket, SocketEventEnum, streamId]);
+        if (socket) socket.emit(socketEvent.CHAT_TYPING);
+    }, [socket, socketEvent, streamId]);
 
     React.useEffect(() => {
         if (streamId)
             (async () => {
-                await requestHandler(
-                    getStreamById({ streamId }),
-                    setLoading,
-                    (result) => {
-                        dispatch(updateUserRole(result.data.userRole));
-                        if (result.data.stream.videoUrl)
-                            dispatch(
-                                updateMetadata({
-                                    videoUrl: result.data.stream.videoUrl,
-                                    channelName:
-                                        result.data.stream.streamerName,
-                                    title: result.data.stream.streamTitle,
-                                    streamerId: result.data.stream.streamerId,
-                                })
-                            );
-                    },
-                    () => {
-                        navigate("/dashboard");
-                    },
-                    false
-                );
-                dispatch(updateStreamId(streamId));
-                dispatch(setAllPreChats({ streamId }));
+                const { data, error } = await fetchStreamData({ streamId });
+                if (data)
+                    dispatch(
+                        setStreamDetails({
+                            streamId,
+                            streamRole: data.data.userRole,
+                            channel: {
+                                avatarUrl: "",
+                                channelName: data.data.stream.streamerName,
+                                streamerId: data.data.stream.streamerId,
+                                channelBio: data.data.stream.about ?? undefined,
+                            },
+                            streamTitle: data.data.stream.streamTitle,
+                            videoSource: data.data.stream.videoUrl,
+                        })
+                    );
+                if (error) navigate("/dashboard");
             })();
-    }, [streamId, updateStreamId, dispatch, setAllPreChats]);
+    }, [streamId, fetchStreamData, dispatch, setStreamDetails, navigate]);
 
     React.useEffect(() => {
         if (streamId) {
-            if (socket && streamId && !streamState.streamRunning) {
-                socket.emit(SocketEventEnum.JOIN_STREAM_EVENT, { streamId });
+            if (socket && streamId && !streamRunning) {
+                socket.emit(socketEvent.STREAM_JOIN);
                 handleRegisterSocketEvents();
-                dispatch(updateMetadata({ streamRunning: true }));
+                setStreamRunning(true);
             }
         }
-    }, [streamId, socket, streamState.streamRunning]);
+    }, [streamId, socket, streamRunning, socketEvent.STREAM_JOIN]);
 
     React.useEffect(() => {
         const interval = setInterval(() => {
-            if (socket && streamId) {
-                socket.emit(SocketEventEnum.GET_STREAM_CONNECTIONS, {
-                    streamId,
-                });
-            }
+            if (socket && streamId) socket.emit(socketEvent.STREAM_VIEWERS);
         }, 10000);
 
         return () => {
             clearInterval(interval);
         };
-    }, [socket, streamId]);
+    }, [socket, streamId, socketEvent.STREAM_VIEWERS]);
 
     React.useEffect(() => {
         // handleInitializeCashfree();
@@ -451,22 +416,22 @@ export default function ChatWindowComponent({
     }, []);
 
     React.useEffect(() => {
-        if (streamState.metadata.streamerId) {
+        if (streamState.channel.streamerId) {
             (async () => {
                 await requestHandler(
                     getEmoteByStreamerId({
-                        streamerId: streamState.metadata.streamerId,
+                        streamerId: streamState.channel.streamerId,
                     }),
                     undefined,
                     ({ data }) => {
-                        dispatch(setAllEmotes(data));
+                        // dispatch(setAllEmotes(data));
                     },
                     undefined,
                     false
                 );
             })();
         }
-    }, [streamId, streamState.metadata.streamerId]);
+    }, [streamId, streamState.channel.streamerId]);
 
     if (loading) return <LoadingComp />;
 
@@ -524,36 +489,44 @@ export default function ChatWindowComponent({
             </div>
 
             <div className="relative border flex flex-col overflow-y-auto gap-y-0.5 fill-indigo-600 border-neutral-900 flex-1 rounded-md">
-                {streamState.basicChats.map((chat) => (
+                {messages.map((chat) => (
                     <ChatComponent
-                        id={chat.id}
-                        markRead={chat.markRead}
+                        id={chat.id.toString()}
+                        markRead={!!chat.mr}
                         key={chat.id}
                         myMessage={
-                            user?.username
-                                ? user.username == chat.user.username
-                                : false
+                            user?.username ? user.username == chat.un : false
                         }
-                        superchatAmount={chat.paymentAmount}
-                        message={chat.message}
+                        superchatAmount={chat.pa}
+                        message={chat.msg}
                         profileColor="oklch(76.9% 0.188 70.08)"
-                        username={chat.user.username}
-                        upvotes={chat.upVotes}
-                        downvotes={chat.downVotes}
-                        reply={chat.reply}
-                        handleDownVoteChat={() => handleDownVoteChat(chat.id)}
-                        handleMarkDone={() => handleUpdateMarkDone(chat.id)}
-                        handleUpVoteChat={() => handleUpVoteChat(chat.id)}
+                        username={chat.un}
+                        upvotes={chat.uv}
+                        downvotes={chat.dv}
+                        reply={{
+                            message: chat.rmsg ?? null,
+                            messageId: chat.rid ? Number(chat.rid) : null,
+                            username: chat.run ?? null,
+                        }}
+                        handleDownVoteChat={() =>
+                            handleDownVoteChat(chat.id.toString())
+                        }
+                        handleMarkDone={() =>
+                            handleUpdateMarkDone(chat.id.toString())
+                        }
+                        handleUpVoteChat={() =>
+                            handleUpVoteChat(chat.id.toString())
+                        }
                         handleReply={() =>
                             setReplyMessage({
-                                message: chat.message,
-                                messageId: chat.id,
-                                username: chat.user.username,
+                                message: chat.msg,
+                                messageId: chat.id.toString(),
+                                username: chat.un,
                             })
                         }
                     />
                 ))}
-                {streamState.basicChats.length <= 0 && (
+                {messages.length <= 0 && (
                     <span className="absolute top-1/2 right-1/2 translate-1/2 text-sm text-neutral-600">
                         No messages yet
                     </span>
@@ -654,7 +627,6 @@ export default function ChatWindowComponent({
                         onChange={(value: string) => {
                             setMessage(value);
                             throttle(handleStartTyping, 4000);
-                            debounce(handleStopTyping, 3000);
                         }}
                         onEnterPress={handleSendMessage}
                     />
@@ -702,18 +674,16 @@ export default function ChatWindowComponent({
                             <EmojiPicker
                                 data={[
                                     {
-                                        emojis: streamState.customEmotes.map(
-                                            (i) => ({
-                                                id: i.code,
-                                                imageUrl: i.imageUrl,
-                                                name: i.name,
-                                                shortcodes: i.code,
-                                            })
-                                        ),
+                                        emojis: streamState.emotes.map((i) => ({
+                                            id: i.code,
+                                            imageUrl: i.imageUrl,
+                                            name: i.name,
+                                            shortcodes: i.code,
+                                        })),
                                         streamerId:
-                                            streamState.metadata.streamerId.toString(),
+                                            streamState.channel.streamerId.toString(),
                                         streamerName:
-                                            streamState.metadata.channelName,
+                                            streamState.channel.channelName,
                                     },
                                 ]}
                                 onEmojiSelect={(emoji) => {
@@ -757,15 +727,12 @@ export default function ChatWindowComponent({
                 </div>
                 <div className="flex justify-between">
                     <div>
-                        {streamState.typerNames.length > 0 ? (
+                        {streamState.activeTypers.length > 0 ? (
                             <div className="flex items-center gap-x-2 text-sm font-medium bg-black/10 px-3 rounded-t-md backdrop-blur-md left-0 right-0">
                                 <span className="loading loading-dots loading-lg" />
-                                {streamState.typerNames.map((user) => (
-                                    <span
-                                        key={user.userId}
-                                        className="animate-pulse"
-                                    >
-                                        {user.fullName}
+                                {streamState.activeTypers.map((user) => (
+                                    <span key={user} className="animate-pulse">
+                                        {user}
                                     </span>
                                 ))}
                                 <span>typing...</span>
@@ -810,24 +777,134 @@ interface ChatComponentPropT {
 function ChatComponent(props: ChatComponentPropT) {
     if (props.superchatAmount && props.superchatAmount > 0) {
         return (
-            <BasicChatComp
-                paymentAmount={props.superchatAmount}
-                handleDownVoteChat={props.handleDownVoteChat}
-                handleUpVoteChat={props.handleUpVoteChat}
-                createdAt={new Date()}
-                downVotes={props.downvotes}
-                handleMarkDone={props.handleMarkDone}
-                id={props.id}
-                markRead={props.markRead}
-                message={props.message}
-                pinned={false}
-                upVotes={props.upvotes}
-                updatedAt={new Date()}
-                user={{ fullName: props.username }}
-                orderId={"order"}
-                reply={{} as any}
-            />
+            <div
+                className={`relative group w-full px-2 py-1 hover:bg-neutral-900 ${props.myMessage ? "border-l-2 border-amber-400 bg-amber-300/5" : ""}`}
+            >
+                {props.reply.messageId ? (
+                    <div className="text-xs text-neutral-500 pb-1 flex gap-x-1 items-center">
+                        <MessageSquareMoreIcon className="size-3 text-neutral-500" />
+                        <span className="font-semibold">
+                            {props.reply.username}:{" "}
+                        </span>
+                        <span className="truncate max-w-lg">
+                            {props.reply.message}
+                        </span>
+                    </div>
+                ) : null}
+                <div className={`flex items-center`}>
+                    <div className="flex gap-x-1 items-center">
+                        <img
+                            className="size-5 rounded-full"
+                            src={`https://placehold.co/400?id=${props.username}`}
+                        />
+                        <span
+                            style={{
+                                color: props.profileColor,
+                            }}
+                            className="text-sm truncate font-medium"
+                        >
+                            {props.username}
+                        </span>
+                    </div>
+                    <div>
+                        <p className="text-neutral-200 text-sm flex-1 px-2">
+                            {props.message}
+                        </p>
+                    </div>
+                    {props.upvotes != props.downvotes ? (
+                        <div
+                            className={`ml-auto ${props.upvotes > props.downvotes ? "text-emerald-300" : "text-rose-600"} font-medium flex gap-x-1 text-sm items-center`}
+                        >
+                            <span>
+                                {props.upvotes > props.downvotes
+                                    ? props.upvotes - props.downvotes
+                                    : props.downvotes - props.upvotes}
+                            </span>
+                            <svg
+                                style={{
+                                    rotate:
+                                        props.upvotes < props.downvotes
+                                            ? "180deg"
+                                            : undefined,
+                                }}
+                                className={`size-4.5 -mt-0.5 ${props.upvotes > props.downvotes ? "fill-emerald-300" : "fill-rose-600"}`}
+                                viewBox="0 0 24 24"
+                            >
+                                <path d="M4 14h4v7a1 1 0 001 1h6a1 1 0 001-1v-7h4a1.001 1.001 0 00.781-1.625l-8-10c-.381-.475-1.181-.475-1.562 0l-8 10A1.001 1.001 0 004 14z" />
+                            </svg>
+                        </div>
+                    ) : null}
+                    <div className="absolute z-20 -bottom-4 opacity-80 hover:opacity-100 group-hover:flex hidden bg-neutral-800 border border-neutral-800 right-16 rounded">
+                        <button
+                            onClick={props.handleUpVoteChat}
+                            className="hover:bg-neutral-900 rounded md:cursor-pointer p-1 focus:outline-none"
+                        >
+                            <svg
+                                className="size-5"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                            >
+                                <path
+                                    d="M7.24 11v9H5.63c-.9 0-1.62-.72-1.62-1.61v-5.77c0-.89.73-1.62 1.62-1.62h1.61zM18.5 9.5h-4.78V6c0-1.1-.9-2-1.99-2h-.09c-.4 0-.76.24-.92.61L7.99 11v9h9.2c.73 0 1.35-.52 1.48-1.24l1.32-7.5c.16-.92-.54-1.76-1.48-1.76h-.01z"
+                                    className="fill-neutral-400"
+                                />
+                            </svg>
+                        </button>
+                        <button
+                            onClick={props.handleDownVoteChat}
+                            className="hover:bg-neutral-900 rounded md:cursor-pointer p-1 focus:outline-none"
+                        >
+                            <svg
+                                className="size-4.5 rotate-180"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                            >
+                                <path
+                                    d="M7.24 11v9H5.63c-.9 0-1.62-.72-1.62-1.61v-5.77c0-.89.73-1.62 1.62-1.62h1.61zM18.5 9.5h-4.78V6c0-1.1-.9-2-1.99-2h-.09c-.4 0-.76.24-.92.61L7.99 11v9h9.2c.73 0 1.35-.52 1.48-1.24l1.32-7.5c.16-.92-.54-1.76-1.48-1.76h-.01z"
+                                    className="fill-neutral-400"
+                                />
+                            </svg>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={props.handleReply}
+                            className="hover:bg-neutral-900 rounded md:cursor-pointer p-1 focus:outline-none"
+                        >
+                            <svg
+                                className="size-4.5 stroke-white"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                            >
+                                <path
+                                    d="M20 17v-1.2c0-1.68 0-2.52-.327-3.162a3 3 0 00-1.311-1.311C17.72 11 16.88 11 15.2 11H4m0 0l4-4m-4 4l4 4"
+                                    strokeWidth={2}
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
         );
+
+        // <BasicChatComp
+        //     paymentAmount={props.superchatAmount}
+        //     handleDownVoteChat={props.handleDownVoteChat}
+        //     handleUpVoteChat={props.handleUpVoteChat}
+        //     createdAt={new Date()}
+        //     downVotes={props.downvotes}
+        //     handleMarkDone={props.handleMarkDone}
+        //     id={props.id}
+        //     markRead={props.markRead}
+        //     message={props.message}
+        //     pinned={false}
+        //     upVotes={props.upvotes}
+        //     updatedAt={new Date()}
+        //     user={{ fullName: props.username }}
+        //     orderId={"order"}
+        //     reply={{} as any}
+        // />
     }
     return (
         <div
