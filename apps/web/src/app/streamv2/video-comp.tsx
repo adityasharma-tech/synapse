@@ -16,7 +16,7 @@ import { razorpayKeyId } from "@/lib/constants";
 import { requestHandler } from "@/lib/requestHandler";
 import { loadScript } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { updateSubscriptionData } from "@/store/reducers/stream.reducer";
+// import { updateSubscriptionData } from "@/store/reducers/stream.reducer";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { LoaderCircle } from "lucide-react";
 import React, { FormEvent, useCallback } from "react";
@@ -66,10 +66,10 @@ export default function VideoWindowComponent({
                     </button>
                 </div>
             </div>
-            {streamState.videoUrl ? (
+            {streamState.videoSource != "" ? (
                 <iframe
                     src={`https://www.youtube.com/embed/${new URL(
-                        streamState.videoUrl
+                        streamState.videoSource
                     ).searchParams.get("v")}?&amp;autoplay=1&amp;mute=0`}
                     title="YouTube video player"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -82,21 +82,21 @@ export default function VideoWindowComponent({
                 <div className="flex items-center gap-x-2">
                     <img
                         className="size-10 rounded-full"
-                        src={`https://placehold.co/400?id=${streamState.metadata.channelName}`}
+                        src={`https://placehold.co/400?id=${streamState.channel.channelName}`}
                     />
                     <div>
                         <div className="font-medium mb-1">
-                            {streamState.metadata.channelName}
+                            {streamState.channel.channelName}
                         </div>
                         <div className="text-xs text-neutral-300">
-                            {streamState.metadata.title}
+                            {streamState.streamTitle}
                         </div>
                     </div>
                     <div>
                         <SubscribeStreamerModel
                             details={{
-                                streamerName: streamState.metadata.channelName,
-                                streamerId: streamState.metadata.streamerId,
+                                streamerName: streamState.channel.channelName,
+                                streamerId: streamState.channel.streamerId,
                             }}
                         />
                     </div>
@@ -112,7 +112,7 @@ export default function VideoWindowComponent({
                             />
                         </svg>
                         <span className="text-rose-600">
-                            {streamState.currentViewers}
+                            {streamState.viewerCount}
                         </span>
                     </div>
                     <div className="px-3">
@@ -231,14 +231,15 @@ function SubscribeStreamerModel({
                 async (data) => {
                     if (data.data.subsciption.status != "active")
                         await handleRequestPlanDetails();
-                    dispatch(
-                        updateSubscriptionData({
-                            status: data.data.subsciption.status,
-                            streamerId: data.data.subsciption.streamerId,
-                            subscriptionId:
-                                data.data.subsciption.subscriptionId,
-                        })
-                    );
+                    // dispatch(
+                    //     updateSubscriptionData({
+                    //         status: data.data.subsciption.status,
+                    //         streamerId: data.data.subsciption.streamerId,
+                    //         subscriptionId:
+                    //             data.data.subsciption.subscriptionId,
+                    //     })
+                    // );
+                    // TOFIX: here
                 },
                 async () => {
                     await handleRequestPlanDetails();
@@ -252,7 +253,7 @@ function SubscribeStreamerModel({
         setSubscriptionDetailsLoading,
         handleRequestPlanDetails,
         dispatch,
-        updateSubscriptionData,
+        // updateSubscriptionData,
     ]);
 
     React.useEffect(() => {

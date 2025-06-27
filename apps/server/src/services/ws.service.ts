@@ -127,6 +127,9 @@ async function handleChatPin(socket: Socket, id: string) {
 }
 
 async function handleGetViewer(socket: Socket) {
+    logger.info("requested for viewers");
+    console.warn(socket.handshake.query);
+    console.warn(socket.handshake.query.streamId);
     const viewers = (
         await io.in(socket.handshake.query.streamId!).fetchSockets()
     ).length;
