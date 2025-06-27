@@ -3,5 +3,15 @@
     "bracketSpacing": true,
     "tabWidth": 4,
     "trailingComma": "es5",
-    "semi": true
+    "semi": true,
+    "endOfLine": "lf",
+    "overrides": [
+        {
+            "files": "*.md",
+            "options": {
+                "printWidth": -1,
+                "proseWrap": "preserve"
+            }
+        }
+    ]
 }
