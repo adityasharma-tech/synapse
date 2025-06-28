@@ -1,6 +1,9 @@
 <main
     class="w-screen h-screen overflow-y-auto items-center justify-center flex bg-zinc-50"
 >
-    <ngx-loading-bar></ngx-loading-bar>
+    <ngx-loading-bar
+        [includeSpinner]="false"
+        [color]="'#000'"
+    ></ngx-loading-bar>
     <router-outlet />
 </main>
