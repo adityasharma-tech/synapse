@@ -29,6 +29,7 @@ export class LoginComponent {
         );
         if (result) {
             this.toastr.success(result.message, "success");
+            this.loginForm.setValue({ emailOrUsername: "", password: "" });
         }
 
         if (error) {

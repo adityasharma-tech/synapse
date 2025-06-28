@@ -6,6 +6,7 @@ const corsOrigins = [
     "https://synapse-local.adityasharma.live",
     "https://localport-3000.adityasharma.live",
     "https://alishanshowroom.vercel.app",
+    "http://localhost:4200",
 ];
 
 // RabbitMQ Channels

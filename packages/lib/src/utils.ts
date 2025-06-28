@@ -1,5 +1,4 @@
 import { MiddlewareUserT } from "./types";
-import { encode, decode } from "entities";
 
 // Roles
 export type Role = keyof typeof ROLES;
