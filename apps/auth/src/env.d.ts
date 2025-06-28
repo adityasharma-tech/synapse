@@ -2,7 +2,7 @@
 declare interface Env {
     readonly NODE_ENV: string;
     // Replace the following with your own environment variables.
-    readonly NG_BACKEND_HOST: string;
+    readonly NG_APP_BACKEND_HOST: string;
 }
 
 // Choose how to access the environment variables.

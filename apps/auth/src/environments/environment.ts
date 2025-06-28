@@ -1,3 +1,4 @@
 export const environment = {
-    NG_BACKEND_HOST: import.meta.env.NG_BACKEND_HOST,
+    production: true,
+    backendUrl: import.meta.env.NG_APP_BACKEND_HOST,
 };

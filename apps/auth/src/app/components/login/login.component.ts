@@ -1,6 +1,7 @@
 import { Component, inject } from "@angular/core";
 import { RouterModule } from "@angular/router";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
+import { AxiosService } from "../../core/axios/axios.service";
 
 @Component({
     selector: "app-login",
@@ -16,5 +17,16 @@ export class LoginComponent {
         password: ["", Validators.required],
     });
 
-    onSubmit = () => {};
+    onSubmit = async () => {
+        const axiosService = new AxiosService();
+
+        const { result, error } = await axiosService.handleRequest(
+            axiosService.loginUser({
+                emailOrUsername: this.loginForm.value.emailOrUsername!,
+                password: this.loginForm.value.password!,
+            })
+        );
+        console.log(result);
+        console.log(error);
+    };
 }
