@@ -1,2 +1,51 @@
 /* You can add global styles to this file, and also import other style files */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 @import "tailwindcss";
+@import "ngx-toastr/toastr";
+
+* {
+    font-family: "Poppins", sans-serif;
+}
+
+.toast-container .ngx-toastr {
+    position: relative;
+    overflow: hidden;
+    margin: 0 0 0 6px;
+    padding: 10px 15px;
+    width: 350px;
+    border-radius: 10px;
+    margin-top: 10px;
+    background-position: 15px center;
+    background-repeat: no-repeat;
+    background-size: 24px;
+    color: #292929;
+    border: 1px solid #d1d1d1;
+    box-shadow: 0px 0px 40px -29px rgba(0, 0, 0, 1);
+    -webkit-box-shadow: 0px 0px 40px -29px rgba(0, 0, 0, 1);
+    -moz-box-shadow: 0px 0px 40px -29px rgba(0, 0, 0, 1);
+    transition: all;
+}
+
+.toast-container .ngx-toastr:hover {
+    box-shadow: 0px 0px 55x -29px rgba(0, 0, 0, 1);
+    -webkit-box-shadow: 0px 0px 55px -29px rgba(0, 0, 0, 1);
+    -moz-box-shadow: 0px 0px 55px -29px rgba(0, 0, 0, 1);
+}
+
+.toast-success {
+    background-color: white;
+}
+
+.toast-error {
+    background-color: #fff;
+}
+
+.toast-title {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.toast-message {
+    font-size: 14px;
+    margin-top: -1px;
+}

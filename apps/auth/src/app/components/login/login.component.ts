@@ -2,6 +2,7 @@ import { Component, inject } from "@angular/core";
 import { RouterModule } from "@angular/router";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { AxiosService } from "../../core/axios/axios.service";
+import { ToastrService } from "ngx-toastr";
 
 @Component({
     selector: "app-login",
@@ -26,7 +27,14 @@ export class LoginComponent {
                 password: this.loginForm.value.password!,
             })
         );
-        console.log(result);
-        console.log(error);
+        if (result) {
+            this.toastr.success(result.message, "success");
+        }
+
+        if (error) {
+            this.toastr.error(result?.message, "Error occured");
+        }
     };
+
+    constructor(private toastr: ToastrService) {}
 }

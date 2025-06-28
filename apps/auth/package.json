@@ -10,6 +10,7 @@
     },
     "private": true,
     "dependencies": {
+        "@angular/animations": "^20.0.5",
         "@angular/common": "^19.2.0",
         "@angular/compiler": "^19.2.0",
         "@angular/core": "^19.2.0",
@@ -21,6 +22,7 @@
         "@ngx-loading-bar/router": "^7.0.0",
         "@tailwindcss/postcss": "^4.1.11",
         "axios": "^1.10.0",
+        "ngx-toastr": "^19.0.0",
         "postcss": "^8.5.6",
         "rxjs": "~7.8.0",
         "tailwindcss": "^4.1.11",
