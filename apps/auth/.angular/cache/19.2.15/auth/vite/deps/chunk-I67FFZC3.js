@@ -2598,6 +2598,7 @@ var asapScheduler = new AsapScheduler(AsapAction);
 
 // ../../node_modules/rxjs/dist/esm5/internal/scheduler/async.js
 var asyncScheduler = new AsyncScheduler(AsyncAction);
+var async = asyncScheduler;
 
 // ../../node_modules/rxjs/dist/esm5/internal/scheduler/QueueAction.js
 var QueueAction = (function (_super) {
@@ -3568,6 +3569,11 @@ var SequenceError = createErrorClass(function (_super) {
     };
 });
 
+// ../../node_modules/rxjs/dist/esm5/internal/util/isDate.js
+function isValidDate(value) {
+    return value instanceof Date && !isNaN(value);
+}
+
 // ../../node_modules/rxjs/dist/esm5/internal/operators/timeout.js
 var TimeoutError = createErrorClass(function (_super) {
     return function TimeoutErrorImpl(info) {
@@ -3872,6 +3878,41 @@ function defer(observableFactory) {
     });
 }
 
+// ../../node_modules/rxjs/dist/esm5/internal/observable/timer.js
+function timer(dueTime, intervalOrScheduler, scheduler) {
+    if (dueTime === void 0) {
+        dueTime = 0;
+    }
+    if (scheduler === void 0) {
+        scheduler = async;
+    }
+    var intervalDuration = -1;
+    if (intervalOrScheduler != null) {
+        if (isScheduler(intervalOrScheduler)) {
+            scheduler = intervalOrScheduler;
+        } else {
+            intervalDuration = intervalOrScheduler;
+        }
+    }
+    return new Observable(function (subscriber) {
+        var due = isValidDate(dueTime) ? +dueTime - scheduler.now() : dueTime;
+        if (due < 0) {
+            due = 0;
+        }
+        var n = 0;
+        return scheduler.schedule(function () {
+            if (!subscriber.closed) {
+                subscriber.next(n++);
+                if (0 <= intervalDuration) {
+                    this.schedule(void 0, intervalDuration);
+                } else {
+                    subscriber.complete();
+                }
+            }
+        }, due);
+    });
+}
+
 // ../../node_modules/rxjs/dist/esm5/internal/observable/never.js
 var NEVER = new Observable(noop);
 
@@ -4145,6 +4186,139 @@ function scan(accumulator, seed) {
     return operate(
         scanInternals(accumulator, seed, arguments.length >= 2, true)
     );
+}
+
+// ../../node_modules/rxjs/dist/esm5/internal/operators/share.js
+function share(options) {
+    if (options === void 0) {
+        options = {};
+    }
+    var _a = options.connector,
+        connector =
+            _a === void 0
+                ? function () {
+                      return new Subject();
+                  }
+                : _a,
+        _b = options.resetOnError,
+        resetOnError = _b === void 0 ? true : _b,
+        _c = options.resetOnComplete,
+        resetOnComplete = _c === void 0 ? true : _c,
+        _d = options.resetOnRefCountZero,
+        resetOnRefCountZero = _d === void 0 ? true : _d;
+    return function (wrapperSource) {
+        var connection;
+        var resetConnection;
+        var subject;
+        var refCount2 = 0;
+        var hasCompleted = false;
+        var hasErrored = false;
+        var cancelReset = function () {
+            resetConnection === null || resetConnection === void 0
+                ? void 0
+                : resetConnection.unsubscribe();
+            resetConnection = void 0;
+        };
+        var reset = function () {
+            cancelReset();
+            connection = subject = void 0;
+            hasCompleted = hasErrored = false;
+        };
+        var resetAndUnsubscribe = function () {
+            var conn = connection;
+            reset();
+            conn === null || conn === void 0 ? void 0 : conn.unsubscribe();
+        };
+        return operate(function (source, subscriber) {
+            refCount2++;
+            if (!hasErrored && !hasCompleted) {
+                cancelReset();
+            }
+            var dest = (subject =
+                subject !== null && subject !== void 0 ? subject : connector());
+            subscriber.add(function () {
+                refCount2--;
+                if (refCount2 === 0 && !hasErrored && !hasCompleted) {
+                    resetConnection = handleReset(
+                        resetAndUnsubscribe,
+                        resetOnRefCountZero
+                    );
+                }
+            });
+            dest.subscribe(subscriber);
+            if (!connection && refCount2 > 0) {
+                connection = new SafeSubscriber({
+                    next: function (value) {
+                        return dest.next(value);
+                    },
+                    error: function (err) {
+                        hasErrored = true;
+                        cancelReset();
+                        resetConnection = handleReset(reset, resetOnError, err);
+                        dest.error(err);
+                    },
+                    complete: function () {
+                        hasCompleted = true;
+                        cancelReset();
+                        resetConnection = handleReset(reset, resetOnComplete);
+                        dest.complete();
+                    },
+                });
+                innerFrom(source).subscribe(connection);
+            }
+        })(wrapperSource);
+    };
+}
+function handleReset(reset, on) {
+    var args = [];
+    for (var _i = 2; _i < arguments.length; _i++) {
+        args[_i - 2] = arguments[_i];
+    }
+    if (on === true) {
+        reset();
+        return;
+    }
+    if (on === false) {
+        return;
+    }
+    var onSubscriber = new SafeSubscriber({
+        next: function () {
+            onSubscriber.unsubscribe();
+            reset();
+        },
+    });
+    return innerFrom(
+        on.apply(void 0, __spreadArray([], __read(args)))
+    ).subscribe(onSubscriber);
+}
+
+// ../../node_modules/rxjs/dist/esm5/internal/operators/shareReplay.js
+function shareReplay(configOrBufferSize, windowTime2, scheduler) {
+    var _a, _b, _c;
+    var bufferSize;
+    var refCount2 = false;
+    if (configOrBufferSize && typeof configOrBufferSize === "object") {
+        (_a = configOrBufferSize.bufferSize),
+            (bufferSize = _a === void 0 ? Infinity : _a),
+            (_b = configOrBufferSize.windowTime),
+            (windowTime2 = _b === void 0 ? Infinity : _b),
+            (_c = configOrBufferSize.refCount),
+            (refCount2 = _c === void 0 ? false : _c),
+            (scheduler = configOrBufferSize.scheduler);
+    } else {
+        bufferSize =
+            configOrBufferSize !== null && configOrBufferSize !== void 0
+                ? configOrBufferSize
+                : Infinity;
+    }
+    return share({
+        connector: function () {
+            return new ReplaySubject(bufferSize, windowTime2, scheduler);
+        },
+        resetOnError: true,
+        resetOnComplete: false,
+        resetOnRefCountZero: refCount2,
+    });
 }
 
 // ../../node_modules/rxjs/dist/esm5/internal/operators/startWith.js
@@ -39022,6 +39196,7 @@ export {
     mergeAll,
     concat,
     defer,
+    timer,
     filter,
     catchError,
     concatMap,
@@ -39032,6 +39207,7 @@ export {
     takeLast,
     last2 as last,
     scan,
+    shareReplay,
     startWith,
     switchMap,
     takeUntil,
@@ -39575,4 +39751,4 @@ export {
    * found in the LICENSE file at https://angular.dev/license
    *)
 */
-//# sourceMappingURL=chunk-NSVFJYPW.js.map
+//# sourceMappingURL=chunk-I67FFZC3.js.map

@@ -1,0 +1,77 @@
+<div class="text-left">
+    <div class="text-2xl font-semibold text-neutral-900">Create an account</div>
+    <div class="gap-x-2 flex mt-2">
+        <span>Already have an account?</span>
+        <a [routerLink]="['/login']" class="underline">Sign in</a>
+    </div>
+
+    <div class="mt-10 max-w-[500px]">
+        <div class="input-container">
+            <label for="email">Email*</label>
+            <input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="username@domain.xyz"
+            />
+        </div>
+        <div class="input-container">
+            <label for="password">Password*</label>
+            <input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="********"
+            />
+            <div>
+                <span class="text-sm text-gray-600 leading-tight">
+                    Password should be at least 15 characters OR at least 8
+                    characters including a number and a lowercase letter.
+                </span>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <label for="username">Username*</label>
+            <input
+                id="username"
+                name="username"
+                type="text"
+                placeholder="ac-superman"
+            />
+            <div>
+                <span class="text-sm text-gray-600 leading-tight">
+                    Username may only contain alphanumeric characters or single
+                    hyphens, and cannot begin or end with a hyphen.
+                </span>
+            </div>
+        </div>
+        <div class="mt-5 font-medium">
+            <div class="text-sm">Email preferences</div>
+            <div class="flex items-center my-1">
+                <input id="update-checkbox" type="checkbox" />
+                <label for="update-checkbox" class="text-sm"
+                    >Receive occasional product updates and announcements</label
+                >
+            </div>
+        </div>
+        <button
+            class="flex justify-center text-center items-center w-full py-2.5 bg-neutral-900 rounded-lg mt-10 text-white gap-x-3 md:cursor-pointer hover:opacity-95 hover:shadow-sm transition-opacity"
+        >
+            <span class="text-lg">Continue</span>
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="m9 18 6-6-6-6" />
+            </svg>
+        </button>
+    </div>
+</div>

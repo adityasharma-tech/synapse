@@ -1,0 +1,37 @@
+.input-container input:focus {
+    @apply outline-none ring-2 border-transparent;
+}
+
+.input-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.input-container:not(:last-child) {
+    margin-bottom: 14px;
+}
+
+label {
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.input-container input {
+    padding: 10px 10px;
+    border: 1px solid #cfcfcf;
+    border-radius: 10px;
+    width: 100%;
+}
+
+input::placeholder {
+    color: #7c7c7c;
+    opacity: 1;
+}
+
+input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #0969da;
+    margin-right: 8px;
+}
