@@ -3,7 +3,7 @@ import {
     CommonModule,
     NgIf,
     isPlatformBrowser,
-} from "./chunk-BVLFVQTX.js";
+} from "./chunk-TZGWHDQY.js";
 import {
     ChangeDetectionStrategy,
     Component,
@@ -51,7 +51,7 @@ import {
     ɵɵproperty,
     ɵɵstyleProp,
     ɵɵtemplate,
-} from "./chunk-I67FFZC3.js";
+} from "./chunk-45AOH2E3.js";
 
 // ../../node_modules/@ngx-loading-bar/core/fesm2022/ngx-loading-bar-core.mjs
 function NgxLoadingBar_ng_container_0_div_1_Template(rf, ctx) {
@@ -791,4 +791,4 @@ export {
     LoadingBarComponent,
     LoadingBarModule,
 };
-//# sourceMappingURL=chunk-PRTICMRH.js.map
+//# sourceMappingURL=chunk-E2G2WIRR.js.map

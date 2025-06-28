@@ -5,9 +5,9 @@ import {
     LoadingBarService,
     NgxLoadingBar,
     provideLoadingBar,
-} from "./chunk-PRTICMRH.js";
-import "./chunk-BVLFVQTX.js";
-import "./chunk-I67FFZC3.js";
+} from "./chunk-E2G2WIRR.js";
+import "./chunk-TZGWHDQY.js";
+import "./chunk-45AOH2E3.js";
 export {
     LOADING_BAR_CONFIG,
     LoadingBarComponent,

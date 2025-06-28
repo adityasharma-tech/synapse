@@ -5,7 +5,11 @@
         <a [routerLink]="['/register']" class="underline">Sign up</a>
     </div>
 
-    <div class="mt-10 max-w-[500px]">
+    <form
+        [formGroup]="loginForm"
+        class="mt-10 max-w-[500px]"
+        (ngSubmit)="onSubmit()"
+    >
         <div class="input-container">
             <label for="email-username">Email or Username*</label>
             <input
@@ -13,6 +17,7 @@
                 name="email-username"
                 type="text"
                 placeholder="username@domain.xyz"
+                formControlName="emailOrUsername"
             />
         </div>
         <div class="input-container">
@@ -22,6 +27,7 @@
                 name="password"
                 type="password"
                 placeholder="********"
+                formControlName="password"
             />
             <div>
                 <span class="text-sm text-gray-600 leading-tight">
@@ -32,7 +38,8 @@
         </div>
 
         <button
-            class="flex justify-center text-center items-center w-full py-2.5 bg-neutral-900 rounded-lg mt-10 text-white gap-x-3 md:cursor-pointer hover:opacity-95 hover:shadow-sm transition-opacity"
+            [disabled]="!loginForm.valid"
+            class="flex justify-center text-center items-center disabled:opacity-50 w-full py-2.5 bg-neutral-900 rounded-lg mt-10 text-white gap-x-3 md:cursor-pointer hover:opacity-95 hover:shadow-sm transition-opacity"
         >
             <span class="text-lg">Continue</span>
             <svg
@@ -49,7 +56,7 @@
                 <path d="m9 18 6-6-6-6" />
             </svg>
         </button>
-    </div>
+    </form>
 
     <div class="flex gap-x-3 items-center">
         <div class="border-neutral-300 border-t my-10 w-full"></div>

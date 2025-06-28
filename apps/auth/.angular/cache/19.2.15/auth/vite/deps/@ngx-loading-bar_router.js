@@ -1,4 +1,3 @@
-import { LoadingBarModule, LoadingBarService } from "./chunk-PRTICMRH.js";
 import {
     NavigationCancel,
     NavigationEnd,
@@ -6,9 +5,10 @@ import {
     NavigationStart,
     Router,
     RouterModule,
-} from "./chunk-GA6LAYF3.js";
-import "./chunk-BZ46WAEF.js";
-import "./chunk-BVLFVQTX.js";
+} from "./chunk-SV2B2QBT.js";
+import { LoadingBarModule, LoadingBarService } from "./chunk-E2G2WIRR.js";
+import "./chunk-74DLM4KK.js";
+import "./chunk-TZGWHDQY.js";
 import {
     APP_INITIALIZER,
     NgModule,
@@ -16,7 +16,7 @@ import {
     ɵɵdefineInjector,
     ɵɵdefineNgModule,
     ɵɵinject,
-} from "./chunk-I67FFZC3.js";
+} from "./chunk-45AOH2E3.js";
 
 // ../../node_modules/@ngx-loading-bar/router/fesm2022/ngx-loading-bar-router.mjs
 function getCurrentNavigationState(router) {
