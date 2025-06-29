@@ -7,9 +7,12 @@ import { AxiosService } from "./core/axios/axios.service";
     selector: "app-root",
     imports: [RouterOutlet, LoadingBarRouterModule],
     templateUrl: "./app.component.html",
+    standalone: true,
 })
 export class AppComponent {
     title = "auth";
 
-    constructor(private axiosService: AxiosService) {}
+    constructor(private axiosService: AxiosService) {
+        (async () => this.axiosService.checkUser())();
+    }
 }

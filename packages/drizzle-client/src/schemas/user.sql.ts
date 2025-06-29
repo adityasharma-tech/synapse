@@ -44,4 +44,15 @@ const User = schema.table(
     ]
 );
 
+export type SafeUserType = {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    profilePicture: string;
+    phoneNumber: string;
+    role: UserRole;
+    emailVerified: boolean;
+};
+
 export { User };

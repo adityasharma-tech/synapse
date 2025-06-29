@@ -6,6 +6,9 @@ import { provideToastr } from "ngx-toastr";
 
 import { routes } from "./app.routes";
 
+import { provideRedux } from "@reduxjs/angular-redux";
+import store from "./core/store/store";
+
 export const appConfig: ApplicationConfig = {
     providers: [
         provideZoneChangeDetection({ eventCoalescing: true }),
@@ -14,5 +17,6 @@ export const appConfig: ApplicationConfig = {
         provideToastr({
             positionClass: "toast-bottom-right",
         }),
+        provideRedux({ store }),
     ],
 };

@@ -1,10 +1,10 @@
 import { Injectable } from "@angular/core";
 import { apiClient } from "./axios-client";
 import { AxiosResponse } from "axios";
+import { injectDispatch } from "@reduxjs/angular-redux";
+import { AppDispatch } from "../store/store";
+import { setUser } from "../store/features/app.slice";
 
-@Injectable({
-    providedIn: "root",
-})
 declare class ApiResponse {
     statusCode: number;
     data: any;
@@ -23,7 +23,14 @@ declare class ApiError {
     constructor(statusCode: number, message: string, errType: string);
 }
 
+@Injectable({
+    providedIn: "root",
+})
 export class AxiosService {
+    dispatch = injectDispatch<AppDispatch>();
+
+    setUser = setUser;
+
     async handleRequest(axiosReq: Promise<AxiosResponse<ApiResponse, any>>) {
         try {
             const request = await axiosReq;
@@ -78,9 +85,9 @@ export class AxiosService {
 
     async checkUser() {
         const { result, error } = await this.handleRequest(this.fetchUser());
-        if (result) {
-        } else {
-        }
+        if (result) this.dispatch(this.setUser(result.data.user));
+
+        if (error) console.error("axiosService.checkUser: ", error);
     }
 
     constructor() {}

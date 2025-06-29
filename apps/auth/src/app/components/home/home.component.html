@@ -1,1 +1,19 @@
-<p>home works!</p>
+<div class="text-left min-w-[300px]">
+    <div class="text-2xl font-semibold text-neutral-900">
+        Welcome {{ user()?.firstName }}
+    </div>
+    <div class="gap-x-2 flex mt-2">
+        <span>View your logged in Apps</span>
+    </div>
+
+    <div class="grid grid-cols-2 py-10">
+        <div
+            *ngFor="let entry of apps"
+            class="p-4 border border-neutral-200 rounded-lg size-32 cursor-pointer"
+        >
+            <div>
+                <img [src]="entry.logo" class="w-full py-2" />
+            </div>
+        </div>
+    </div>
+</div>

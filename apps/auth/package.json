@@ -20,6 +20,8 @@
         "@angular/router": "^19.2.0",
         "@ngx-loading-bar/core": "^7.0.0",
         "@ngx-loading-bar/router": "^7.0.0",
+        "@reduxjs/angular-redux": "^2.0.1",
+        "@reduxjs/toolkit": "^2.8.2",
         "@tailwindcss/postcss": "^4.1.11",
         "axios": "^1.10.0",
         "ngx-toastr": "^19.0.0",
