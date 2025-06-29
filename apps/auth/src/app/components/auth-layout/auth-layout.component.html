@@ -1,7 +1,7 @@
 <div
-    class="bg-white rounded-xl drop-shadow-xl w-[90vw] h-[90vh] flex overflow-hidden"
+    class="bg-white rounded-xl drop-shadow-xl md:w-[90vw] md:h-[90vh] w-screen h-screen md:flex overflow-hidden"
 >
-    <div class="w-3/12 h-full relative">
+    <div class="w-3/12 hidden md:block h-full relative">
         <div
             class="z-5 absolute inset-0 py-2 flex flex-col justify-between text-left"
         >
@@ -32,7 +32,9 @@
             alt="bg-image"
         />
     </div>
-    <div class="w-9/12 h-full flex justify-center items-center">
+    <div
+        class="md:w-9/12 w-full md:p-0 p-4 h-full flex justify-center items-center"
+    >
         <router-outlet />
     </div>
 </div>

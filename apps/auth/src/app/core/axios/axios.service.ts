@@ -72,5 +72,16 @@ export class AxiosService {
         return apiClient.get("/user/logout");
     }
 
+    fetchUser() {
+        return apiClient.get("/user");
+    }
+
+    async checkUser() {
+        const { result, error } = await this.handleRequest(this.fetchUser());
+        if (result) {
+        } else {
+        }
+    }
+
     constructor() {}
 }

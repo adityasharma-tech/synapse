@@ -1,21 +1,18 @@
 module.exports = {
     apps: [
-        {
-            name: "permit-service-1",
-            cwd: "./apps/permit-service",
-            script: "yarn start",
-            env: {
-                // PERMIT_GRPC_ADDRESS: "0.0.0.0:3010"
-            },
-        },
         // {
-        //     name: "permit-service-2",
+        //     name: "permit-service-1",
         //     cwd: "./apps/permit-service",
         //     script: "yarn start",
         //     env: {
-        //         PERMIT_GRPC_ADDRESS: "0.0.0.0:3008"
-        //     }
+        //         // PERMIT_GRPC_ADDRESS: "0.0.0.0:3010"
+        //     },
         // },
+        {
+            name: "auth",
+            cwd: "./apps/auth",
+            script: "ng serve",
+        },
         // {
         //     name: "permit-service-3",
         //     cwd: "./apps/permit-service",
@@ -53,10 +50,10 @@ module.exports = {
         //         PORT: 3007,
         //     },
         // },
-        {
-            name: "web-dev",
-            cwd: "./apps/web",
-            script: "yarn dev",
-        },
+        // {
+        //     name: "web-dev",
+        //     cwd: "./apps/web",
+        //     script: "yarn dev",
+        // },
     ],
 };
