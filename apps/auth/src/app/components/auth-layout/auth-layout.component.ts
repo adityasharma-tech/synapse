@@ -1,5 +1,5 @@
-import { Component } from "@angular/core";
-import { RouterOutlet } from "@angular/router";
+import { Component, effect } from "@angular/core";
+import { Router, RouterOutlet } from "@angular/router";
 import { RootState } from "../../core/store/store";
 import { injectSelector } from "@reduxjs/angular-redux";
 import { HomeComponent } from "../home/home.component";
@@ -15,5 +15,10 @@ export class AuthLayoutComponent {
     user = injectSelector((state: RootState) => state.app.user);
     fetchLoading = injectSelector((state: RootState) => state.app.fetchLoading);
 
-    constructor() {}
+    constructor(private router: Router) {
+        effect(() => {
+            if (this.user() && !this.fetchLoading())
+                this.router.navigate(["/"]);
+        });
+    }
 }

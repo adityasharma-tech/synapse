@@ -106,8 +106,18 @@ const loginHandler = asyncHandler(async (req, res) => {
 
     res.setHeaders(headers);
 
-    res.cookie("accessToken", accessToken, cookieOptions);
-    res.cookie("refreshToken", refreshToken, cookieOptions);
+    res.cookie("__Secure-rfc_access", accessToken, {
+        ...cookieOptions,
+        domain: "auth.adityasharma.tech",
+    });
+    res.cookie("__Secure-rfc_access", accessToken, {
+        ...cookieOptions,
+        domain: "synapse.adityasharma.tech",
+    });
+    res.cookie("__Secure-rfc_refresh", refreshToken, {
+        ...cookieOptions,
+        domain: "*.adityasharma.tech",
+    });
 
     res.status(200).json(
         new ApiResponse(200, { user }, "User logged in successfully")
@@ -448,8 +458,18 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
         .where(eq(TokenTable.userId, user.userId))
         .execute();
 
-    res.cookie("refreshToken", newRefreshToken, cookieOptions);
-    res.cookie("accessToken", newAccessToken, cookieOptions);
+    res.cookie("__Secure-rfc_access", newAccessToken, {
+        ...cookieOptions,
+        domain: "auth.adityasharma.tech",
+    });
+    res.cookie("__Secure-rfc_access", newAccessToken, {
+        ...cookieOptions,
+        domain: "synapse.adityasharma.tech",
+    });
+    res.cookie("__Secure-rfc_refresh", newRefreshToken, {
+        ...cookieOptions,
+        domain: "*.adityasharma.tech",
+    });
 
     res.status(200).json(new ApiResponse(200, { user }));
 });
@@ -653,13 +673,23 @@ const googleSignupHandler = asyncHandler(async (req, res) => {
         .execute();
 
     const headers = new Headers();
-    headers.append("accessToken", accessToken);
-    headers.append("refreshToken", refreshToken);
+    headers.append("rfc_access", accessToken);
+    headers.append("rfc_refresh", refreshToken);
 
     res.setHeaders(headers);
 
-    res.cookie("accessToken", accessToken, cookieOptions);
-    res.cookie("refreshToken", refreshToken, cookieOptions);
+    res.cookie("__Secure-rfc_access", accessToken, {
+        ...cookieOptions,
+        domain: "auth.adityasharma.tech",
+    });
+    res.cookie("__Secure-rfc_access", accessToken, {
+        ...cookieOptions,
+        domain: "synapse.adityasharma.tech",
+    });
+    res.cookie("__Secure-rfc_refresh", refreshToken, {
+        ...cookieOptions,
+        domain: "*.adityasharma.tech",
+    });
 
     res.status(200).json(
         new ApiResponse(200, { user: newUsr }, "User logged in successfully")
@@ -748,13 +778,23 @@ const googleLoginHandler = asyncHandler(async (req, res) => {
         .execute();
 
     const headers = new Headers();
-    headers.append("accessToken", accessToken);
-    headers.append("refreshToken", refreshToken);
+    headers.append("rfc_access", accessToken);
+    headers.append("rfc_refresh", refreshToken);
 
     res.setHeaders(headers);
 
-    res.cookie("accessToken", accessToken, cookieOptions);
-    res.cookie("refreshToken", refreshToken, cookieOptions);
+    res.cookie("__Secure-rfc_access", accessToken, {
+        ...cookieOptions,
+        domain: "auth.adityasharma.tech",
+    });
+    res.cookie("__Secure-rfc_access", accessToken, {
+        ...cookieOptions,
+        domain: "synapse.adityasharma.tech",
+    });
+    res.cookie("__Secure-rfc_refresh", refreshToken, {
+        ...cookieOptions,
+        domain: "*.adityasharma.tech",
+    });
 
     res.status(200).json(
         new ApiResponse(200, { user: usr }, "User logged in successfully")

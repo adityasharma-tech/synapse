@@ -18,9 +18,15 @@ const appSlice = createSlice({
             state.user = action.payload;
             state.fetchLoading = false;
         },
+        setLoading: (state, action: PayloadAction<boolean>) => {
+            state.fetchLoading = action.payload;
+        },
+        clearUser: (state) => {
+            state.user = undefined;
+        },
     },
 });
 
-export const { setUser } = appSlice.actions;
+export const { setUser, setLoading, clearUser } = appSlice.actions;
 
 export default appSlice.reducer;

@@ -31,7 +31,8 @@ const socketAuthMiddleware = async (
         // parsing all the cookies from the socket handshake headers
         const cookies = parse(socket.handshake.headers.cookie ?? "");
         const accessToken =
-            cookies?.accessToken || socket.handshake.headers?.accessToken;
+            cookies["__Secure-rfc_access"] ||
+            socket.handshake.headers?.accessToken;
         const streamId = socket.handshake.query.streamId as string;
 
         if (!accessToken)

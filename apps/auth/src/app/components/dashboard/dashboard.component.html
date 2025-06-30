@@ -1,0 +1,76 @@
+<div class="h-screen flex flex-col w-screen">
+    <header class="px-3 py-2 bg-neutral-100">
+        <div class="justify-between flex items-center">
+            <span
+                [routerLink]="['/']"
+                class="text-lg md:cursor-pointer text-neutral-900"
+                >Stark Secure Network</span
+            >
+            @if (loading()) {
+                <div
+                    class="w-32 h-9 bg-neutral-300 animate-pulse rounded-lg"
+                ></div>
+            } @else {
+                <div>
+                    <button
+                        (click)="logout()"
+                        class="px-10 text-sm flex justify-center items-center py-2 bg-rose-600 rounded-md text-white cursor-pointer hover:opacity-90 border-b-2 border-neutral-300"
+                    >
+                        Logout
+                    </button>
+                </div>
+            }
+        </div>
+    </header>
+    <div class="min-w-6xl h-full mx-auto py-10">
+        <div>
+            <span class="text-xl">Applications</span>
+        </div>
+
+        @if (loading()) {
+            <div class="flex justify-center items-center w-full h-full">
+                <div class="loader"></div>
+            </div>
+        } @else {
+            <div class="grid grid-cols-5 py-3 mt-10">
+                <div
+                    class="min-h-34 bg-neutral-200 group overflow-hidden md:cursor-pointer shadow rounded-lg flex p-0.5 flex-col"
+                >
+                    <div
+                        class="p-4 bg-white flex-1 flex flex-col rounded-md border border-neutral-300/60"
+                    >
+                        <div>Synapse</div>
+                        <div class="">
+                            <a
+                                class="text-xs text-neutral-600 hover:underline active:underline"
+                                target="_blank"
+                                href="https://synapse.adityasharma.tech"
+                                >https://synapse.adityasharma.tech</a
+                            >
+                        </div>
+                    </div>
+                    <div
+                        class="text-[10px] w-[150%] px-2 py-1 group-hover:-ml-32 transition-all text-neutral-600 font-semibold flex justify-between"
+                    >
+                        <span>Updated a month ago</span>
+                        <span class="flex gap-x-1 items-center"
+                            >View details
+                            <svg
+                                class="h-3 w-4 stroke-neutral-600"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    d="M5 12H19M19 12L13 6M19 12L13 18"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                /></svg
+                        ></span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

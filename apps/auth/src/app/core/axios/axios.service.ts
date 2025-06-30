@@ -3,7 +3,7 @@ import { apiClient } from "./axios-client";
 import { AxiosResponse } from "axios";
 import { injectDispatch } from "@reduxjs/angular-redux";
 import { AppDispatch } from "../store/store";
-import { setUser } from "../store/features/app.slice";
+import { setLoading, setUser } from "../store/features/app.slice";
 
 declare class ApiResponse {
     statusCode: number;
@@ -44,9 +44,7 @@ export class AxiosService {
                     error: error.response.data as ApiError,
                     success: false,
                 };
-            } else {
-                return { error, success: false };
-            }
+            } else return { error, success: false };
         }
     }
 
@@ -75,19 +73,23 @@ export class AxiosService {
         return apiClient.post("/auth/login", payload);
     }
 
-    logoutUser() {
+    logoutUser(): Promise<AxiosResponse<ApiResponse, any>> {
         return apiClient.get("/user/logout");
     }
 
-    fetchUser() {
+    fetchUser(): Promise<AxiosResponse<ApiResponse, any>> {
         return apiClient.get("/user");
     }
 
     async checkUser() {
+        this.dispatch(setLoading(false));
+        this.dispatch(setLoading(true));
         const { result, error } = await this.handleRequest(this.fetchUser());
         if (result) this.dispatch(this.setUser(result.data.user));
 
         if (error) console.error("axiosService.checkUser: ", error);
+
+        this.dispatch(setLoading(false));
     }
 
     constructor() {}
