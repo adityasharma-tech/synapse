@@ -24,6 +24,12 @@ label {
     width: 100%;
 }
 
+.input-container input {
+    &:is(.dark *) {
+        border: 1px solid #383838;
+    }
+}
+
 input::placeholder {
     color: #7c7c7c;
     opacity: 1;

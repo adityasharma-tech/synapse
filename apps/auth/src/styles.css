@@ -3,6 +3,8 @@
 @import "tailwindcss";
 @import "ngx-toastr/toastr";
 
+@custom-variant dark (&:is(.dark *));
+
 * {
     font-family: "Poppins", sans-serif;
 }

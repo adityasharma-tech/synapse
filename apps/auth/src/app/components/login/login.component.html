@@ -1,5 +1,7 @@
-<div class="text-left">
-    <div class="text-2xl font-semibold text-neutral-900">Welcome back</div>
+<div class="text-left dark:text-neutral-200">
+    <div class="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
+        Welcome back
+    </div>
     <div class="gap-x-2 flex mt-2">
         <span>Don't have an account?</span>
         <a [routerLink]="['/register']" class="underline">Sign up</a>
@@ -39,7 +41,7 @@
 
         <button
             [disabled]="!loginForm.valid || fetchLoading()"
-            class="flex justify-center text-center items-center disabled:opacity-50 w-full py-2.5 bg-neutral-900 rounded-lg mt-10 text-white gap-x-3 md:cursor-pointer hover:opacity-95 hover:shadow-sm transition-opacity"
+            class="flex justify-center text-center items-center disabled:opacity-50 w-full py-2.5 dark:bg-zinc-100 dark:text-black bg-neutral-900 rounded-lg mt-10 text-white gap-x-3 md:cursor-pointer hover:opacity-95 hover:shadow-sm transition-opacity"
         >
             <span class="text-lg">Continue</span>
 
@@ -63,8 +65,7 @@
                     xmlns="http://www.w3.org/2000/svg"
                     xmlns:xlink="http://www.w3.org/1999/xlink"
                     width="32"
-                    class="animate-spin"
-                    fill="#fff"
+                    class="animate-spin fill-white dark:fill-zinc-800"
                     height="32"
                     viewBox="0 0 100 100"
                     enable-background="new 0 0 100 100"
@@ -253,7 +254,9 @@
                     </g>
                 </g>
             </svg>
-            <span class="text-lg">Continue with google</span>
+            <span class="text-lg dark:text-neutral-100"
+                >Continue with google</span
+            >
         </button>
     </div>
 </div>
