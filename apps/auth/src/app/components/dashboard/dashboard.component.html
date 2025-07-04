@@ -27,50 +27,109 @@
             <span class="text-xl">Applications</span>
         </div>
 
-        @if (loading()) {
-            <div class="flex justify-center items-center w-full h-full">
-                <div class="loader"></div>
-            </div>
-        } @else {
-            <div class="grid grid-cols-5 py-3 mt-10">
-                <div
-                    class="min-h-34 bg-neutral-200 dark:bg-neutral-900 group overflow-hidden md:cursor-pointer shadow rounded-lg flex p-0.5 flex-col"
-                >
+        <div class="flex h-full">
+            @if (loading()) {
+                <div class="flex justify-center items-center w-full h-full">
+                    <div class="loader"></div>
+                </div>
+            } @else {
+                <div class="grid grid-cols-3 py-3 mt-10">
                     <div
-                        class="p-4 bg-white dark:bg-neutral-800/90 flex-1 dark:text-white flex flex-col rounded-md border border-neutral-300/60 dark:border-neutral-700"
+                        class="min-h-34 max-h-40 bg-neutral-200 dark:bg-neutral-900 group overflow-hidden md:cursor-pointer shadow rounded-lg flex p-0.5 flex-col"
                     >
-                        <div>Synapse</div>
-                        <div class="">
-                            <a
-                                class="text-xs text-neutral-600 dark:text-neutral-400 hover:underline active:underline"
-                                target="_blank"
-                                href="https://synapse.adityasharma.tech"
-                                >https://synapse.adityasharma.tech</a
-                            >
+                        <div
+                            class="p-4 bg-white dark:bg-neutral-800/90 flex-1 dark:text-white flex flex-col rounded-md border border-neutral-300/60 dark:border-neutral-700"
+                        >
+                            <div>Synapse</div>
+                            <div class="">
+                                <a
+                                    class="text-xs text-neutral-600 dark:text-neutral-400 hover:underline active:underline"
+                                    target="_blank"
+                                    href="https://synapse.adityasharma.tech"
+                                    >https://synapse.adityasharma.tech</a
+                                >
+                            </div>
+                        </div>
+                        <div
+                            class="text-[10px] w-[150%] px-2 py-1 group-hover:-ml-32 transition-all text-neutral-600 dark:text-neutral-400 font-semibold dark:font-medium flex justify-between"
+                        >
+                            <span>Updated a month ago</span>
+                            <span class="flex gap-x-1 items-center"
+                                >View details
+                                <svg
+                                    class="h-3 w-4 stroke-neutral-600 dark:stroke-neutral-400"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        d="M5 12H19M19 12L13 6M19 12L13 18"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    /></svg
+                            ></span>
                         </div>
                     </div>
-                    <div
-                        class="text-[10px] w-[150%] px-2 py-1 group-hover:-ml-32 transition-all text-neutral-600 dark:text-neutral-400 font-semibold dark:font-medium flex justify-between"
-                    >
-                        <span>Updated a month ago</span>
-                        <span class="flex gap-x-1 items-center"
-                            >View details
-                            <svg
-                                class="h-3 w-4 stroke-neutral-600 dark:stroke-neutral-400"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
+                </div>
+            }
+            <div
+                class="w-[50vw] h-full dark:text-neutral-100 flex flex-col gap-y-10"
+            >
+                <div class="flex justify-between">
+                    <div class="flex items-center gap-x-5">
+                        <img
+                            src="https://i.pravatar.cc/200?img=5"
+                            alt="profile-image"
+                            class="size-20 rounded-full"
+                        />
+                        <div class="flex flex-col gap-y-1">
+                            <span class="text-lg font-medium"
+                                >{{ user()?.firstName }}
+                                {{ user()?.lastName }}</span
                             >
-                                <path
-                                    d="M5 12H19M19 12L13 6M19 12L13 18"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                /></svg
-                        ></span>
+                            <span class="text-sm">{{ user()?.email }}</span>
+                            <span class="text-sm">{{ user()?.role }}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <button
+                            class="bg-neutral-100 rounded-lg text-neutral-900 not-dark:bg-neutral-100 not-dark:text-neutral-100 px-4 py-1 md:cursor-pointer hover:opacity-90"
+                        >
+                            logout all session
+                        </button>
                     </div>
                 </div>
+                <div>
+                    <div class="text-lg font-medium py-5">Active Sessions</div>
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-neutral-900 text-neutral-400">
+                                <th class="py-2 px-2 font-medium">
+                                    IP Address
+                                </th>
+                                <th class="py-2 px-2 font-medium">Location</th>
+                                <th class="py-2 px-2 font-medium">Platform</th>
+                                <th class="py-2 px-2 font-medium">
+                                    lastActive
+                                </th>
+                                <th class="py-2 px-2 font-medium">Status</th>
+                                <th class="py-2 px-2 font-medium">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="px-2 py-2">100.245.5.3</td>
+                                <td class="px-2 py-2">Patna, IN</td>
+                                <td class="px-2 py-2">Linux/Chrome</td>
+                                <td class="px-2 py-2">a min ago</td>
+                                <td class="px-2 py-2">Active</td>
+                                <td class="px-2 py-2">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        }
+        </div>
     </div>
 </div>

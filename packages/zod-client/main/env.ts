@@ -13,6 +13,8 @@ const zodEnv = z.object({
     PORT: z.coerce.number().optional().default(5174),
     FRONTEND_URL: z.string().url(),
 
+    CORS_URLS: z.string(),
+
     // Database configuration
     DB_NAME: z.string(),
     DB_HOST: z.string(),

@@ -1,13 +1,10 @@
 import { env } from "@pkgs/zod-client";
 import { socketEvent } from "../shared";
+import { logger } from "./logger";
 
-const corsOrigins = [
-    env.FRONTEND_URL,
-    "https://synapse-local.adityasharma.live",
-    "https://localport-3000.adityasharma.live",
-    "https://alishanshowroom.vercel.app",
-    "http://localhost:4200",
-];
+const corsOrigins = env.CORS_URLS.split(",");
+
+logger.info("Allowed cors origins: ", corsOrigins);
 
 // RabbitMQ Channels
 const RMQ_PAYOUT_QUEUE = "payout_queue";

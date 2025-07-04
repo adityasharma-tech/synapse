@@ -26,6 +26,7 @@ const Session = schema.table(
         mobile: t.boolean().default(false),
         brands: t.jsonb(),
         deviceMemory: t.integer(),
+        location: t.varchar(),
         ...timestamps,
     },
     (table) => [t.uniqueIndex().onOnly(table.token)]

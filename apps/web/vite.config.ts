@@ -12,6 +12,7 @@ export default defineConfig({
             "s.uignite.in",
             "localport-3000.adityasharma.live",
             "rambhardwaj.in",
+            "auth.adityasharma.tech",
         ],
     },
     base: "/",
