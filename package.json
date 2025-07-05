@@ -9,6 +9,7 @@
         "concurrently": "^9.1.2",
         "grpc-tools": "^1.13.0",
         "grpc_tools_node_protoc_ts": "^5.3.3",
+        "http-server": "^14.1.1",
         "husky": "^9.1.7",
         "lerna": "^8.2.2",
         "prettier": "^3.5.3",

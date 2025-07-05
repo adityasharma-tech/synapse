@@ -27,27 +27,13 @@ import {
     getChannelPlanDetailSchema,
     uploadCustomEmotesSchema,
 } from "@pkgs/zod-client/validators";
-import { generateUsername } from "../../src/lib/utils";
 
 /**
  * For logout remove the cookies and clear the caches
  */
 const logoutHandler = asyncHandler(async (_, res) => {
-    // res.cookie("accessToken", "", {
-    //     maxAge: 0,
-    //     sameSite: "none",
-    //     httpOnly: true,
-    //     secure: true,
-    // });
-    // res.cookie("refreshToken", "", {
-    //     maxAge: 0,
-    //     sameSite: "none",
-    //     httpOnly: true,
-    //     secure: true,
-    // });
-
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
+    res.clearCookie("__Secure-rfc_refresh");
+    res.clearCookie("__Secure-rfc_access");
 
     res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     res.setHeader("Pragma", "no-cache");

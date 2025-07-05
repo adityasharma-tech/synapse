@@ -1,9 +1,10 @@
-import { env } from "@pkgs/zod-client";
-import { eq, or } from "drizzle-orm";
-import { TokenTable, User } from "@pkgs/drizzle-client";
+import { env, handleZodError, loginSchema } from "@pkgs/zod-client";
+import { and, desc, eq, gt, or, sql } from "drizzle-orm";
+import { Session, TokenTable, User } from "@pkgs/drizzle-client";
 import { emailVerificationTokenExpiry } from "../lib/constants";
 import { generateUsername, getSigningTokens } from "../lib/utils";
 import { RMQClient } from "@pkgs/rmq-client";
+import { UAParser } from "ua-parser-js";
 import {
     logger,
     ApiError,
@@ -22,8 +23,12 @@ import bcrypt from "bcryptjs";
 
 const rmqClient = new RMQClient();
 
+const createSession = async () => {};
+
 const loginHandler = asyncHandler(async (req, res) => {
-    const { username, email, password } = req.body;
+    const { username, email, password, metadata } = handleZodError(
+        loginSchema.safeParse(req.body)
+    );
 
     if (!(username || email) || !password || password.trim() == "")
         throw new ApiError(
@@ -94,29 +99,62 @@ const loginHandler = asyncHandler(async (req, res) => {
         .where(eq(User.id, user.id))
         .execute();
 
+    const activeSessions = await db
+        .select({
+            userId: Session.userId,
+            sessionId: Session.sessionId,
+        })
+        .from(Session)
+        .where(
+            and(
+                eq(Session.userId, user.id),
+                eq(Session.invalid, false),
+                gt(Session.expireAt, sql`now()`)
+            )
+        )
+        .orderBy(desc(Session.expireAt))
+        .execute();
+
+    if (activeSessions.length >= 5)
+        await db
+            .update(Session)
+            .set({ invalid: true, expireAt: new Date() })
+            .where(eq(Session.sessionId, activeSessions[0].sessionId));
+
+    const parser = new UAParser(req.headers["user-agent"]);
+    const ua = parser.getResult();
+
     await db
-        .update(TokenTable)
-        .set({ userRefreshToken: refreshToken })
-        .where(eq(TokenTable.userId, user.id))
+        .insert(Session)
+        .values({
+            userId: user.id,
+            expireAt: cookieOptions.expires!,
+            token: refreshToken,
+            userAgent: req.get("User-Agent") ?? "",
+            authMethod: "email-password",
+            ipAddress: req.ip,
+            platform: metadata.platform,
+            brands: metadata.brands,
+            deviceMemory: metadata.deviceMemory,
+            languages: metadata.languages,
+            mobile: metadata.mobile,
+        })
+        .returning()
         .execute();
 
     const headers = new Headers();
-    headers.append("accessToken", accessToken);
-    headers.append("refreshToken", refreshToken);
+    headers.append("rfc_access", accessToken);
+    headers.append("rfc_access", refreshToken);
 
     res.setHeaders(headers);
 
     res.cookie("__Secure-rfc_access", accessToken, {
         ...cookieOptions,
-        domain: "auth.adityasharma.tech",
-    });
-    res.cookie("__Secure-rfc_access", accessToken, {
-        ...cookieOptions,
-        domain: "synapse.adityasharma.tech",
+        domain: "adityasharma.tech",
     });
     res.cookie("__Secure-rfc_refresh", refreshToken, {
         ...cookieOptions,
-        domain: "*.adityasharma.tech",
+        domain: "adityasharma.tech",
     });
 
     res.status(200).json(
@@ -389,7 +427,8 @@ const resendEmailHandler = asyncHandler(async (req, res) => {
 const refreshTokenHandler = asyncHandler(async (req, res) => {
     const cookies = req.cookies;
 
-    const refreshToken = cookies?.refreshToken || req.headers?.refreshToken;
+    const refreshToken =
+        cookies["__Secure-rfc_refresh"] || req.headers["rfc_refresh"];
 
     if (!refreshToken) {
         throw new ApiError(401, "Unauthorized", ErrCodes.VALIDATION_ERR);
@@ -460,15 +499,11 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
 
     res.cookie("__Secure-rfc_access", newAccessToken, {
         ...cookieOptions,
-        domain: "auth.adityasharma.tech",
-    });
-    res.cookie("__Secure-rfc_access", newAccessToken, {
-        ...cookieOptions,
-        domain: "synapse.adityasharma.tech",
+        domain: "adityasharma.tech",
     });
     res.cookie("__Secure-rfc_refresh", newRefreshToken, {
         ...cookieOptions,
-        domain: "*.adityasharma.tech",
+        domain: "adityasharma.tech",
     });
 
     res.status(200).json(new ApiResponse(200, { user }));
@@ -680,15 +715,11 @@ const googleSignupHandler = asyncHandler(async (req, res) => {
 
     res.cookie("__Secure-rfc_access", accessToken, {
         ...cookieOptions,
-        domain: "auth.adityasharma.tech",
-    });
-    res.cookie("__Secure-rfc_access", accessToken, {
-        ...cookieOptions,
-        domain: "synapse.adityasharma.tech",
+        domain: "adityasharma.tech",
     });
     res.cookie("__Secure-rfc_refresh", refreshToken, {
         ...cookieOptions,
-        domain: "*.adityasharma.tech",
+        domain: "adityasharma.tech",
     });
 
     res.status(200).json(
@@ -785,15 +816,11 @@ const googleLoginHandler = asyncHandler(async (req, res) => {
 
     res.cookie("__Secure-rfc_access", accessToken, {
         ...cookieOptions,
-        domain: "auth.adityasharma.tech",
-    });
-    res.cookie("__Secure-rfc_access", accessToken, {
-        ...cookieOptions,
-        domain: "synapse.adityasharma.tech",
+        domain: "adityasharma.tech",
     });
     res.cookie("__Secure-rfc_refresh", refreshToken, {
         ...cookieOptions,
-        domain: "*.adityasharma.tech",
+        domain: "adityasharma.tech",
     });
 
     res.status(200).json(

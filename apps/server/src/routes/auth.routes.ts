@@ -15,7 +15,7 @@ import {
     verifyEmailHandler,
 } from "../controller/auth.controller";
 
-const router: Router = Router();
+const router = Router();
 
 // unauthenticated routes
 router.route("/refresh-token").post(refreshTokenHandler);

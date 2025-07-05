@@ -1,6 +1,7 @@
 import * as t from "drizzle-orm/pg-core";
 import { schema, timestamps } from "./helpers.sql";
 import { User } from "./user.sql";
+import { sql } from "drizzle-orm";
 
 export const authMethod = schema.enum("auth_method", [
     "email-password",
@@ -11,6 +12,10 @@ export const authMethod = schema.enum("auth_method", [
 const Session = schema.table(
     "session",
     {
+        sessionId: t
+            .uuid()
+            .default(sql`gen_random_uuid()`)
+            .notNull(),
         userId: t
             .integer()
             .references(() => User.id)
@@ -26,7 +31,12 @@ const Session = schema.table(
         mobile: t.boolean().default(false),
         brands: t.jsonb(),
         deviceMemory: t.integer(),
-        location: t.varchar(),
+        expireAt: t.timestamp().notNull(),
+        city: t.varchar(),
+        region: t.varchar(),
+        timezone: t.varchar(),
+        telecom: t.varchar(),
+        country: t.varchar(),
         ...timestamps,
     },
     (table) => [t.uniqueIndex().onOnly(table.token)]

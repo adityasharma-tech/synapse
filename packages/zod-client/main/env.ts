@@ -1,8 +1,11 @@
 import { z } from "zod";
 import dotenv from "dotenv";
-dotenv.config({
-    path: "../../.env",
-});
+import dotenvExpand from "dotenv-expand";
+dotenvExpand.expand(
+    dotenv.config({
+        path: "../../.env",
+    })
+);
 
 const zodEnv = z.object({
     MAIL_GRPC_ADDRESS: z.string(),

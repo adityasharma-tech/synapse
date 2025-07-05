@@ -4,7 +4,7 @@ import { logger } from "./logger";
 
 const corsOrigins = env.CORS_URLS.split(",");
 
-logger.info("Allowed cors origins: ", corsOrigins);
+logger.info("Allowed cors origins: " + JSON.stringify(corsOrigins));
 
 // RabbitMQ Channels
 const RMQ_PAYOUT_QUEUE = "payout_queue";

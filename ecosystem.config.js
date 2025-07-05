@@ -11,7 +11,7 @@ module.exports = {
         {
             name: "auth",
             cwd: "./apps/auth",
-            script: "ng serve",
+            script: "yarn build; yarn http-server ./dist/auth/browser -p 4200 --proxy https://auth.adityasharma.tech:4200?",
         },
         // {
         //     name: "permit-service-3",

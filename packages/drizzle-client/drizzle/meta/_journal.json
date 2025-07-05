@@ -57,6 +57,34 @@
             "when": 1751656849553,
             "tag": "0007_slippery_johnny_storm",
             "breakpoints": true
+        },
+        {
+            "idx": 8,
+            "version": "7",
+            "when": 1751718352093,
+            "tag": "0008_mighty_cargill",
+            "breakpoints": true
+        },
+        {
+            "idx": 9,
+            "version": "7",
+            "when": 1751718736442,
+            "tag": "0009_amused_layla_miller",
+            "breakpoints": true
+        },
+        {
+            "idx": 10,
+            "version": "7",
+            "when": 1751719230138,
+            "tag": "0010_aberrant_scalphunter",
+            "breakpoints": true
+        },
+        {
+            "idx": 11,
+            "version": "7",
+            "when": 1751739702660,
+            "tag": "0011_crazy_tusk",
+            "breakpoints": true
         }
     ]
 }

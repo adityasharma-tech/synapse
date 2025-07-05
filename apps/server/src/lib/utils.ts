@@ -34,7 +34,7 @@ function getSigningTokens(payload: Partial<MiddlewareUserT>) {
         expiresIn: "4d",
     });
     const accessToken = jwt.sign(payload, env.ACCESS_SECRET_KEY, {
-        expiresIn: "5min",
+        expiresIn: "1min",
     });
     const cookieOptions: CookieOptions = {
         httpOnly: true,

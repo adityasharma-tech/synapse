@@ -13,6 +13,7 @@ export default defineConfig({
             "localport-3000.adityasharma.live",
             "rambhardwaj.in",
             "auth.adityasharma.tech",
+            "synapse.adityasharma.tech",
         ],
     },
     base: "/",
