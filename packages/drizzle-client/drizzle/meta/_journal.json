@@ -85,6 +85,13 @@
             "when": 1751739702660,
             "tag": "0011_crazy_tusk",
             "breakpoints": true
+        },
+        {
+            "idx": 12,
+            "version": "7",
+            "when": 1751741782849,
+            "tag": "0012_silky_mojo",
+            "breakpoints": true
         }
     ]
 }

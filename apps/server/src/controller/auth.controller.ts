@@ -125,21 +125,23 @@ const loginHandler = asyncHandler(async (req, res) => {
 
     const lData = await fetchLocationData(req.ip ?? "");
 
+    const parser = new UAParser(req.headers["user-agent"]);
+    const ua = parser.getResult();
+
     await db
         .insert(Session)
         .values({
             userId: user.id,
-            expireAt: cookieOptions.expires!,
+            expireAt: new Date(Date.now() + 60 * 60 * 24 * 4 * 1000),
             token: refreshToken,
             userAgent: req.headers["user-agent"] ?? "",
             authMethod: "email-password",
             ipAddress: req.ip,
-            platform: metadata.platform,
-            brands: metadata.brands,
-            deviceMemory: metadata.deviceMemory,
+            platform: ua.device.type,
             languages: metadata.languages,
-            mobile: metadata.mobile,
+            mobile: ua.device.type == "mobile",
             city: lData?.city,
+            os: ua.os.name,
             country: lData?.country,
             region: lData?.region,
             telecom: lData?.org,
@@ -502,7 +504,7 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
         .set({
             token: newRefreshToken,
             lastActive: new Date(),
-            expireAt: cookieOptions.expires,
+            expireAt: new Date(Date.now() + 60 * 60 * 24 * 4 * 1000),
         })
         .where(eq(Session.token, refreshToken));
 

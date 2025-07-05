@@ -54,12 +54,15 @@ export class AxiosService {
     }): Promise<AxiosResponse<ApiResponse, any>> {
         return apiClient.post("/auth/login", {
             username: payload.emailOrUsername.includes("@")
-                ? undefined
+                ? ""
                 : payload.emailOrUsername,
             email: payload.emailOrUsername.includes("@")
                 ? payload.emailOrUsername
-                : undefined,
+                : "",
             password: payload.password,
+            metadata: {
+                languages: navigator.languages,
+            },
         });
     }
 
