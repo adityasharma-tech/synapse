@@ -2,7 +2,11 @@ import { env, handleZodError, loginSchema } from "@pkgs/zod-client";
 import { and, desc, eq, gt, or, sql } from "drizzle-orm";
 import { Session, TokenTable, User } from "@pkgs/drizzle-client";
 import { emailVerificationTokenExpiry } from "../lib/constants";
-import { generateUsername, getSigningTokens } from "../lib/utils";
+import {
+    fetchLocationData,
+    generateUsername,
+    getSigningTokens,
+} from "../lib/utils";
 import { RMQClient } from "@pkgs/rmq-client";
 import { UAParser } from "ua-parser-js";
 import {
@@ -22,8 +26,6 @@ import crpyto from "crypto";
 import bcrypt from "bcryptjs";
 
 const rmqClient = new RMQClient();
-
-const createSession = async () => {};
 
 const loginHandler = asyncHandler(async (req, res) => {
     const { username, email, password, metadata } = handleZodError(
@@ -121,8 +123,7 @@ const loginHandler = asyncHandler(async (req, res) => {
             .set({ invalid: true, expireAt: new Date() })
             .where(eq(Session.sessionId, activeSessions[0].sessionId));
 
-    const parser = new UAParser(req.headers["user-agent"]);
-    const ua = parser.getResult();
+    const lData = await fetchLocationData(req.ip ?? "");
 
     await db
         .insert(Session)
@@ -130,7 +131,7 @@ const loginHandler = asyncHandler(async (req, res) => {
             userId: user.id,
             expireAt: cookieOptions.expires!,
             token: refreshToken,
-            userAgent: req.get("User-Agent") ?? "",
+            userAgent: req.headers["user-agent"] ?? "",
             authMethod: "email-password",
             ipAddress: req.ip,
             platform: metadata.platform,
@@ -138,6 +139,11 @@ const loginHandler = asyncHandler(async (req, res) => {
             deviceMemory: metadata.deviceMemory,
             languages: metadata.languages,
             mobile: metadata.mobile,
+            city: lData?.city,
+            country: lData?.country,
+            region: lData?.region,
+            telecom: lData?.org,
+            timezone: lData?.timezone,
         })
         .returning()
         .execute();
@@ -492,10 +498,13 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
     });
 
     await db
-        .update(TokenTable)
-        .set({ userRefreshToken: newRefreshToken })
-        .where(eq(TokenTable.userId, user.userId))
-        .execute();
+        .update(Session)
+        .set({
+            token: newRefreshToken,
+            lastActive: new Date(),
+            expireAt: cookieOptions.expires,
+        })
+        .where(eq(Session.token, refreshToken));
 
     res.cookie("__Secure-rfc_access", newAccessToken, {
         ...cookieOptions,

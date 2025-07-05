@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-
+import axios from "axios";
 import { env } from "@pkgs/zod-client";
 import { CookieOptions } from "express";
 import { MiddlewareUserT } from "@pkgs/lib";
@@ -75,10 +75,28 @@ function verifyStreamerVerficationToken(token: string) {
     }
 }
 
+async function fetchLocationData(ip: string): Promise<{
+    ip: string;
+    city: string;
+    region: string;
+    country: string;
+    loc: string;
+    org: string;
+    postal: string;
+    timezone: string;
+} | null> {
+    try {
+        return (await axios.get(`https://ipinfo.io/${ip}/json`)).data;
+    } catch (error) {
+        return null;
+    }
+}
+
 export {
     areValuesValid,
     generateUsername,
     getSigningTokens,
     signStreamerVerficationToken,
     verifyStreamerVerficationToken,
+    fetchLocationData,
 };
