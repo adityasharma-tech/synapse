@@ -1,13 +1,18 @@
 import { Router } from "express";
 import {
+    getAllSessions,
     googleLoginHandler,
     googleSignupHandler,
+    logoutAll,
+    logoutBySessionId,
+    logoutHandler,
     refreshTokenHandler,
     resetPasswordEmailHandler,
     resetPasswordHandler,
 } from "../controller/auth.controller";
 import { authRouteValidators } from "../middleware/validator.middleware";
 import { emailVerificationLimiter } from "../middleware/limiters.middleware";
+import { authMiddleware } from "../middleware/auth.middleware";
 import {
     loginHandler,
     registerHandler,
@@ -17,10 +22,15 @@ import {
 
 const router = Router();
 
-// unauthenticated routes
+// authenticated routes
+router.route("/logout").get(authMiddleware, logoutHandler);
+router.route("/logout/:id").post(authMiddleware, logoutBySessionId);
+router.route("/sessions").get(authMiddleware, getAllSessions);
+router.route("/logout-all").get(authMiddleware, logoutAll);
+
+// ...
 router.route("/refresh-token").post(refreshTokenHandler);
 
-// authenticated routes
 router
     .route("/verify")
     .get(authRouteValidators.verifyEmailRoute, verifyEmailHandler);

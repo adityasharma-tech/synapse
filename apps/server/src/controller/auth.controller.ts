@@ -1,6 +1,6 @@
 import { env, handleZodError, loginSchema } from "@pkgs/zod-client";
 import { and, desc, eq, gt, or, sql } from "drizzle-orm";
-import { Session, TokenTable, User } from "@pkgs/drizzle-client";
+import { authMethod, Session, TokenTable, User } from "@pkgs/drizzle-client";
 import { emailVerificationTokenExpiry } from "../lib/constants";
 import {
     fetchLocationData,
@@ -452,6 +452,24 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
         );
     }
 
+    const [session] = await db
+        .select({
+            userId: Session.userId,
+            token: Session.token,
+        })
+        .from(Session)
+        .where(
+            and(
+                eq(Session.token, refreshToken),
+                eq(Session.invalid, false),
+                gt(Session.expireAt, sql`now()`)
+            )
+        )
+        .execute();
+
+    if (!session)
+        throw new ApiError(400, "No session found for the provided token");
+
     const [user] = await db
         .select({
             userId: User.id,
@@ -464,20 +482,7 @@ const refreshTokenHandler = asyncHandler(async (req, res) => {
             email: User.email,
         })
         .from(User)
-        .innerJoin(TokenTable, eq(User.id, TokenTable.userId))
-        .where(eq(TokenTable.userRefreshToken, refreshToken))
-        .groupBy(
-            User.id,
-            User.username,
-            User.role,
-            User.firstName,
-            User.lastName,
-            User.profilePicture,
-            User.emailVerified,
-            User.email,
-            TokenTable.userId,
-            TokenTable.userRefreshToken
-        )
+        .where(eq(User.id, session.userId))
         .limit(1)
         .execute();
 
@@ -839,6 +844,102 @@ const googleLoginHandler = asyncHandler(async (req, res) => {
     );
 });
 
+/**
+ * For logout remove the cookies and clear the caches
+ */
+const logoutHandler = asyncHandler(async (_, res) => {
+    res.cookie("__Secure-rfc_refresh", "", {
+        expires: new Date(),
+        domain: "adityasharma.tech",
+        httpOnly: true,
+        secure: true,
+        maxAge: 0,
+        path: "/",
+        sameSite: "none",
+    });
+
+    res.cookie("__Secure-rfc_access", "", {
+        expires: new Date(),
+        domain: "adityasharma.tech",
+        httpOnly: true,
+        secure: true,
+        maxAge: 0,
+        path: "/",
+        sameSite: "none",
+    });
+
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    res.status(200).json(new ApiResponse(200, null, "Logout success."));
+});
+
+const getAllSessions = asyncHandler(async (req, res) => {
+    const user = req.user;
+
+    const sessions = await db
+        .select({
+            userId: Session.userId,
+            authMethod: Session.authMethod,
+            country: Session.country,
+            city: Session.city,
+            invalid: Session.invalid,
+            lastActive: Session.lastActive,
+            ipAddress: Session.ipAddress,
+            os: Session.os,
+            patform: Session.platform,
+            telecom: Session.telecom,
+            sessionId: Session.sessionId,
+        })
+        .from(Session)
+        .where(eq(Session.userId, user.id));
+
+    res.status(200).json(new ApiResponse(200, { sessions }));
+});
+const logoutAll = asyncHandler(async (req, res) => {
+    const user = req.user;
+
+    await db
+        .update(Session)
+        .set({
+            invalid: true,
+            expireAt: new Date(),
+        })
+        .where(
+            and(
+                eq(Session.userId, user.id),
+                eq(Session.invalid, false),
+                gt(Session.expireAt, sql`now()`)
+            )
+        )
+        .execute();
+
+    res.status(200).json(
+        new ApiResponse(200, null, "All sessions logout success")
+    );
+});
+const logoutBySessionId = asyncHandler(async (req, res) => {
+    const user = req.user;
+    const id = req.params.id;
+
+    await db
+        .update(Session)
+        .set({
+            invalid: true,
+            expireAt: new Date(),
+        })
+        .where(
+            and(
+                eq(Session.sessionId, id),
+                eq(Session.userId, user.id),
+                eq(Session.invalid, false),
+                gt(Session.expireAt, sql`now()`)
+            )
+        );
+
+    res.status(200).json(new ApiResponse(200, null));
+});
+
 export {
     loginHandler,
     registerHandler,
@@ -849,4 +950,8 @@ export {
     resetPasswordHandler,
     googleSignupHandler,
     googleLoginHandler,
+    logoutHandler,
+    getAllSessions,
+    logoutAll,
+    logoutBySessionId,
 };

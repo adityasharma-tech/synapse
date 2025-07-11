@@ -7,7 +7,6 @@ import {
     deleteEmoteByCode,
     getAllEmotesForAStreamer,
     getUserHandler,
-    logoutHandler,
     updateUserHandler,
     uploadCustomEmotes,
 } from "../controller/user.controller";
@@ -17,8 +16,6 @@ import { createSubscription } from "../controller/stream.controller";
 const router = Router();
 
 router.use(authMiddleware);
-
-router.route("/logout").get(logoutHandler);
 
 router
     .route("/")

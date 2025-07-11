@@ -63,10 +63,12 @@
                     "builder": "@ngx-env/builder:dev-server",
                     "configurations": {
                         "production": {
-                            "buildTarget": "auth:build:production"
+                            "buildTarget": "auth:build:production",
+                            "allowedHosts": ["auth.adityasharma.tech"]
                         },
                         "development": {
-                            "buildTarget": "auth:build:development"
+                            "buildTarget": "auth:build:development",
+                            "allowedHosts": ["auth.adityasharma.tech"]
                         }
                     },
                     "defaultConfiguration": "development",

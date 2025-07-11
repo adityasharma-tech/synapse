@@ -77,7 +77,7 @@ export class AxiosService {
     }
 
     logoutUser(): Promise<AxiosResponse<ApiResponse, any>> {
-        return apiClient.get("/user/logout");
+        return apiClient.get("/auth/logout");
     }
 
     fetchUser(): Promise<AxiosResponse<ApiResponse, any>> {

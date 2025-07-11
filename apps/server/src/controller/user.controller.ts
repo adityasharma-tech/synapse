@@ -29,19 +29,6 @@ import {
 } from "@pkgs/zod-client/validators";
 
 /**
- * For logout remove the cookies and clear the caches
- */
-const logoutHandler = asyncHandler(async (_, res) => {
-    res.clearCookie("__Secure-rfc_refresh");
-    res.clearCookie("__Secure-rfc_access");
-
-    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    res.setHeader("Pragma", "no-cache");
-    res.setHeader("Expires", "0");
-    res.status(200).json(new ApiResponse(200, null, "Logout success."));
-});
-
-/**
  * Get the current logged in user details
  */
 const getUserHandler = asyncHandler(async (req, res) => {
@@ -443,7 +430,6 @@ const deleteEmoteByCode = asyncHandler(async (req, res) => {
 });
 
 export {
-    logoutHandler,
     getUserHandler,
     applyForStreamer,
     deleteEmoteByCode,

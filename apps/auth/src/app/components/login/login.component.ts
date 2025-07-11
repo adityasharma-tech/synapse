@@ -1,6 +1,11 @@
 import { Component, effect, inject } from "@angular/core";
 import { Router, RouterModule } from "@angular/router";
-import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
+import {
+    FormBuilder,
+    FormControl,
+    ReactiveFormsModule,
+    Validators,
+} from "@angular/forms";
 import { AxiosService } from "../../core/axios/axios.service";
 import { ToastrService } from "ngx-toastr";
 import { injectSelector } from "@reduxjs/angular-redux";
@@ -19,8 +24,8 @@ export class LoginComponent {
     fetchLoading = injectSelector((state: RootState) => state.app.fetchLoading);
 
     loginForm = this.loginFormBuilder.group({
-        emailOrUsername: ["", Validators.required],
-        password: ["", Validators.required],
+        emailOrUsername: new FormControl("", Validators.required),
+        password: new FormControl("", Validators.required),
     });
 
     onSubmit = async () => {
